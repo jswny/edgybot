@@ -4,6 +4,7 @@ defmodule Edgybot.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -11,6 +12,8 @@ defmodule Edgybot.Application do
       # Starts a worker by calling: Edgybot.Worker.start_link(arg)
       # {Edgybot.Worker, arg}
     ]
+
+    Logger.info("Starting Edgybot...")
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
