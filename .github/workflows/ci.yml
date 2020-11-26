@@ -30,7 +30,7 @@ jobs:
       - name: Compile
         run: mix compile
   test:
-    name: test
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 
