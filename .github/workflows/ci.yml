@@ -88,10 +88,11 @@ jobs:
         uses: actions/cache@v2
         env:
           base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-plt
+          plt-core-path: '_build/dev'
         with:
           path: |
-            **/*.plt
-            **/*.plt.hash
+            ${{ env.plt-core-path }}/*.plt
+            ${{ env.plt-core-path }}/*.plt.hash
           key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
