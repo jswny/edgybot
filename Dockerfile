@@ -11,7 +11,7 @@ RUN mix deps.get
 RUN mix compile
 RUN mix release
 
-FROM alpine:3.12
+FROM alpine:3.12 AS runner
 
 ENV NCURSES_DEV_VERSION="6.2_p20200523-r0"
 
