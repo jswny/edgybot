@@ -1,0 +1,2 @@
+defmodule Edgybot do
+end
