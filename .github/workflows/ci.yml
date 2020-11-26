@@ -1,0 +1,124 @@
+name: CI
+on: [push]
+
+env:
+  OTP_VERSION: '23'
+  ELIXIR_VERSION: '1.11.2'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Cache Mix Dependencies
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-mix-deps
+        with:
+          path: deps
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
+      - name: Compile
+        run: mix compile
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Cache Mix Dependencies
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-mix-deps
+        with:
+          path: deps
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
+      - name: Test
+        run: mix test
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Check Formatting
+        run: mix format --check-formatted
+  dialyzer:
+    name: Dialyzer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Cache Mix Dependencies
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-mix-deps
+        with:
+          path: deps
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache PLT
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-plt
+          plt-core-path: '_build/dev'
+        with:
+          path: |
+            ${{ env.plt-core-path }}/*.plt
+            ${{ env.plt-core-path }}/*.plt.hash
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
+      - name: Run Dialyzer
+        run: mix dialyzer
+  credo:
+    name: Credo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Cache Mix Dependencies
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-mix-deps
+        with:
+          path: deps
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
+      - name: Run Credo
+        run: mix credo --strict
