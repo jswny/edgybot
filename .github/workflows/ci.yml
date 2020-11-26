@@ -3,7 +3,7 @@ on: [push]
 
 env:
   OTP_VERSION: '23'
-  ELIXIR_VERSION: '^1.11.2'
+  ELIXIR_VERSION: '1.11.2'
 
 jobs:
   build:
