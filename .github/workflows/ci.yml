@@ -1,0 +1,31 @@
+name: CI
+on: [push]
+
+env:
+  OTP_VERSION: '23'
+  ELIXIR_VERSION: '^1.11.2'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+      - name: Cache Mix Dependencies
+        uses: actions/cache@v2
+        env:
+          base-key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-mix-deps
+        with:
+          path: deps
+          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
+      - name: Compile
+        run: mix compile
