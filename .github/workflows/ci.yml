@@ -83,5 +83,5 @@ jobs:
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
-      - name: Test
-        run: mix test
+      - name: Run Dialyzer
+        run: mix dialyzer
