@@ -2,7 +2,10 @@
 Edgy Discord bot.
 
 ## Running
-Before running, make sure you have an environment variable `DISCORD_TOKEN` set to a valid bot token.
+Before running, make sure you have an environment variable `DISCORD_TOKEN` set to a valid bot token. In addition, you can set the following environment variables to configure the database connection to Postgres:
+- `DATABASE_USERNAME` (default: `postgres`)
+- `DATABASE_PASSWORD` (default: `postgres`)
+- `DATABASE_HOSTNAME` (default: `localhost`)
 
 ### Local
 ```shell
@@ -11,7 +14,7 @@ mix run --no-halt
 ```
 
 ### Docker
-Build the image with `docker build -t jswny/edgybot .`, or pull it from GitHub Container Regsitry with `docker pull ghcr.io/jswny/edgybot`, and then run the image:
+You can run with Docker Compose, which will build the image locally.
 ```shell
-docker run --env DISCORD_TOKEN jswny/edgybot 
+docker-compose up
 ```
