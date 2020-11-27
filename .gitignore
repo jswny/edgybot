@@ -25,5 +25,8 @@ edgybot-*.tar
 # Temporary files for e.g. tests
 /tmp
 
+# Postgres data
+pgdata/
+
 # Other files
 .env*

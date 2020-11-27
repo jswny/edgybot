@@ -1,3 +1,6 @@
 # Mix artifacts
 _build/
 deps
+
+# Postgres data
+pgdata/
