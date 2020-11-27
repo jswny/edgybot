@@ -28,7 +28,8 @@ defmodule Edgybot.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:nostrum, "~> 0.4"},
-      {:ecto, "~> 3.5"}
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"}
     ]
   end
 
