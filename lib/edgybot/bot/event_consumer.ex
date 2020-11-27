@@ -19,4 +19,11 @@ defmodule Edgybot.Bot.EventConsumer do
       start: {__MODULE__, :start_link, []}
     }
   end
+
+  @impl true
+  def handle_event(event) do
+    event_type = elem(event, 0)
+    Logger.debug("Ignored event: #{event_type}")
+    :noop
+  end
 end
