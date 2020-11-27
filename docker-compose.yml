@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=edgybot_prod
   migrate:
-    image: jswny/edgybot
+    image: ghcr.io/jswny/edgybot:edge
     container_name: edgybot-migrate
     depends_on:
       - db
@@ -19,7 +19,7 @@ services:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
   bot:
     build: .
-    image: jswny/edgybot
+    image: ghcr.io/jswny/edgybot:edge
     container_name: edgybot
     environment:
       - DATABASE_HOSTNAME=edgybot-db
