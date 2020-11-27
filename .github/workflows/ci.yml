@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       db:
-        image: postgres:${{ env.POSTGRES_VERSION }}
+        image: ${{ format('postgres:{0}', env.POSTGRES_VERSION)}}
         ports: ['5432:5432']
         env:
           POSTGRES_PASSWORD: postgres
