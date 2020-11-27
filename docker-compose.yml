@@ -1,0 +1,8 @@
+version: '3'
+services:
+  bot:
+    build: .
+    image: jswny/edgybot
+    container_name: edgybot
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
