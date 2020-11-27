@@ -3,10 +3,10 @@ import Config
 app_name = :edgybot
 
 get_env_var = fn var_name, default ->
-  var = System.get_env(var_name)
+  value = System.get_env(var_name)
 
-  if var == nil || var == "" do
-    if default != nil do
+  if value == nil || value == "" do
+    if default != :none do
       default
     else
       raise """
@@ -14,7 +14,7 @@ get_env_var = fn var_name, default ->
       """
     end
   else
-    var
+    value
   end
 end
 
@@ -26,5 +26,5 @@ config app_name, Edgybot.Repo,
 
 if config_env() != :test do
   config :nostrum,
-    token: get_env_var.("DISCORD_TOKEN", nil)
+    token: get_env_var.("DISCORD_TOKEN", :none)
 end
