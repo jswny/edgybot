@@ -1,6 +1,7 @@
 defmodule Edgybot.Bot.Supervisor do
-  use Supervisor
+  @moduledoc false
 
+  use Supervisor
   alias Edgybot.Bot
 
   def start_link(_opts) do
