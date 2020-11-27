@@ -1,5 +1,8 @@
 defmodule Edgybot.DataCase do
+  @moduledoc false
+
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -12,10 +15,10 @@ defmodule Edgybot.DataCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Edgybot.Repo)
+    :ok = Sandbox.checkout(Edgybot.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Edgybot.Repo, {:shared, self()})
+      Sandbox.mode(Edgybot.Repo, {:shared, self()})
     end
 
     :ok
