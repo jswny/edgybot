@@ -1,5 +1,3 @@
 defmodule Edgybot do
-  @moduledoc """
-  Edgybot main module for base functionality.
-  """
+  @moduledoc false
 end

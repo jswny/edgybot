@@ -1,4 +1,8 @@
 defmodule Edgybot.Bot.EventConsumer do
+  @moduledoc """
+  Handles all bot events.
+  """
+
   require Logger
   use Nostrum.Consumer
   alias Nostrum.Api
