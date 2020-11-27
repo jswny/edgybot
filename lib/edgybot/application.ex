@@ -5,15 +5,13 @@ defmodule Edgybot.Application do
 
   use Application
   require Logger
+  alias Edgybot.Bot
 
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Edgybot.Worker.start_link(arg)
-      # {Edgybot.Worker, arg}
+      Bot.Supervisor
     ]
-
-    Logger.info("Starting...")
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
