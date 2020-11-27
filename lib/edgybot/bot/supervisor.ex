@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Supervisor do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  defp generate_event_consumer_children() do
+  defp generate_event_consumer_children do
     # Generate one child ber thread
     Enum.map(1..System.schedulers_online(), fn thread_number ->
       {Bot.EventConsumer, [thread_number: thread_number]}

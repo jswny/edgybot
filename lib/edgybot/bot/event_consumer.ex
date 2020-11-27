@@ -7,7 +7,7 @@ defmodule Edgybot.Bot.EventConsumer do
   use Nostrum.Consumer
   alias Nostrum.Api
 
-  def start_link() do
+  def start_link do
     Consumer.start_link(__MODULE__)
   end
 
