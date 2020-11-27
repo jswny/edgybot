@@ -16,5 +16,7 @@ get_env_var = fn var_name, default ->
   end
 end
 
-config :nostrum,
-  token: get_env_var.("DISCORD_TOKEN", nil)
+if config_env() != :test do
+  config :nostrum,
+    token: get_env_var.("DISCORD_TOKEN", nil)
+end
