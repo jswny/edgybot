@@ -4,13 +4,28 @@ on: [push]
 env:
   OTP_VERSION: '23'
   ELIXIR_VERSION: '1.11.2'
+  PYTHON_VERSION: '3.8'
 
 jobs:
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install YAML Lint
+        run: pip install yamllint
+      - name: Run YAML Lint
+        run: yamllint .
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
@@ -33,7 +48,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
@@ -56,7 +71,7 @@ jobs:
     name: Check Formatting
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
@@ -69,7 +84,7 @@ jobs:
     name: Dialyzer
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
@@ -103,7 +118,7 @@ jobs:
     name: Credo
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
@@ -204,4 +219,3 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ fromJson(steps.repo.outputs.result).license.spdx_id }}
-      
