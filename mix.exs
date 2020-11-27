@@ -35,7 +35,8 @@ defmodule Edgybot.MixProject do
 
   defp aliases do
     [
-      test: "test --no-start"
+      test: ["ecto.create --quiet", "ecto.migrate", "test --no-start"],
+      "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate"]
     ]
   end
 end
