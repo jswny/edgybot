@@ -13,7 +13,7 @@ defmodule Edgybot.Application do
       # {Edgybot.Worker, arg}
     ]
 
-    Logger.info("Starting Edgybot...")
+    Logger.info("Starting...")
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
