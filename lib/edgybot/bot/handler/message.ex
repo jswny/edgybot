@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Handlers.Message do
+defmodule Edgybot.Bot.Handler.Message do
   @moduledoc false
 
   def handle_message_create(message) when is_struct(message) do

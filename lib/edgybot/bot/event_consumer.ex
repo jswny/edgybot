@@ -6,6 +6,7 @@ defmodule Edgybot.Bot.EventConsumer do
   require Logger
   use Nostrum.Consumer
   alias Nostrum.Api
+  alias Edgybot.Bot.Handler
 
   def start_link do
     Consumer.start_link(__MODULE__)
