@@ -26,9 +26,11 @@ defmodule Edgybot.Bot.EventConsumer do
     event_type = :MESSAGE_CREATE
     Logger.debug("Received event: #{event_type}")
 
-    case message.content do
-      "/e ping" -> Api.create_message!(message.channel_id, "Pong!")
-      _ -> :ignore
+    result = Handler.Message.handle_message_create(message)
+
+    case result do
+      {:response, response} -> Api.create_message!(message.channel_id, response)
+      :ignore -> :ignore
     end
   end
 
