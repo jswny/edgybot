@@ -1,10 +1,12 @@
 import Config
 
-get_env_var = fn var_name, default ->
-  var = System.get_env(var_name)
+app_name = :edgybot
 
-  if var == nil || var == "" do
-    if default != nil do
+get_env_var = fn var_name, default ->
+  value = System.get_env(var_name)
+
+  if value == nil || value == "" do
+    if default != :none do
       default
     else
       raise """
@@ -12,11 +14,17 @@ get_env_var = fn var_name, default ->
       """
     end
   else
-    var
+    value
   end
 end
 
+config app_name, Edgybot.Repo,
+  database: "edgybot_#{config_env()}",
+  username: get_env_var.("DATABASE_USERNAME", "postgres"),
+  password: get_env_var.("DATABASE_PASSWORD", "postgres"),
+  hostname: get_env_var.("DATABASE_HOSTNAME", "localhost")
+
 if config_env() != :test do
   config :nostrum,
-    token: get_env_var.("DISCORD_TOKEN", nil)
+    token: get_env_var.("DISCORD_TOKEN", :none)
 end

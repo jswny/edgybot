@@ -10,7 +10,8 @@ defmodule Edgybot.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      Bot.Supervisor
+      Bot.Supervisor,
+      Edgybot.Repo
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
