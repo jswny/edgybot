@@ -22,22 +22,39 @@ defmodule Edgybot.Bot.EventConsumer do
   end
 
   @impl true
-  def handle_event({:MESSAGE_CREATE, message, _ws_state}) do
-    event_type = :MESSAGE_CREATE
-    Logger.debug("Received event: #{event_type}")
-
-    result = Handler.Message.handle_message_create(message)
-
-    case result do
-      {:response, response} -> Api.create_message!(message.channel_id, response)
-      :ignore -> :ignore
-    end
+  def handle_event({event, payload, _ws_state}) do
+    Logger.debug("Received event: #{event}")
+    dispatch_event(event, payload)
   end
 
   @impl true
-  def handle_event(event) do
-    event_type = elem(event, 0)
-    Logger.debug("Ignored event: #{event_type}")
+  def handle_event(_event) do
+    ignore("undefined", "event")
+  end
+
+  defp dispatch_event(event, payload) do
+    result =
+      case event do
+        :MESSAGE_CREATE ->
+          message = payload
+          Handler.Message.handle_message_create(message)
+
+        _ ->
+          ignore("unhandled", "event")
+      end
+
+    handle_response(result)
+  end
+
+  defp ignore(type, thing) do
+    Logger.debug("Ignored #{type} #{thing}")
     :noop
+  end
+
+  defp handle_response(response) do
+    case response do
+      {:response, channel_id, response} -> Api.create_message!(channel_id, response)
+      _ -> ignore("non-required", "response")
+    end
   end
 end

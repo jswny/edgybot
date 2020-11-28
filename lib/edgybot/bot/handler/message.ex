@@ -7,10 +7,10 @@ defmodule Edgybot.Bot.Handler.Message do
 
     case message.content do
       ^ping ->
-        {:response, "Pong!"}
+        {:response, message.channel_id, "Pong!"}
 
       _ ->
-        :ignore
+        :noop
     end
   end
 end
