@@ -1,11 +1,22 @@
 defmodule Edgybot.Bot.Handler.Event do
-  alias Edgybot.Bot.Handler
-
   def handle_event(event, payload) do
     case event do
       :MESSAGE_CREATE ->
         message = payload
-        Handler.Message.handle_message_create(message)
+        handle_message_create(message)
+
+      _ ->
+        :noop
+    end
+  end
+
+  defp handle_message_create(message) when is_struct(message) do
+    prefix = "/e"
+    ping = "#{prefix} ping"
+
+    case message.content do
+      ^ping ->
+        {:response, message.channel_id, "Pong!"}
 
       _ ->
         :noop
