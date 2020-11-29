@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Handler.Command do
          {:ok, parsed_command} <- parse_command(cleaned_command),
          {:ok, matched_command_name} <- match_command(parsed_command),
          {:ok, response} <- handle_matched_command(parsed_command, matched_command_name) do
-      {:ok, response}
+      response
     else
       err -> err
     end
@@ -23,14 +23,14 @@ defmodule Edgybot.Bot.Handler.Command do
   def is_command?(message) do
     message.content
     |> String.trim()
-    |> String.match?(~r/\/e.*/)
+    |> String.starts_with?(Bot.prefix())
   end
 
   defp clean_command(command) when is_binary(command) do
     cleaned =
       command
-      |> String.trim()
       |> String.replace(Bot.prefix(), "")
+      |> String.trim()
 
     {:ok, cleaned}
   end
@@ -79,6 +79,8 @@ defmodule Edgybot.Bot.Handler.Command do
   defp compare_command(parsed_command, command_name_to_match_against)
        when is_list(parsed_command) and is_binary(command_name_to_match_against) do
     command_definition = @commands[command_name_to_match_against]
+    command_definition = [{:string, command_name_to_match_against} | command_definition]
+
     command_definition_count = Enum.count(command_definition)
     parsed_command_count = Enum.count(parsed_command)
 
@@ -113,6 +115,7 @@ defmodule Edgybot.Bot.Handler.Command do
   end
 
   defp command_ping(_parsed_command) do
-    {:response, :channel, "Pong!"}
+    response = {:message, "Pong!"}
+    {:ok, response}
   end
 end
