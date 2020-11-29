@@ -24,26 +24,14 @@ defmodule Edgybot.Bot.EventConsumer do
   @impl true
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
-    dispatch_event(event, payload)
+
+    Handler.Event.handle_event(event, payload)
+    |> handle_response()
   end
 
   @impl true
   def handle_event(_event) do
     ignore("undefined", "event")
-  end
-
-  defp dispatch_event(event, payload) do
-    result =
-      case event do
-        :MESSAGE_CREATE ->
-          message = payload
-          Handler.Message.handle_message_create(message)
-
-        _ ->
-          ignore("unhandled", "event")
-      end
-
-    handle_response(result)
   end
 
   defp ignore(type, thing) do
