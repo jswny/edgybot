@@ -21,8 +21,8 @@ defmodule Edgybot.Bot.EventConsumer do
   end
 
   @impl true
-  def handle_event({event_type, payload, _ws_state} = event) do
-    Logger.debug("Received event: #{event_type}")
+  def handle_event({event, payload, _ws_state}) do
+    Logger.debug("Received event: #{event}")
 
     Handler.Event.handle_event(event, payload)
     |> Handler.Response.handle_response()
