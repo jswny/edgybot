@@ -1,7 +1,6 @@
 defmodule Edgybot.Bot.Handler.Event do
   @moduledoc false
 
-  alias Edgybot.Bot
   alias Edgybot.Bot.Handler
 
   def handle_event(event, payload) do
