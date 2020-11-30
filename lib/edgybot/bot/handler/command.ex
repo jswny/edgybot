@@ -134,7 +134,8 @@ defmodule Edgybot.Bot.Handler.Command do
   defp handle_matched_command(parsed_command, matched_command_name)
        when is_list(parsed_command) and is_binary(matched_command_name) do
     case matched_command_name do
-      "ping" -> command_ping(parsed_command)
+      "ping" ->
+        command_ping(parsed_command)
     end
   end
 
