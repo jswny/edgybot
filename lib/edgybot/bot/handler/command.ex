@@ -7,16 +7,10 @@ defmodule Edgybot.Bot.Handler.Command do
     "ping" => []
   }
 
-  def handle_command(command, command_definitions)
-      when is_binary(command) and is_map(command_definitions),
-      do: handle_command_with_definitions(command, command_definitions)
-
   def handle_command(command)
-      when is_binary(command),
-      do: handle_command_with_definitions(command, @command_definitions)
+      when is_binary(command) do
+    command_definitions = @command_definitions
 
-  defp handle_command_with_definitions(command, command_definitions)
-       when is_binary(command) and is_map(command_definitions) do
     with {:ok, cleaned_command} <- clean_command(command),
          {:ok, parsed_command} <- parse_command(cleaned_command),
          {:ok, matched_command_name} <- match_command(parsed_command, command_definitions),
