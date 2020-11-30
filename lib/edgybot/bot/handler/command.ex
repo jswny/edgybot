@@ -42,6 +42,8 @@ defmodule Edgybot.Bot.Handler.Command do
     {:ok, cleaned}
   end
 
+  defp parse_command(""), do: {:ok, []}
+
   defp parse_command(command) when is_binary(command) do
     parsed =
       command
