@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Handler.CommandTest do
   use ExUnit.Case
   alias Edgybot.Bot
   alias Edgybot.Bot.Handler.Command
+  import Edgybot.TestUtils
 
   describe "handle_command/2" do
     test "with no command returns error" do
@@ -41,9 +42,5 @@ defmodule Edgybot.Bot.Handler.CommandTest do
       result = Command.is_command?(command)
       assert result
     end
-  end
-
-  defp build_command(command) do
-    "#{Bot.prefix()} #{command}"
   end
 end
