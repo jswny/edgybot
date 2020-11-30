@@ -79,7 +79,7 @@ defmodule Edgybot.Bot.Handler.Command do
   defp compare_command(parsed_command, command_name_to_match_against)
        when is_list(parsed_command) and is_binary(command_name_to_match_against) do
     command_definition = @commands[command_name_to_match_against]
-    command_definition = [{:string, command_name_to_match_against} | command_definition]
+    command_definition = [{:static_string, command_name_to_match_against} | command_definition]
 
     command_definition_count = Enum.count(command_definition)
     parsed_command_count = Enum.count(parsed_command)
@@ -102,11 +102,22 @@ defmodule Edgybot.Bot.Handler.Command do
     end)
   end
 
-  defp compare_command_elem_to_definition_elem(parsed_command_elem, command_definition_elem) do
-    parsed_command_elem_type = elem(parsed_command_elem, 0)
-    command_definition_elem_type = elem(command_definition_elem, 0)
-    parsed_command_elem_type == command_definition_elem_type
+  defp compare_command_elem_to_definition_elem(
+         {:string, parsed_elem_string},
+         {:static_string, definition_elem_string}
+       ) do
+    parsed_elem_string == definition_elem_string
   end
+
+  defp compare_command_elem_to_definition_elem(
+         {:string, _parsed_elem_string},
+         :string
+       ) do
+    true
+  end
+
+  defp compare_command_elem_to_definition_elem(_parsed_command_elem, _command_definition_elem),
+    do: false
 
   defp handle_matched_command(parsed_command, matched_command_name) do
     case matched_command_name do
