@@ -3,16 +3,25 @@ defmodule Edgybot.Bot.Handler.Command do
 
   alias Edgybot.Bot
 
-  @commands %{
+  @command_definitions %{
     "ping" => []
   }
 
-  def handle_command(message) when is_map(message) do
+  def handle_command(message, command_definitions)
+      when is_map(message) and is_map(command_definitions),
+      do: handle_command_with_definitions(message, command_definitions)
+
+  def handle_command(message)
+      when is_map(message),
+      do: handle_command_with_definitions(message, @command_definitions)
+
+  defp handle_command_with_definitions(message, command_definitions)
+       when is_map(message) and is_map(command_definitions) do
     command = message.content
 
     with {:ok, cleaned_command} <- clean_command(command),
          {:ok, parsed_command} <- parse_command(cleaned_command),
-         {:ok, matched_command_name} <- match_command(parsed_command),
+         {:ok, matched_command_name} <- match_command(parsed_command, command_definitions),
          {:ok, response} <- handle_matched_command(parsed_command, matched_command_name) do
       response
     else
@@ -61,13 +70,15 @@ defmodule Edgybot.Bot.Handler.Command do
     end
   end
 
-  defp match_command(parsed_command) when is_list(parsed_command) and length(parsed_command) < 1,
-    do: {:error, "no command provided"}
+  defp match_command(parsed_command, _command_definitions)
+       when is_list(parsed_command) and length(parsed_command) < 1,
+       do: {:error, "no command provided"}
 
-  defp match_command(parsed_command) when is_list(parsed_command) do
-    command_list = Map.keys(@commands)
+  defp match_command(parsed_command, command_definitions) when is_list(parsed_command) do
+    command_list = Map.keys(command_definitions)
 
-    command_name = Enum.find(command_list, &compare_command(parsed_command, &1))
+    command_name =
+      Enum.find(command_list, &compare_command(parsed_command, &1, command_definitions))
 
     if command_name do
       {:ok, command_name}
@@ -76,9 +87,9 @@ defmodule Edgybot.Bot.Handler.Command do
     end
   end
 
-  defp compare_command(parsed_command, command_name_to_match_against)
+  defp compare_command(parsed_command, command_name_to_match_against, command_definitions)
        when is_list(parsed_command) and is_binary(command_name_to_match_against) do
-    command_definition = @commands[command_name_to_match_against]
+    command_definition = command_definitions[command_name_to_match_against]
     command_definition = [{:static_string, command_name_to_match_against} | command_definition]
 
     command_definition_count = Enum.count(command_definition)
