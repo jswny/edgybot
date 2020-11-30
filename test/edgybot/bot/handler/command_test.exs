@@ -19,6 +19,12 @@ defmodule Edgybot.Bot.Handler.CommandTest do
       assert {:error, "no matching command"} =
                Command.handle_command(command, command_definitions)
     end
+
+    test "with valid ping command returns response" do
+      command = build_command("ping")
+
+      assert {:message, "Pong!"} = Command.handle_command(command)
+    end
   end
 
   describe "is_command?/1" do
