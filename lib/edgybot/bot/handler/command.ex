@@ -29,8 +29,8 @@ defmodule Edgybot.Bot.Handler.Command do
     end
   end
 
-  def is_command?(message) when is_map(message) do
-    message.content
+  def is_command?(content) when is_binary(content) do
+    content
     |> String.trim()
     |> String.starts_with?(Bot.prefix())
   end
