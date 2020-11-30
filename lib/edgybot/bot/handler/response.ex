@@ -19,7 +19,6 @@ defmodule Edgybot.Bot.Handler.Response do
   defp send_response(response) do
     case response do
       {:message, channel_id, content} -> Api.create_message!(channel_id, content)
-      _ -> :noop
     end
   end
 end
