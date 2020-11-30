@@ -1,4 +1,6 @@
 defmodule Edgybot.Bot.Handler.Response do
+  @moduledoc false
+
   alias Nostrum.Api
 
   def handle_response(:noop, _source), do: :noop

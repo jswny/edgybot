@@ -1,4 +1,6 @@
 defmodule Edgybot.Bot.Handler.Event do
+  @moduledoc false
+
   alias Edgybot.Bot
   alias Edgybot.Bot.Handler
 
@@ -14,9 +16,10 @@ defmodule Edgybot.Bot.Handler.Event do
   end
 
   defp handle_message_create(message) when is_struct(message) do
-    cond do
-      Handler.Command.is_command?(message) -> Handler.Command.handle_command(message)
-      true -> :noop
+    if Handler.Command.is_command?(message) do
+      Handler.Command.handle_command(message)
+    else
+      :noop
     end
   end
 end
