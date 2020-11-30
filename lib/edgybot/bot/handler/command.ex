@@ -7,7 +7,7 @@ defmodule Edgybot.Bot.Handler.Command do
     "ping" => []
   }
 
-  def handle_command(message) do
+  def handle_command(message) when is_map(message) do
     command = message.content
 
     with {:ok, cleaned_command} <- clean_command(command),
@@ -20,7 +20,7 @@ defmodule Edgybot.Bot.Handler.Command do
     end
   end
 
-  def is_command?(message) do
+  def is_command?(message) when is_map(message) do
     message.content
     |> String.trim()
     |> String.starts_with?(Bot.prefix())
@@ -105,7 +105,8 @@ defmodule Edgybot.Bot.Handler.Command do
   defp compare_command_elem_to_definition_elem(
          {:string, parsed_elem_string},
          {:static_string, definition_elem_string}
-       ) do
+       )
+       when is_binary(parsed_elem_string) and is_binary(definition_elem_string) do
     parsed_elem_string == definition_elem_string
   end
 
@@ -119,7 +120,8 @@ defmodule Edgybot.Bot.Handler.Command do
   defp compare_command_elem_to_definition_elem(_parsed_command_elem, _command_definition_elem),
     do: false
 
-  defp handle_matched_command(parsed_command, matched_command_name) do
+  defp handle_matched_command(parsed_command, matched_command_name)
+       when is_list(parsed_command) and is_binary(matched_command_name) do
     case matched_command_name do
       "ping" -> command_ping(parsed_command)
     end
