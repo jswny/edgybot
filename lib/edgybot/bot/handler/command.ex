@@ -17,7 +17,7 @@ defmodule Edgybot.Bot.Handler.Command do
          {:ok, response} <- handle_matched_command(parsed_command, matched_command_name) do
       response
     else
-      err -> err
+      {:error, reason} -> {:error, reason, command}
     end
   end
 

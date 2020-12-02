@@ -8,15 +8,18 @@ defmodule Edgybot.Bot.Handler.Response do
 
   def handle_response(:noop, _source), do: :noop
 
-  def handle_response({:error, reason} = response, %{channel_id: channel_id})
-      when is_binary(reason) and is_integer(channel_id) do
+  def handle_response({:error, reason, error_source} = response, %{channel_id: channel_id})
+      when is_binary(reason) and is_binary(error_source) and is_integer(channel_id) do
     embed = build_error_embed(response)
     new_response = {:message, channel_id, embed: embed}
     send_response(new_response)
   end
 
-  def handle_response({:error, reason, stacktrace} = response, %{channel_id: channel_id})
-      when is_binary(reason) and is_list(stacktrace) and is_integer(channel_id) do
+  def handle_response({:error, reason, error_source, stacktrace} = response, %{
+        channel_id: channel_id
+      })
+      when is_binary(reason) and is_binary(error_source) and is_list(stacktrace) and
+             is_integer(channel_id) do
     embed = build_error_embed(response)
     new_response = {:message, channel_id, embed: embed}
     send_response(new_response)
@@ -37,21 +40,25 @@ defmodule Edgybot.Bot.Handler.Response do
     :noop
   end
 
-  defp build_error_embed({:error, reason}) when is_binary(reason), do: base_error_embed(reason)
+  defp build_error_embed({:error, reason, error_source})
+       when is_binary(reason) and is_binary(error_source),
+       do: base_error_embed(reason, error_source)
 
-  defp build_error_embed({:error, reason, stacktrace})
+  defp build_error_embed({:error, reason, error_source, stacktrace})
        when is_binary(reason) and is_list(stacktrace) do
     stacktrace = Exception.format_stacktrace(stacktrace)
 
-    base_error_embed(reason)
+    base_error_embed(reason, error_source)
     |> Embed.put_field("Stacktrace", code_block(stacktrace))
   end
 
-  defp base_error_embed(reason) when is_binary(reason) do
+  defp base_error_embed(reason, error_source)
+       when is_binary(reason) and is_binary(error_source) do
     %Embed{}
     |> Embed.put_title("Error")
     |> Embed.put_color(@color_red)
     |> Embed.put_description(code_inline(reason))
+    |> Embed.put_field("Source", error_source)
   end
 
   defp code_inline(content) when is_binary(content), do: "`#{content}`"
