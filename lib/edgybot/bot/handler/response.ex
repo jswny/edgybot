@@ -66,7 +66,7 @@ defmodule Edgybot.Bot.Handler.Response do
 
   defp code_block(content) when is_binary(content), do: "```#{content}```"
 
-  defp current_timestamp() do
+  defp current_timestamp do
     DateTime.utc_now()
     |> DateTime.to_string()
   end
