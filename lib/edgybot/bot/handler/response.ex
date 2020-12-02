@@ -15,6 +15,13 @@ defmodule Edgybot.Bot.Handler.Response do
     send_response(new_response)
   end
 
+  def handle_response({:error, reason, stacktrace} = response, %{channel_id: channel_id})
+      when is_binary(reason) and is_list(stacktrace) and is_integer(channel_id) do
+    embed = build_error_embed(response)
+    new_response = {:message, channel_id, embed: embed}
+    send_response(new_response)
+  end
+
   def handle_response({:message, content}, %{channel_id: channel_id})
       when is_binary(content) and is_integer(channel_id) do
     response = {:message, channel_id, content}
@@ -26,12 +33,28 @@ defmodule Edgybot.Bot.Handler.Response do
       {:message, channel_id, content_or_opts} ->
         Api.create_message!(channel_id, content_or_opts)
     end
+
+    :noop
   end
 
-  defp build_error_embed({:error, reason}) do
+  defp build_error_embed({:error, reason}) when is_binary(reason), do: base_error_embed(reason)
+
+  defp build_error_embed({:error, reason, stacktrace})
+       when is_binary(reason) and is_list(stacktrace) do
+    stacktrace = Exception.format_stacktrace(stacktrace)
+
+    base_error_embed(reason)
+    |> Embed.put_field("Stacktrace", code_block(stacktrace))
+  end
+
+  defp base_error_embed(reason) when is_binary(reason) do
     %Embed{}
     |> Embed.put_title("Error")
     |> Embed.put_color(@color_red)
-    |> Embed.put_field("Reason", reason)
+    |> Embed.put_description(code_inline(reason))
   end
+
+  defp code_inline(content) when is_binary(content), do: "`#{content}`"
+
+  defp code_block(content) when is_binary(content), do: "```#{content}```"
 end
