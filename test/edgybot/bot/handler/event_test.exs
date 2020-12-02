@@ -24,7 +24,7 @@ defmodule Edgybot.Bot.Handler.EventTest do
       event = :MESSAGE_CREATE
       payload = %{content: content}
 
-      assert {:error, "no matching command", content} = Event.handle_event(event, payload)
+      assert {:error, "no matching command", ^content} = Event.handle_event(event, payload)
     end
   end
 end
