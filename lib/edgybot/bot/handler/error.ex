@@ -6,7 +6,7 @@ defmodule Edgybot.Bot.Handler.Error do
       fun.()
     rescue
       e ->
-        nil
+        {:error, e.message, __STACKTRACE__}
     end
   end
 end
