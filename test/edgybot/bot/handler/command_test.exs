@@ -8,19 +8,19 @@ defmodule Edgybot.Bot.Handler.CommandTest do
     test "with no command returns error" do
       command = Bot.prefix()
 
-      assert {:error, "no command provided"} = Command.handle_command(command)
+      assert {:error, "no command provided", command} = Command.handle_command(command)
     end
 
     test "with invalid command name returns error" do
       command = build_command("foo")
 
-      assert {:error, "no matching command"} = Command.handle_command(command)
+      assert {:error, "no matching command", command} = Command.handle_command(command)
     end
 
     test "with invalid command structure returns error" do
       command = build_command("foo")
 
-      assert {:error, "no matching command"} = Command.handle_command(command)
+      assert {:error, "no matching command", command} = Command.handle_command(command)
     end
 
     test "with valid ping command returns response" do

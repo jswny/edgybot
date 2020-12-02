@@ -59,9 +59,15 @@ defmodule Edgybot.Bot.Handler.Response do
     |> Embed.put_color(@color_red)
     |> Embed.put_description(code_inline(reason))
     |> Embed.put_field("Source", error_source)
+    |> Embed.put_timestamp(current_timestamp())
   end
 
   defp code_inline(content) when is_binary(content), do: "`#{content}`"
 
   defp code_block(content) when is_binary(content), do: "```#{content}```"
+
+  defp current_timestamp() do
+    DateTime.utc_now()
+    |> DateTime.to_string()
+  end
 end
