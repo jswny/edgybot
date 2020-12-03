@@ -46,8 +46,7 @@ defmodule Edgybot.Bot.Handler.Response do
         guild_id: guild_id,
         author: %{id: user_id}
       })
-      when is_binary(content) and is_integer(channel_id) and
-             is_integer(guild_id) and is_integer(user_id) do
+      when is_binary(content) and is_integer(channel_id) and is_integer(user_id) do
     response = {:message, channel_id, content_or_opts}
     contextual_source = generate_contextual_source(content, guild_id, channel_id)
     send_response_with_fallback(response, user_id, contextual_source)
