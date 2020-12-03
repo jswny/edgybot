@@ -12,12 +12,14 @@ defmodule Edgybot.Bot.Handler.Response do
   def handle_response(
         {:error, reason, error_source} = response,
         %{
+          content: content,
           channel_id: channel_id,
           guild_id: guild_id,
           author: %{id: user_id}
         } = context
       )
-      when is_binary(reason) and is_binary(error_source) and is_integer(channel_id) and
+      when is_binary(reason) and is_binary(content) and is_binary(error_source) and
+             is_integer(channel_id) and
              is_integer(guild_id) and
              is_integer(user_id) do
     handle_error_response(response, context)
@@ -26,42 +28,47 @@ defmodule Edgybot.Bot.Handler.Response do
   def handle_response(
         {:error, reason, error_source, stacktrace} = response,
         %{
+          content: content,
           channel_id: channel_id,
           guild_id: guild_id,
           author: %{id: user_id}
         } = context
       )
-      when is_binary(reason) and is_binary(error_source) and is_list(stacktrace) and
+      when is_binary(reason) and is_binary(content) and is_binary(error_source) and
+             is_list(stacktrace) and
              is_integer(channel_id) and is_integer(guild_id) and is_integer(user_id) do
     handle_error_response(response, context)
   end
 
   def handle_response({:message, content_or_opts}, %{
+        content: content,
         channel_id: channel_id,
         guild_id: guild_id,
         author: %{id: user_id}
       })
-      when is_binary(content_or_opts) and is_integer(channel_id) and is_integer(guild_id) do
+      when is_binary(content) and is_integer(channel_id) and
+             is_integer(guild_id) and is_integer(user_id) do
     response = {:message, channel_id, content_or_opts}
-    contextual_source = generate_contextual_source("Sending response", guild_id, channel_id)
+    contextual_source = generate_contextual_source(content, guild_id, channel_id)
     send_response_with_fallback(response, user_id, contextual_source)
   end
 
   defp handle_error_response(response, %{
+         content: content,
          channel_id: channel_id,
          guild_id: guild_id,
          author: %{id: user_id}
        })
-       when is_integer(channel_id) and
+       when is_binary(content) and is_integer(channel_id) and
               is_integer(guild_id) do
     contextual_response =
       case response do
         {:error, reason, source} ->
-          contextual_source = generate_contextual_source(source, guild_id, channel_id)
+          contextual_source = generate_contextual_source(content, guild_id, channel_id)
           {:error, reason, contextual_source}
 
         {:error, reason, source, stacktrace} ->
-          contextual_source = generate_contextual_source(source, guild_id, channel_id)
+          contextual_source = generate_contextual_source(content, guild_id, channel_id)
           {:error, reason, contextual_source, stacktrace}
       end
 
@@ -112,7 +119,14 @@ defmodule Edgybot.Bot.Handler.Response do
   end
 
   defp generate_contextual_source(source, guild_id, channel_id) do
-    {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
+    guild_name =
+      if guild_id != nil do
+        {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
+        guild_name
+      else
+        "DM"
+      end
+
     {:ok, %{name: channel_name}} = Api.get_channel(channel_id)
     channel_name = "##{channel_name}"
     "#{code_inline(source)} in #{code_inline(channel_name)} in #{code_inline(guild_name)}"
