@@ -26,7 +26,6 @@ defmodule Edgybot.Bot.EventConsumer do
 
     Handler.Error.handle_error(fn ->
       Handler.Event.handle_event(event, payload)
-      |> Handler.Response.handle_response(payload)
     end)
     |> Handler.Response.handle_response(payload)
   end
