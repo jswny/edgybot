@@ -9,48 +9,89 @@ defmodule Edgybot.Bot.Handler.Response do
 
   def handle_response(:noop, _source), do: :noop
 
-  def handle_response({:error, reason, error_source} = response, %{
-        channel_id: channel_id,
-        author: %{id: user_id}
-      })
+  def handle_response(
+        {:error, reason, error_source} = response,
+        %{
+          channel_id: channel_id,
+          guild_id: guild_id,
+          author: %{id: user_id}
+        } = context
+      )
       when is_binary(reason) and is_binary(error_source) and is_integer(channel_id) and
+             is_integer(guild_id) and
              is_integer(user_id) do
-    embed = build_error_embed(response)
-    new_response = {:message, channel_id, embed: embed}
-    send_response_with_fallback(new_response, user_id)
+    handle_error_response(response, context)
   end
 
-  def handle_response({:error, reason, error_source, stacktrace} = response, %{
-        channel_id: channel_id,
-        author: %{id: user_id}
-      })
+  def handle_response(
+        {:error, reason, error_source, stacktrace} = response,
+        %{
+          channel_id: channel_id,
+          guild_id: guild_id,
+          author: %{id: user_id}
+        } = context
+      )
       when is_binary(reason) and is_binary(error_source) and is_list(stacktrace) and
-             is_integer(channel_id) and is_integer(user_id) do
-    embed = build_error_embed(response)
-    new_response = {:message, channel_id, embed: embed}
-    send_response_with_fallback(new_response, user_id)
+             is_integer(channel_id) and is_integer(guild_id) and is_integer(user_id) do
+    handle_error_response(response, context)
   end
 
   def handle_response({:message, content_or_opts}, %{
         channel_id: channel_id,
+        guild_id: guild_id,
         author: %{id: user_id}
       })
-      when is_binary(content_or_opts) and is_integer(channel_id) do
+      when is_binary(content_or_opts) and is_integer(channel_id) and is_integer(guild_id) do
     response = {:message, channel_id, content_or_opts}
-    send_response_with_fallback(response, user_id)
+    contextual_source = generate_contextual_source("Sending response", guild_id, channel_id)
+    send_response_with_fallback(response, user_id, contextual_source)
+  end
+
+  defp handle_error_response(response, %{
+         channel_id: channel_id,
+         guild_id: guild_id,
+         author: %{id: user_id}
+       })
+       when is_integer(channel_id) and
+              is_integer(guild_id) do
+    contextual_response =
+      case response do
+        {:error, reason, source} ->
+          contextual_source = generate_contextual_source(source, guild_id, channel_id)
+          {:error, reason, contextual_source}
+
+        {:error, reason, source, stacktrace} ->
+          contextual_source = generate_contextual_source(source, guild_id, channel_id)
+          {:error, reason, contextual_source, stacktrace}
+      end
+
+    contextual_source = elem(contextual_response, 2)
+    embed = build_error_embed(contextual_response)
+    new_response = {:message, channel_id, embed: embed}
+    send_response_with_fallback(new_response, user_id, contextual_source)
   end
 
   defp send_response_with_fallback(
          {:message, _channel_id, content_or_opts} = response,
-         fallback_user_id
+         fallback_user_id,
+         source
        )
-       when is_tuple(response) and is_integer(fallback_user_id) do
+       when is_tuple(response) and is_integer(fallback_user_id) and is_binary(source) do
     send_response(response)
     |> case do
       {:ok, _message} ->
         :noop
 
       {:error, @create_message_error} ->
+        fallback_error_response =
+          {:error,
+           "Failed to send message in channel. Check channel permissions. Falling back to DM",
+           source}
+
+        fallback_embed = build_error_embed(fallback_error_response)
+        fallback_response = {:dm, fallback_user_id, embed: fallback_embed}
+        send_response(fallback_response)
+
         send_response({:dm, fallback_user_id, content_or_opts})
     end
   end
@@ -68,6 +109,13 @@ defmodule Edgybot.Bot.Handler.Response do
       {:dm, user_id, content_or_opts} ->
         send_dm(user_id, content_or_opts)
     end
+  end
+
+  defp generate_contextual_source(source, guild_id, channel_id) do
+    {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
+    {:ok, %{name: channel_name}} = Api.get_channel(channel_id)
+    channel_name = "##{channel_name}"
+    "#{code_inline(source)} in #{code_inline(channel_name)} in #{code_inline(guild_name)}"
   end
 
   defp send_dm(user_id, content_or_opts) when is_integer(user_id) do
