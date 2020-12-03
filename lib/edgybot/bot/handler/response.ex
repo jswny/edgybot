@@ -14,13 +14,11 @@ defmodule Edgybot.Bot.Handler.Response do
         %{
           content: content,
           channel_id: channel_id,
-          guild_id: guild_id,
           author: %{id: user_id}
         } = context
       )
       when is_binary(reason) and is_binary(content) and
              is_integer(channel_id) and
-             is_integer(guild_id) and
              is_integer(user_id) do
     handle_error_response(response, context)
   end
@@ -30,13 +28,12 @@ defmodule Edgybot.Bot.Handler.Response do
         %{
           content: content,
           channel_id: channel_id,
-          guild_id: guild_id,
           author: %{id: user_id}
         } = context
       )
       when is_binary(reason) and is_binary(content) and
              is_list(stacktrace) and
-             is_integer(channel_id) and is_integer(guild_id) and is_integer(user_id) do
+             is_integer(channel_id) and is_integer(user_id) do
     handle_error_response(response, context)
   end
 
@@ -58,8 +55,7 @@ defmodule Edgybot.Bot.Handler.Response do
          guild_id: guild_id,
          author: %{id: user_id}
        })
-       when is_binary(content) and is_integer(channel_id) and
-              is_integer(guild_id) do
+       when is_binary(content) and is_integer(channel_id) do
     contextual_response =
       case response do
         {:error, reason} ->
