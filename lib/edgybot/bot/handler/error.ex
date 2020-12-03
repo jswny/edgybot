@@ -5,6 +5,6 @@ defmodule Edgybot.Bot.Handler.Error do
     fun.()
   rescue
     e ->
-      {:error, e.message, __STACKTRACE__}
+      {:error, Map.get(e, :message) || e, __STACKTRACE__}
   end
 end

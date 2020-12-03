@@ -24,11 +24,15 @@ defmodule Edgybot.Bot.EventConsumer do
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
 
+    result =
+      Handler.Error.handle_error(fn ->
+        Handler.Event.handle_event(event, payload)
+      end)
+
     Handler.Error.handle_error(fn ->
-      Handler.Event.handle_event(event, payload)
+      Handler.Response.handle_response(result, payload)
     end)
-    |> Handler.Response.handle_response(payload)
-    |> log_if_error()
+    |> log_error()
   end
 
   @impl true
@@ -41,7 +45,17 @@ defmodule Edgybot.Bot.EventConsumer do
     :noop
   end
 
-  defp log_if_error({:error, reason}), do: Logger.error(reason)
+  defp log_error({:error, reason}) do
+    Logger.error(reason)
+  end
 
-  defp log_if_error(result), do: result
+  defp log_error({:error, reason, stacktrace}) do
+    Logger.error(reason)
+
+    stacktrace
+    |> Exception.format_stacktrace()
+    |> Logger.error()
+  end
+
+  defp log_error(result), do: result
 end

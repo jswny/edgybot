@@ -115,8 +115,8 @@ defmodule Edgybot.Bot.Handler.Response do
 
   defp generate_contextual_source(source, guild_id, channel_id) do
     if guild_id != nil do
-      {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
-      {:ok, %{name: channel_name}} = Api.get_channel(channel_id)
+      %{name: guild_name} = Api.get_guild!(guild_id)
+      %{name: channel_name} = Api.get_channel!(channel_id)
       channel_name = "##{channel_name}"
       "#{code_inline(source)} in #{code_inline(channel_name)} in #{code_inline(guild_name)}"
     else
