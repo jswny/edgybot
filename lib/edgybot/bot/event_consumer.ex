@@ -28,6 +28,7 @@ defmodule Edgybot.Bot.EventConsumer do
       Handler.Event.handle_event(event, payload)
     end)
     |> Handler.Response.handle_response(payload)
+    |> log_if_error()
   end
 
   @impl true
@@ -39,4 +40,8 @@ defmodule Edgybot.Bot.EventConsumer do
     Logger.debug("Ignored #{type} #{thing}")
     :noop
   end
+
+  defp log_if_error({:error, reason}), do: Logger.error(reason)
+
+  defp log_if_error(result), do: result
 end
