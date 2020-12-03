@@ -10,7 +10,7 @@ defmodule Edgybot.Bot.Handler.Response do
   def handle_response(:noop, _source), do: :noop
 
   def handle_response(
-        {:error, reason, error_source} = response,
+        {:error, reason} = response,
         %{
           content: content,
           channel_id: channel_id,
@@ -18,7 +18,7 @@ defmodule Edgybot.Bot.Handler.Response do
           author: %{id: user_id}
         } = context
       )
-      when is_binary(reason) and is_binary(content) and is_binary(error_source) and
+      when is_binary(reason) and is_binary(content) and
              is_integer(channel_id) and
              is_integer(guild_id) and
              is_integer(user_id) do
@@ -26,7 +26,7 @@ defmodule Edgybot.Bot.Handler.Response do
   end
 
   def handle_response(
-        {:error, reason, error_source, stacktrace} = response,
+        {:error, reason, stacktrace} = response,
         %{
           content: content,
           channel_id: channel_id,
@@ -34,7 +34,7 @@ defmodule Edgybot.Bot.Handler.Response do
           author: %{id: user_id}
         } = context
       )
-      when is_binary(reason) and is_binary(content) and is_binary(error_source) and
+      when is_binary(reason) and is_binary(content) and
              is_list(stacktrace) and
              is_integer(channel_id) and is_integer(guild_id) and is_integer(user_id) do
     handle_error_response(response, context)
@@ -62,11 +62,11 @@ defmodule Edgybot.Bot.Handler.Response do
               is_integer(guild_id) do
     contextual_response =
       case response do
-        {:error, reason, source} ->
+        {:error, reason} ->
           contextual_source = generate_contextual_source(content, guild_id, channel_id)
           {:error, reason, contextual_source}
 
-        {:error, reason, source, stacktrace} ->
+        {:error, reason, stacktrace} ->
           contextual_source = generate_contextual_source(content, guild_id, channel_id)
           {:error, reason, contextual_source, stacktrace}
       end
@@ -136,25 +136,25 @@ defmodule Edgybot.Bot.Handler.Response do
     Api.create_message(channel_id, content_or_opts)
   end
 
-  defp build_error_embed({:error, reason, error_source})
-       when is_binary(reason) and is_binary(error_source),
-       do: base_error_embed(reason, error_source)
+  defp build_error_embed({:error, reason, source})
+       when is_binary(reason) and is_binary(source),
+       do: base_error_embed(reason, source)
 
-  defp build_error_embed({:error, reason, error_source, stacktrace})
+  defp build_error_embed({:error, reason, source, stacktrace})
        when is_binary(reason) and is_list(stacktrace) do
     stacktrace = Exception.format_stacktrace(stacktrace)
 
-    base_error_embed(reason, error_source)
+    base_error_embed(reason, source)
     |> Embed.put_field("Stacktrace", code_block(stacktrace))
   end
 
-  defp base_error_embed(reason, error_source)
-       when is_binary(reason) and is_binary(error_source) do
+  defp base_error_embed(reason, source)
+       when is_binary(reason) and is_binary(source) do
     %Embed{}
     |> Embed.put_title("Error")
     |> Embed.put_color(@color_red)
     |> Embed.put_description(code_inline(reason))
-    |> Embed.put_field("Source", error_source)
+    |> Embed.put_field("Source", source)
     |> Embed.put_timestamp(current_timestamp())
   end
 
