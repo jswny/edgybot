@@ -114,17 +114,14 @@ defmodule Edgybot.Bot.Handler.Response do
   end
 
   defp generate_contextual_source(source, guild_id, channel_id) do
-    guild_name =
-      if guild_id != nil do
-        {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
-        guild_name
-      else
-        "DM"
-      end
-
-    {:ok, %{name: channel_name}} = Api.get_channel(channel_id)
-    channel_name = "##{channel_name}"
-    "#{code_inline(source)} in #{code_inline(channel_name)} in #{code_inline(guild_name)}"
+    if guild_id != nil do
+      {:ok, %{name: guild_name}} = Api.get_guild(guild_id)
+      {:ok, %{name: channel_name}} = Api.get_channel(channel_id)
+      channel_name = "##{channel_name}"
+      "#{code_inline(source)} in #{code_inline(channel_name)} in #{code_inline(guild_name)}"
+    else
+      "#{code_inline(source)} in #{code_inline("DM")}"
+    end
   end
 
   defp send_dm(user_id, content_or_opts) when is_integer(user_id) do
