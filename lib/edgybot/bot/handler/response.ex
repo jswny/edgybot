@@ -31,13 +31,19 @@ defmodule Edgybot.Bot.Handler.Response do
     send_response_with_fallback(new_response, user_id)
   end
 
-  def handle_response({:message, content}, %{channel_id: channel_id, author: %{id: user_id}})
-      when is_binary(content) and is_integer(channel_id) do
-    response = {:message, channel_id, content}
+  def handle_response({:message, content_or_opts}, %{
+        channel_id: channel_id,
+        author: %{id: user_id}
+      })
+      when is_binary(content_or_opts) and is_integer(channel_id) do
+    response = {:message, channel_id, content_or_opts}
     send_response_with_fallback(response, user_id)
   end
 
-  defp send_response_with_fallback({:message, _channel_id, content} = response, fallback_user_id)
+  defp send_response_with_fallback(
+         {:message, _channel_id, content_or_opts} = response,
+         fallback_user_id
+       )
        when is_tuple(response) and is_integer(fallback_user_id) do
     send_response(response)
     |> case do
@@ -45,7 +51,7 @@ defmodule Edgybot.Bot.Handler.Response do
         :noop
 
       {:error, @create_message_error} ->
-        send_response({:dm, fallback_user_id, content})
+        send_response({:dm, fallback_user_id, content_or_opts})
     end
   end
 
@@ -60,9 +66,13 @@ defmodule Edgybot.Bot.Handler.Response do
         end
 
       {:dm, user_id, content_or_opts} ->
-        {:ok, %{id: channel_id}} = Api.create_dm(user_id)
-        Api.create_message(channel_id, content_or_opts)
+        send_dm(user_id, content_or_opts)
     end
+  end
+
+  defp send_dm(user_id, content_or_opts) when is_integer(user_id) do
+    {:ok, %{id: channel_id}} = Api.create_dm(user_id)
+    Api.create_message(channel_id, content_or_opts)
   end
 
   defp build_error_embed({:error, reason, error_source})
