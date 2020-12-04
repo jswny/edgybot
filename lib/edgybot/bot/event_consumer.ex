@@ -8,7 +8,7 @@ defmodule Edgybot.Bot.EventConsumer do
   alias Edgybot.Bot.Handler
 
   def start_link do
-    Consumer.start_link(__MODULE__)
+    Consumer.start_link(__MODULE__, max_restarts: 0)
   end
 
   def child_spec(opts) do
