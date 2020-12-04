@@ -11,15 +11,6 @@ defmodule Edgybot.Bot.EventConsumer do
     Consumer.start_link(__MODULE__, max_restarts: 0)
   end
 
-  def child_spec(opts) do
-    id = "event_consumer_thread_#{opts[:thread_number]}"
-
-    %{
-      id: id,
-      start: {__MODULE__, :start_link, []}
-    }
-  end
-
   @impl true
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
