@@ -11,8 +11,8 @@ defmodule Edgybot.Bot.EventConsumer do
     Consumer.start_link(__MODULE__)
   end
 
-  def child_spec(args) do
-    id = "event_consumer_thread_#{args[:thread_number]}"
+  def child_spec(opts) do
+    id = "event_consumer_thread_#{opts[:thread_number]}"
 
     %{
       id: id,
@@ -24,15 +24,22 @@ defmodule Edgybot.Bot.EventConsumer do
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
 
-    result =
-      Handler.Error.handle_error(fn ->
-        Handler.Event.handle_event(event, payload)
-      end)
+    censor_error = Edgybot.runtime_env() == :prod
 
-    Handler.Error.handle_error(fn ->
-      Handler.Response.handle_response(result, payload)
-    end)
-    |> log_error()
+    result =
+      Handler.Error.handle_error(
+        fn ->
+          Handler.Event.handle_event(event, payload)
+        end,
+        censor_error
+      )
+
+    Handler.Error.handle_error(
+      fn ->
+        Handler.Response.handle_response(result, payload)
+      end,
+      true
+    )
   end
 
   @impl true
@@ -44,18 +51,4 @@ defmodule Edgybot.Bot.EventConsumer do
     Logger.debug("Ignored #{type} #{thing}")
     :noop
   end
-
-  defp log_error({:error, reason}) do
-    Logger.error(reason)
-  end
-
-  defp log_error({:error, reason, stacktrace}) do
-    Logger.error(reason)
-
-    stacktrace
-    |> Exception.format_stacktrace()
-    |> Logger.error()
-  end
-
-  defp log_error(result), do: result
 end

@@ -18,6 +18,8 @@ get_env_var = fn var_name, default ->
   end
 end
 
+config app_name, runtime_env: config_env()
+
 config app_name, Edgybot.Repo,
   database: "edgybot_#{config_env()}",
   username: get_env_var.("DATABASE_USERNAME", "postgres"),
