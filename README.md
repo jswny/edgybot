@@ -18,3 +18,9 @@ You can run with Docker Compose, which will build the image locally.
 ```shell
 docker-compose up
 ```
+
+## Error Handling
+- Most errors will be reported back as messages if they occur
+- If a response cannot be sent in the channel, the message will be retried as a DM instead
+- If an error occurs when sending messages, it will be logged to the console
+- Internal errors and stacktraces will only be exposed if `MIX_ENV` is not `:prod`
