@@ -10,12 +10,12 @@ defmodule Edgybot.Bot.Handler.Error do
       reason = Map.get(e, :message) || e
       stacktrace = __STACKTRACE__
 
-      if !censor do
-        {:error, reason, __STACKTRACE__}
-      else
+      if censor do
         log_error(reason, stacktrace)
         reason = "internal error"
         {:error, reason}
+      else
+        {:error, reason, __STACKTRACE__}
       end
   end
 
