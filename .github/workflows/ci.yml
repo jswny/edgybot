@@ -155,6 +155,8 @@ jobs:
   container:
     name: Container Build and Push
     runs-on: ubuntu-latest
+    env:
+      cache-path: /tmp/.buildx-cache
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -170,7 +172,6 @@ jobs:
         uses: actions/cache@v2
         env:
           base-key: ${{ runner.os }}-build-docker-buildx
-          cache-path: /tmp/.buildx-cache
         with:
           path: ${{ env.cache-path }}
           key: ${{ env.base-key }}-${{ github.sha }}
@@ -193,6 +194,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.container-metadata.outputs.tags }}
           labels: ${{ steps.container-metadata.outpus.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          cache-from: type=local,src=${{ env.cache-path }}
+          cache-to: type=local,dest=${{ env.cache-path }},mode=max
 
