@@ -152,7 +152,7 @@ jobs:
       - name: Run Hadolint
         uses: brpaz/hadolint-action@master
   container:
-    name: Container Build and Push
+    name: Container
     runs-on: ubuntu-latest
     env:
       cache-path: /tmp/.buildx-cache
