@@ -2,7 +2,7 @@ name: CI
 on: [push]
 
 env:
-  OTP_VERSION: "23"
+  OTP_VERSION: "23.2.3"
   ELIXIR_VERSION: "1.11.2"
   PYTHON_VERSION: "3.8"
   NODE_VERSION: "14"
