@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
@@ -68,7 +68,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
@@ -91,7 +91,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
@@ -104,7 +104,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
@@ -138,7 +138,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
