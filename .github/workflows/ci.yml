@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - run: yarn global add prettier
+      - run: npm install -g prettier
       - run: prettier --check .
   build:
     name: Build
