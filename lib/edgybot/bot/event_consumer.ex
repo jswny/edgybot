@@ -8,24 +8,29 @@ defmodule Edgybot.Bot.EventConsumer do
   alias Edgybot.Bot.Handler
 
   def start_link do
-    Consumer.start_link(__MODULE__)
-  end
-
-  def child_spec(args) do
-    id = "event_consumer_thread_#{args[:thread_number]}"
-
-    %{
-      id: id,
-      start: {__MODULE__, :start_link, []}
-    }
+    Consumer.start_link(__MODULE__, max_restarts: 0)
   end
 
   @impl true
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
 
-    Handler.Event.handle_event(event, payload)
-    |> Handler.Response.handle_response(payload)
+    censor_error = Edgybot.runtime_env() == :prod
+
+    result =
+      Handler.Error.handle_error(
+        fn ->
+          Handler.Event.handle_event(event, payload)
+        end,
+        censor_error
+      )
+
+    Handler.Error.handle_error(
+      fn ->
+        Handler.Response.handle_response(result, payload)
+      end,
+      true
+    )
   end
 
   @impl true

@@ -7,7 +7,12 @@ defmodule Edgybot.Bot.Handler.Event do
     case event do
       :MESSAGE_CREATE ->
         message = payload
-        handle_message_create(message)
+
+        if message.author.bot != true do
+          handle_message_create(message)
+        else
+          :noop
+        end
 
       _ ->
         :noop
