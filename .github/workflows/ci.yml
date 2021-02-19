@@ -12,7 +12,7 @@ jobs:
     name: Prepare Elixir
     runs-on: ubuntu-latest
     steps:
-      - name: Generation Exact Version
+      - name: Generate Exact Version
         run: |
           VERSION="${{ runner.os }}-otp-${{ env.OTP_VERSION }}-elixir-${{ env.ELIXIR_VERSION }}"
           MIX_CACHE_KEY="${VERSION}-build-mix-deps"
