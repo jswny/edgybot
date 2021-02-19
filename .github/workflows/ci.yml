@@ -6,6 +6,7 @@ env:
   ELIXIR_VERSION: "1.11.2"
   PYTHON_VERSION: "3.8"
   NODE_VERSION: "14"
+  os-otp-elixir-version: ${{ runner.os }}-otp-${{ env.OTP_VERSION }}-elixir-${{ env.ELIXIR_VERSION }}
 
 jobs:
   yaml-lint:
@@ -46,7 +47,7 @@ jobs:
       - name: Cache Mix Dependencies
         uses: actions/cache@v2
         env:
-          base-key: ${{ runner.os }}-otp-${{ env.OTP_VERSION }}-elixir-${{ env.ELIXIR_VERSION }}-build-mix-deps
+          base-key: ${{ env.os-otp-elixir-version }}-build-mix-deps
         with:
           path: deps
           key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
