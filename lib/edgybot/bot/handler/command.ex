@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.Command do
   @moduledoc false
 
   alias Edgybot.Bot
-  alias Edgybot.Bot.Command.{Parser, Matcher}
+  alias Edgybot.Bot.Command.{Matcher, Parser}
 
   @command_definitions %{
     "ping" => []

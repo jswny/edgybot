@@ -1,4 +1,6 @@
 defmodule Edgybot.Bot.Command.Matcher do
+  @moduledoc false
+
   def match_command(parsed_command, _command_definitions)
       when is_list(parsed_command) and length(parsed_command) < 1,
       do: {:error, "no command provided"}
