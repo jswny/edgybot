@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Handler.Command do
   @moduledoc false
 
   alias Edgybot.Bot
+  alias Edgybot.Bot.Command.Parser
 
   @command_definitions %{
     "ping" => []
@@ -12,7 +13,7 @@ defmodule Edgybot.Bot.Handler.Command do
     command_definitions = @command_definitions
 
     with {:ok, cleaned_command} <- clean_command(command),
-         {:ok, parsed_command} <- parse_command(cleaned_command),
+         {:ok, parsed_command} <- Parser.parse_command(cleaned_command),
          {:ok, matched_command_name} <- match_command(parsed_command, command_definitions),
          {:ok, response} <- handle_matched_command(parsed_command, matched_command_name) do
       response
@@ -34,34 +35,6 @@ defmodule Edgybot.Bot.Handler.Command do
       |> String.trim()
 
     {:ok, cleaned}
-  end
-
-  defp parse_command(""), do: {:ok, []}
-
-  defp parse_command(command) when is_binary(command) do
-    parsed =
-      command
-      |> String.split(" ")
-      |> Enum.reduce([], fn elem, acc ->
-        parsed_part = parse_command_part(elem)
-        [parsed_part | acc]
-      end)
-      |> Enum.reverse()
-
-    {:ok, parsed}
-  end
-
-  defp parse_command_part(part) when is_binary(part) do
-    cond do
-      String.match?(part, ~r/<@!\d+>/) ->
-        {:mention_user}
-
-      String.match?(part, ~r/<@&\d+>/) ->
-        {:mention_role}
-
-      true ->
-        {:string, part}
-    end
   end
 
   defp match_command(parsed_command, _command_definitions)
