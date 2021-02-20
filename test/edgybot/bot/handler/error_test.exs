@@ -4,13 +4,13 @@ defmodule Edgybot.Bot.Handler.ErrorTest do
   alias Edgybot.Bot.Handler.Error
 
   describe "handle_error/1" do
-    test "converts errors to tuples in correct env" do
+    test "converts errors to tuples when not censoring" do
       fun = fn -> raise "test" end
 
       assert {:error, "test", _} = Error.handle_error(fun, false)
     end
 
-    test "converts errors with no message to tuples in correct env" do
+    test "converts errors with no message to tuples when not censoring" do
       fun = fn -> "#{{:string, "foo"}}" end
 
       expected_message =
