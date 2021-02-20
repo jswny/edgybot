@@ -14,7 +14,8 @@ defmodule Edgybot.Bot.Handler.ErrorTest do
       fun = fn -> "#{{:string, "foo"}}" end
 
       expected_message =
-        ~s/protocol String.Chars not implemented for {:string, "foo"} of type Tuple. This protocol is implemented for the following type(s):/
+        ~s/protocol String.Chars not implemented for {:string, "foo"} of type / <>
+          ~s/Tuple. This protocol is implemented for the following type(s):/
 
       assert {:error, actual_message, _} = Error.handle_error(fun, false)
       assert actual_message =~ expected_message
