@@ -7,7 +7,7 @@ defmodule Edgybot.Bot.Handler.Error do
     fun.()
   rescue
     e ->
-      reason = Map.get(e, :message) || e
+      reason = Exception.message(e)
       stacktrace = __STACKTRACE__
 
       if censor do
