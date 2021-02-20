@@ -14,9 +14,10 @@ defmodule Edgybot.Bot.Handler.ErrorTest do
       fun = fn -> "#{{:string, "foo"}}" end
 
       expected_message =
-        ~s/protocol String.Chars not implemented for {:string, "foo"} of type Tuple. This protocol is implemented for the following type(s): Nostrum.Struct.Channel, Nostrum.Struct.User, Nostrum.Struct.Guild.Member, Nostrum.Struct.Guild.Role, Nostrum.Struct.Emoji, Postgrex.Copy, Postgrex.Query, Decimal, Float, DateTime, Time, List, Version.Requirement, Atom, Integer, Version, Date, BitString, NaiveDateTime, URI/
+        ~s/protocol String.Chars not implemented for {:string, "foo"} of type Tuple. This protocol is implemented for the following type(s):/
 
-      assert {:error, ^expected_message, _} = Error.handle_error(fun, false)
+      assert {:error, actual_message, _} = Error.handle_error(fun, false)
+      assert actual_message =~ expected_message
     end
 
     test "converts errors to tuples to internal error message and no stacktrace and logs when censoring" do
