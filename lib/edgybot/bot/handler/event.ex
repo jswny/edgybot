@@ -21,7 +21,7 @@ defmodule Edgybot.Bot.Handler.Event do
 
   defp handle_message_create(message) when is_map(message) do
     if Handler.Command.is_command?(message.content) do
-      Handler.Command.handle_command(message.content)
+      Handler.Command.handle_command(message.content, message)
     else
       :noop
     end
