@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.Command do
   @moduledoc false
 
   alias Edgybot.Bot
-  alias Edgybot.Bot.Command.{Matcher, Parser}
+  alias Edgybot.Bot.Command.{Resolver, Parser}
 
   @command_definitions %{
     "ping" => []
@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Handler.Command do
     with {:ok, cleaned_command} <- clean_command(command),
          {:ok, parsed_command} <- Parser.parse_command(cleaned_command),
          {:ok, matched_command_name} <-
-           Matcher.match_command(parsed_command, command_definitions),
+           Resolver.match_command(parsed_command, command_definitions),
          {:ok, response} <- handle_matched_command(parsed_command, matched_command_name, context) do
       response
     else

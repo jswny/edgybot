@@ -1,6 +1,6 @@
-defmodule Edgybot.Bot.Command.MatcherTest do
+defmodule Edgybot.Bot.Command.ResolverTest do
   use ExUnit.Case
-  alias Edgybot.Bot.Command.Matcher
+  alias Edgybot.Bot.Command.Resolver
 
   describe "match_command/2" do
     test "with command with no arguments returns matched command" do
@@ -8,7 +8,7 @@ defmodule Edgybot.Bot.Command.MatcherTest do
       command_definitions = command_definitions_fixture()
 
       expected = "foo"
-      assert {:ok, ^expected} = Matcher.match_command(parsed_command, command_definitions)
+      assert {:ok, ^expected} = Resolver.match_command(parsed_command, command_definitions)
     end
 
     test "with command with static string argument returns matched command" do
@@ -16,7 +16,7 @@ defmodule Edgybot.Bot.Command.MatcherTest do
       command_definitions = command_definitions_fixture()
 
       expected = "bar"
-      assert {:ok, ^expected} = Matcher.match_command(parsed_command, command_definitions)
+      assert {:ok, ^expected} = Resolver.match_command(parsed_command, command_definitions)
     end
 
     test "with command with string argument returns matched command" do
@@ -24,7 +24,7 @@ defmodule Edgybot.Bot.Command.MatcherTest do
       command_definitions = command_definitions_fixture(%{"bar" => [:string]})
 
       expected = "bar"
-      assert {:ok, ^expected} = Matcher.match_command(parsed_command, command_definitions)
+      assert {:ok, ^expected} = Resolver.match_command(parsed_command, command_definitions)
     end
 
     test "with multiple arguments returns matched command" do
@@ -34,7 +34,7 @@ defmodule Edgybot.Bot.Command.MatcherTest do
         command_definitions_fixture(%{"bar" => [:string, {:static_string, "qux"}]})
 
       expected = "bar"
-      assert {:ok, ^expected} = Matcher.match_command(parsed_command, command_definitions)
+      assert {:ok, ^expected} = Resolver.match_command(parsed_command, command_definitions)
     end
   end
 

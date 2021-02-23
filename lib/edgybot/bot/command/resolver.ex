@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Command.Matcher do
+defmodule Edgybot.Bot.Command.Resolver do
   @moduledoc false
 
   def match_command(parsed_command, _command_definitions)
