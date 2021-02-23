@@ -8,15 +8,15 @@ defmodule Edgybot.Bot.Handler.Command do
     "ping" => []
   }
 
-  def handle_command(command)
-      when is_binary(command) do
+  def handle_command(command, context)
+      when is_binary(command) and is_map(context) do
     command_definitions = @command_definitions
 
     with {:ok, cleaned_command} <- clean_command(command),
          {:ok, parsed_command} <- Parser.parse_command(cleaned_command),
          {:ok, matched_command_name} <-
            Matcher.match_command(parsed_command, command_definitions),
-         {:ok, response} <- handle_matched_command(parsed_command, matched_command_name) do
+         {:ok, response} <- handle_matched_command(parsed_command, matched_command_name, context) do
       response
     else
       err -> err
@@ -38,15 +38,15 @@ defmodule Edgybot.Bot.Handler.Command do
     {:ok, cleaned}
   end
 
-  defp handle_matched_command(parsed_command, matched_command_name)
+  defp handle_matched_command(parsed_command, matched_command_name, context)
        when is_list(parsed_command) and is_binary(matched_command_name) do
     case matched_command_name do
       "ping" ->
-        command_ping(parsed_command)
+        command_ping(parsed_command, context)
     end
   end
 
-  defp command_ping(_parsed_command) do
+  defp command_ping(_parsed_command, _context) do
     response = {:message, "Pong!"}
     {:ok, response}
   end
