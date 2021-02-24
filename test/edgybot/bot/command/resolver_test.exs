@@ -3,6 +3,22 @@ defmodule Edgybot.Bot.Command.ResolverTest do
   alias Edgybot.Bot.Command.Resolver
 
   describe "match_command/2" do
+    test "with no command returns no command provided error" do
+      parsed_command = []
+      command_definitions = command_definitions_fixture()
+
+      assert {:error, "no command provided"} =
+               Resolver.match_command(parsed_command, command_definitions)
+    end
+
+    test "with invalid command returns no matching command error" do
+      parsed_command = [{:string, "baz"}]
+      command_definitions = command_definitions_fixture()
+
+      assert {:error, "no matching command"} =
+               Resolver.match_command(parsed_command, command_definitions)
+    end
+
     test "with command with no arguments returns matched command and parameters" do
       parsed_command = [{:string, "foo"}]
       command_definitions = command_definitions_fixture()
