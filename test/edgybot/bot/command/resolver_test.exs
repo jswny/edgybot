@@ -2,13 +2,13 @@ defmodule Edgybot.Bot.Command.ResolverTest do
   use ExUnit.Case
   alias Edgybot.Bot.Command.Resolver
 
-  describe "match_command/2" do
+  describe "resolve_command/2" do
     test "with no command returns no command provided error" do
       parsed_command = []
       command_definitions = command_definitions_fixture()
 
       assert {:error, "no command provided"} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
 
     test "with invalid command returns no matching command error" do
@@ -16,48 +16,48 @@ defmodule Edgybot.Bot.Command.ResolverTest do
       command_definitions = command_definitions_fixture()
 
       assert {:error, "no matching command"} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with command with no arguments returns matched command and parameters" do
+    test "with command with no arguments returns resolved command and parameters" do
       parsed_command = [{:string, "foo"}]
       command_definitions = command_definitions_fixture()
 
       expected = "foo"
-      assert {:ok, ^expected, []} = Resolver.match_command(parsed_command, command_definitions)
+      assert {:ok, ^expected, []} = Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with command with static string argument returns matched command and parameters" do
+    test "with command with static string argument returns resolved command and parameters" do
       parsed_command = [{:string, "bar"}, {:string, "baz"}]
       command_definitions = command_definitions_fixture()
 
       expected = "bar"
 
       assert {:ok, ^expected, [{:string, "baz"}]} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with command with single string argument returns matched command and parameters" do
+    test "with command with single string argument returns resolved command and parameters" do
       parsed_command = [{:string, "bar"}, {:string, "qux"}]
       command_definitions = command_definitions_fixture(%{"bar" => [:string]})
 
       expected = "bar"
 
       assert {:ok, ^expected, [{:string, "qux"}]} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with command with multiple string argument returns matched command and parameters" do
+    test "with command with multiple string argument returns resolved command and parameters" do
       parsed_command = [{:string, "bar"}, {:string, "qux"}, {:string, "quux"}]
       command_definitions = command_definitions_fixture(%{"bar" => [:string]})
 
       expected = "bar"
 
       assert {:ok, ^expected, [{:string, "qux quux"}]} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with multiple arguments returns matched command and parameters" do
+    test "with multiple arguments returns resolved command and parameters" do
       parsed_command = [{:string, "bar"}, {:string, "baz"}, {:string, "qux"}]
 
       command_definitions =
@@ -66,7 +66,7 @@ defmodule Edgybot.Bot.Command.ResolverTest do
       expected = "bar"
 
       assert {:ok, ^expected, [{:string, "baz qux"}]} =
-               Resolver.match_command(parsed_command, command_definitions)
+               Resolver.resolve_command(parsed_command, command_definitions)
     end
   end
 
