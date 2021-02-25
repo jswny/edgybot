@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Handler.Command do
 
     with {:ok, cleaned_command} <- clean_command(command),
          {:ok, parsed_command} <- Parser.parse_command(cleaned_command),
-         {:ok, resolved_command_name} <-
+         {:ok, resolved_command_name, _resolved_command_args} <-
            Resolver.resolve_command(parsed_command, command_definitions),
          {:ok, response} <-
            handle_resolved_command(parsed_command, resolved_command_name, context) do
