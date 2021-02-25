@@ -39,12 +39,12 @@ defmodule Edgybot.Bot.Command.Resolver do
 
   defp resolve_command_against_definition([], command_definition, resolved_command)
        when is_list(command_definition) and is_list(resolved_command) do
-    {:error, "unsatisfied command arguments", command_definition}
+    {:error, "unused command parameters", command_definition}
   end
 
   defp resolve_command_against_definition(parsed_command, [], resolved_command)
        when is_list(parsed_command) and is_list(resolved_command) do
-    {:error, "extraneous command parameters", parsed_command}
+    {:error, "extraneous command aruments", parsed_command}
   end
 
   defp resolve_command_against_definition(
