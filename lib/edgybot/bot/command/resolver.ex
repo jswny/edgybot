@@ -15,9 +15,9 @@ defmodule Edgybot.Bot.Command.Resolver do
 
     if resolve_result do
       {:ok, resolved_command} = resolve_result
-      [{:string, resolved_command_name} | resolved_command_rest] = resolved_command
+      [{:string, resolved_command_name} | resolved_command_args] = resolved_command
 
-      {:ok, resolved_command_name, resolved_command_rest}
+      {:ok, resolved_command_name, resolved_command_args}
     else
       {:error, "no matching command"}
     end
