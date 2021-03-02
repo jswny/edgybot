@@ -47,25 +47,32 @@ defmodule Edgybot.Bot.Command.ResolverTest do
                Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with command with multiple string argument returns resolved command and parameters" do
-      parsed_command = [{:string, "bar"}, {:string, "qux"}, {:string, "quux"}]
+    test "with command with multiple string arguments returns resolved command and parameters" do
+      parsed_command = [{:string, "bar"}, {:string, "baz"}, {:string, "qux"}, {:string, "quux"}]
       command_definitions = command_definitions_fixture(%{"bar" => [:string]})
 
       expected = "bar"
 
-      assert {:ok, ^expected, [{:string, "qux quux"}]} =
+      assert {:ok, ^expected, [{:string, "baz qux quux"}]} =
                Resolver.resolve_command(parsed_command, command_definitions)
     end
 
-    test "with multiple arguments returns resolved command and parameters" do
-      parsed_command = [{:string, "bar"}, {:string, "baz"}, {:string, "qux"}, {:string, "quux"}]
+    test "with command with static string and string arguments returns resolved command and parameters" do
+      parsed_command = [
+        {:string, "bar"},
+        {:string, "baz"},
+        {:string, "qux"},
+        {:string, "quux"},
+        {:string, "quuz"},
+        {:string, "corge"}
+      ]
 
       command_definitions =
-        command_definitions_fixture(%{"bar" => [:string, {:static_string, "qux"}]})
+        command_definitions_fixture(%{"bar" => [:string, {:static_string, "quux"}, :string]})
 
       expected = "bar"
 
-      assert {:ok, ^expected, [{:string, "baz qux quux"}]} =
+      assert {:ok, ^expected, [{:string, "baz qux"}, {:string, "quux"}, {:string, "quuz corge"}]} =
                Resolver.resolve_command(parsed_command, command_definitions)
     end
   end
