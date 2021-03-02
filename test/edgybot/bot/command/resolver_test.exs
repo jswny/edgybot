@@ -58,14 +58,14 @@ defmodule Edgybot.Bot.Command.ResolverTest do
     end
 
     test "with multiple arguments returns resolved command and parameters" do
-      parsed_command = [{:string, "bar"}, {:string, "baz"}, {:string, "qux"}]
+      parsed_command = [{:string, "bar"}, {:string, "baz"}, {:string, "qux"}, {:string, "quux"}]
 
       command_definitions =
         command_definitions_fixture(%{"bar" => [:string, {:static_string, "qux"}]})
 
       expected = "bar"
 
-      assert {:ok, ^expected, [{:string, "baz qux"}]} =
+      assert {:ok, ^expected, [{:string, "baz qux quux"}]} =
                Resolver.resolve_command(parsed_command, command_definitions)
     end
   end

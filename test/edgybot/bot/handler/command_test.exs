@@ -25,6 +25,12 @@ defmodule Edgybot.Bot.Handler.CommandTest do
       assert {:error, "no matching command"} = Command.handle_command(command, @context)
     end
 
+    test "strips whitespace" do
+      command = build_command("   ping   ")
+
+      assert {:message, "Pong!"} = Command.handle_command(command, @context)
+    end
+
     test "with valid ping command returns response" do
       command = build_command("ping")
 
