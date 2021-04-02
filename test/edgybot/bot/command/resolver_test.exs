@@ -62,26 +62,6 @@ defmodule Edgybot.Bot.Command.ResolverTest do
       assert {:ok, ^expected_command_name, ^expected_command_args} =
                Resolver.resolve_command(parsed_command, command_definitions)
     end
-
-    test "with command with static string and string arguments returns resolved command and parameters" do
-      parsed_command = [
-        {:string, "bar"},
-        {:string, "baz"},
-        {:string, "qux"},
-        {:string, "quux"},
-        {:string, "quuz"},
-        {:string, "corge"}
-      ]
-
-      command_definitions =
-        command_definitions_fixture(%{"bar" => [:string, {:static_string, "quux"}, :string]})
-
-      expected_command_name = "bar"
-      expected_command_args = [{:string, "baz qux"}, {:string, "quux"}, {:string, "quuz corge"}]
-
-      assert {:ok, ^expected_command_name, ^expected_command_args} =
-               Resolver.resolve_command(parsed_command, command_definitions)
-    end
   end
 
   defp command_definitions_fixture(args \\ %{}) when is_map(args) do
