@@ -52,8 +52,8 @@ defmodule Edgybot.Bot.Command.Resolver do
   end
 
   defp resolve_command_against_definition(
-         [current_parsed_command_elem | parsed_command_rest],
-         [current_command_definition_elem | command_definition_rest],
+         [current_parsed_command_elem | parsed_command_rest] = parsed_command,
+         [current_command_definition_elem | command_definition_rest] = command_definition,
          resolved_command
        )
        when is_list(parsed_command_rest) and is_list(command_definition_rest) and
@@ -65,19 +65,57 @@ defmodule Edgybot.Bot.Command.Resolver do
       )
 
     if elems_match? do
-      new_resolved_command = [
-        current_parsed_command_elem | resolved_command
-      ]
-
-      resolve_command_against_definition(
-        parsed_command_rest,
-        command_definition_rest,
-        new_resolved_command
+      resolve_command_against_definition_matched_elems(
+        parsed_command,
+        command_definition,
+        resolved_command
       )
     else
       {:error, "unsatisfied command definition element", current_parsed_command_elem,
        current_command_definition_elem}
     end
+  end
+
+  defp resolve_command_against_definition_matched_elems(
+         [{:string, _} | _] = parsed_command,
+         [:string | command_definition_rest],
+         resolved_command
+       )
+       when is_list(parsed_command) and is_list(command_definition_rest) and
+              is_list(resolved_command) do
+    parsed_command_joined =
+      parsed_command
+      |> Enum.map(fn {:string, value} -> value end)
+      |> Enum.join(" ")
+
+    new_resolved_command = [
+      {:string, parsed_command_joined}
+      | resolved_command
+    ]
+
+    resolve_command_against_definition(
+      [],
+      [],
+      new_resolved_command
+    )
+  end
+
+  defp resolve_command_against_definition_matched_elems(
+         [current_parsed_command_elem | parsed_command_rest],
+         [_current_command_definition_elem | command_definition_rest],
+         resolved_command
+       )
+       when is_list(parsed_command_rest) and is_list(command_definition_rest) and
+              is_list(resolved_command) do
+    new_resolved_command = [
+      current_parsed_command_elem | resolved_command
+    ]
+
+    resolve_command_against_definition(
+      parsed_command_rest,
+      command_definition_rest,
+      new_resolved_command
+    )
   end
 
   defp resolve_command_elem_against_definition_elem(
