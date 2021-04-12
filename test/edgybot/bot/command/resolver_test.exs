@@ -81,6 +81,23 @@ defmodule Edgybot.Bot.Command.ResolverTest do
       assert {:ok, ^expected_command_name, ^expected_command_args} =
                Resolver.resolve_command(parsed_command, command_definitions)
     end
+
+    test "with command multiple trailing string arguments including other arguments returns resolved command and parameters" do
+      parsed_command = [
+        {:string, "bar"},
+        {:string, "<@!123>"},
+        {:string, "baz"},
+        {:string, "qux"}
+      ]
+
+      command_definitions = command_definitions_fixture(%{"bar" => [:string]})
+
+      expected_command_name = "bar"
+      expected_command_args = [{:string, "<@!123> baz qux"}]
+
+      assert {:ok, ^expected_command_name, ^expected_command_args} =
+               Resolver.resolve_command(parsed_command, command_definitions)
+    end
   end
 
   defp command_definitions_fixture(args \\ %{}) when is_map(args) do
