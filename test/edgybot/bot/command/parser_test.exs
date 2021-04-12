@@ -30,5 +30,12 @@ defmodule Edgybot.Bot.Command.ParserTest do
       expected = [{:mention_role}]
       assert {:ok, ^expected} = Parser.parse_command(command)
     end
+
+    test "with multiple components returns parsed components" do
+      command = "foo <@!123> bar <@&123>"
+
+      expected = [{:string, "foo"}, {:mention_user}, {:string, "bar"}, {:mention_role}]
+      assert {:ok, ^expected} = Parser.parse_command(command)
+    end
   end
 end
