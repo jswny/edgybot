@@ -4,9 +4,12 @@ defmodule Edgybot.Meta.User do
   use Ecto.Schema
   import Ecto.Changeset
   import Edgybot.Meta.Snowflake
+  alias Edgybot.Meta.Message
 
   @primary_key {:id, :id, autogenerate: false}
   schema "users" do
+    has_many(:messages, Message)
+
     timestamps()
   end
 
