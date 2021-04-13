@@ -1,4 +1,6 @@
 defmodule Edgybot.Meta.UserFixtures do
+  @moduledoc false
+
   alias Edgybot.Meta
 
   def user_valid_attrs(attrs \\ %{}) do
@@ -6,7 +8,7 @@ defmodule Edgybot.Meta.UserFixtures do
     |> Enum.into(%{id: 200_317_799_350_927_360})
   end
 
-  def user_invalid_attrs(), do: %{id: nil}
+  def user_invalid_attrs, do: %{id: nil}
 
   def user_fixture(attrs \\ %{}) do
     {:ok, user} =
