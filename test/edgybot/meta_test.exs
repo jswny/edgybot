@@ -121,4 +121,31 @@ defmodule Edgybot.MetaTest do
       assert %{id: ["has already been taken"]} = errors_on(changeset)
     end
   end
+
+  describe "emoji" do
+    alias Edgybot.Meta.Emoji
+
+    test "create_emoji/1 with valid data creates a emoji" do
+      attrs = emoji_valid_attrs()
+      assert {:ok, %Emoji{}} = Meta.create_emoji(attrs)
+    end
+
+    test "create_emoji/1 with invalid data returns error changeset" do
+      attrs = emoji_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_emoji(attrs)
+    end
+
+    test "create_emoji/1 with invalid snowflake ID returns error changeset" do
+      attrs = emoji_valid_attrs(%{id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_emoji(attrs)
+      assert %{id: ["invalid snowflake"]} = errors_on(changeset)
+    end
+
+    test "create_emoji/1 with existing ID returns error changeset" do
+      fixture = emoji_fixture()
+      attrs = emoji_valid_attrs(%{id: fixture.id})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_emoji(attrs)
+      assert %{id: ["has already been taken"]} = errors_on(changeset)
+    end
+  end
 end
