@@ -2,10 +2,11 @@ defmodule Edgybot.Meta.UserFixtures do
   @moduledoc false
 
   alias Edgybot.Meta
+  import Edgybot.TestUtils
 
   def user_valid_attrs(attrs \\ %{}) do
     attrs
-    |> Enum.into(%{id: 200_317_799_350_927_360})
+    |> Enum.into(%{id: random_number()})
   end
 
   def user_invalid_attrs, do: %{id: nil}
