@@ -11,6 +11,8 @@ defmodule Edgybot.DataCase do
       import Ecto
       import Ecto.Query
       import Edgybot.DataCase
+
+      import Edgybot.Meta.UserFixtures
     end
   end
 
