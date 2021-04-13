@@ -7,7 +7,7 @@ defmodule Edgybot.TestUtils do
     "#{Bot.prefix()} #{command}"
   end
 
-  def random_number(), do: random_number_with_max(1_000_000)
+  def random_number, do: random_number_with_max(1_000_000)
 
   defp random_number_with_max(max) do
     :rand.uniform(max)

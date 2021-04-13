@@ -2,7 +2,7 @@ defmodule Edgybot.Meta do
   @moduledoc false
 
   import Ecto.Query, warn: false
-  alias Edgybot.Meta.{User, Message}
+  alias Edgybot.Meta.{Message, User}
   alias Edgybot.Repo
 
   def create_user(attrs \\ %{}) do
