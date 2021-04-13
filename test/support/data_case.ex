@@ -13,6 +13,7 @@ defmodule Edgybot.DataCase do
       import Edgybot.DataCase
 
       import Edgybot.Meta.UserFixtures
+      import Edgybot.Meta.MessageFixtures
     end
   end
 
