@@ -2,7 +2,7 @@ defmodule Edgybot.Meta do
   @moduledoc false
 
   import Ecto.Query, warn: false
-  alias Edgybot.Meta.{Channel, Guild, Message, Reaction, Role, User}
+  alias Edgybot.Meta.{Channel, Guild, Member, Message, Reaction, Role, User}
   alias Edgybot.Repo
 
   def create_user(attrs \\ %{}) do
@@ -38,6 +38,12 @@ defmodule Edgybot.Meta do
   def create_role(attrs \\ %{}) do
     %Role{}
     |> Role.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_member(attrs \\ %{}) do
+    %Member{}
+    |> Member.changeset(attrs)
     |> Repo.insert()
   end
 end
