@@ -48,10 +48,10 @@ defmodule Edgybot.MetaTest do
       assert %{id: ["invalid snowflake"]} = errors_on(changeset)
     end
 
-    test "create_message/1 with invalid user ID returns error changeset" do
-      attrs = message_valid_attrs(%{user_id: -1})
+    test "create_message/1 with invalid member ID returns error changeset" do
+      attrs = message_valid_attrs(%{member_id: -1})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_message(attrs)
-      assert %{user: ["does not exist"]} = errors_on(changeset)
+      assert %{member: ["does not exist"]} = errors_on(changeset)
     end
 
     test "create_message/1 with invalid channel ID returns error changeset" do
@@ -147,19 +147,19 @@ defmodule Edgybot.MetaTest do
       assert %{message: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_reaction/1 with invalid user ID returns error changeset" do
-      attrs = reaction_valid_attrs(%{user_id: -1})
+    test "create_reaction/1 with invalid member ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{member_id: -1})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
-      assert %{user: ["does not exist"]} = errors_on(changeset)
+      assert %{member: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_reaction/1 with existing message ID, user ID, and emoji returns error changeset" do
+    test "create_reaction/1 with existing message ID, member ID, and emoji returns error changeset" do
       fixture = reaction_fixture()
 
       attrs =
         reaction_valid_attrs(%{
           message_id: fixture.message_id,
-          user_id: fixture.user_id,
+          member_id: fixture.member_id,
           emoji: fixture.emoji
         })
 
