@@ -48,7 +48,7 @@ defmodule Edgybot.MetaTest do
       assert %{id: ["invalid snowflake"]} = errors_on(changeset)
     end
 
-    test "create_message/1 with invalid user_id returns error changeset" do
+    test "create_message/1 with invalid user ID returns error changeset" do
       attrs = message_valid_attrs(%{user_id: -1})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_message(attrs)
       assert %{user: ["does not exist"]} = errors_on(changeset)
@@ -85,6 +85,39 @@ defmodule Edgybot.MetaTest do
       fixture = guild_fixture()
       attrs = guild_valid_attrs(%{id: fixture.id})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_guild(attrs)
+      assert %{id: ["has already been taken"]} = errors_on(changeset)
+    end
+  end
+
+  describe "channels" do
+    alias Edgybot.Meta.Channel
+
+    test "create_channel/1 with valid data creates a channel" do
+      attrs = channel_valid_attrs()
+      assert {:ok, %Channel{}} = Meta.create_channel(attrs)
+    end
+
+    test "create_channel/1 with invalid data returns error changeset" do
+      attrs = channel_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_channel(attrs)
+    end
+
+    test "create_channel/1 with invalid snowflake ID returns error changeset" do
+      attrs = channel_valid_attrs(%{id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_channel(attrs)
+      assert %{id: ["invalid snowflake"]} = errors_on(changeset)
+    end
+
+    test "create_channel/1 with invalid guild ID returns error changeset" do
+      attrs = channel_valid_attrs(%{guild_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_channel(attrs)
+      assert %{guild: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_channel/1 with existing ID returns error changeset" do
+      fixture = channel_fixture()
+      attrs = channel_valid_attrs(%{id: fixture.id})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_channel(attrs)
       assert %{id: ["has already been taken"]} = errors_on(changeset)
     end
   end

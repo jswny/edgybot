@@ -12,7 +12,7 @@ defmodule Edgybot.DataCase do
       import Ecto.Query
       import Edgybot.DataCase
 
-      import Edgybot.Meta.{GuildFixtures, MessageFixtures, UserFixtures}
+      import Edgybot.Meta.{ChannelFixtures, GuildFixtures, MessageFixtures, UserFixtures}
     end
   end
 
