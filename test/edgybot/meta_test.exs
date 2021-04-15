@@ -136,7 +136,7 @@ defmodule Edgybot.MetaTest do
     end
 
     test "create_emoji/1 with invalid snowflake ID returns error changeset" do
-      attrs = emoji_valid_attrs(%{id: -1})
+      attrs = emoji_valid_attrs(%{id: "-1"})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_emoji(attrs)
       assert %{id: ["invalid snowflake"]} = errors_on(changeset)
     end

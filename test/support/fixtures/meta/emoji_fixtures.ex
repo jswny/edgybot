@@ -6,7 +6,7 @@ defmodule Edgybot.Meta.EmojiFixtures do
 
   def emoji_valid_attrs(attrs \\ %{}) do
     attrs
-    |> Enum.into(%{id: random_number()})
+    |> Enum.into(%{id: Integer.to_string(random_number())})
   end
 
   def emoji_invalid_attrs, do: %{id: nil}

@@ -5,7 +5,7 @@ defmodule Edgybot.Meta.Emoji do
   import Ecto.Changeset
   import Edgybot.Meta.Snowflake
 
-  @primary_key {:id, :id, autogenerate: false}
+  @primary_key {:id, :string, autogenerate: false}
   schema "emoji" do
     timestamps()
   end

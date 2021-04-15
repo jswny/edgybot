@@ -3,7 +3,7 @@ defmodule Edgybot.Repo.Migrations.AddEmojiTable do
 
   def change do
     create table("emoji", primary_key: false) do
-      add :id, :bigint, primary_key: true
+      add :id, :string, primary_key: true
 
       timestamps()
     end
