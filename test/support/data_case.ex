@@ -14,7 +14,6 @@ defmodule Edgybot.DataCase do
 
       import Edgybot.Meta.{
         ChannelFixtures,
-        EmojiFixtures,
         GuildFixtures,
         MessageFixtures,
         UserFixtures
