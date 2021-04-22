@@ -9,7 +9,7 @@ defmodule Edgybot.TestUtils do
 
   def random_number, do: random_number_with_max(1_000_000)
 
-  def random_string(), do: random_string_with_length(10)
+  def random_string, do: random_string_with_length(10)
 
   defp random_number_with_max(max) do
     :rand.uniform(max)
