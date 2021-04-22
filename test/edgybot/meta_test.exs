@@ -122,30 +122,43 @@ defmodule Edgybot.MetaTest do
     end
   end
 
-  describe "emoji" do
-    alias Edgybot.Meta.Emoji
+  describe "reactions" do
+    alias Edgybot.Meta.Reaction
 
-    test "create_emoji/1 with valid data creates a emoji" do
-      attrs = emoji_valid_attrs()
-      assert {:ok, %Emoji{}} = Meta.create_emoji(attrs)
+    test "create_reaction/1 with valid data creates a reaction" do
+      attrs = reaction_valid_attrs()
+      assert {:ok, %Reaction{}} = Meta.create_reaction(attrs)
     end
 
-    test "create_emoji/1 with invalid data returns error changeset" do
-      attrs = emoji_invalid_attrs()
-      assert {:error, %Ecto.Changeset{}} = Meta.create_emoji(attrs)
+    test "create_reaction/1 with invalid data returns error changeset" do
+      attrs = reaction_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_reaction(attrs)
     end
 
-    test "create_emoji/1 with invalid snowflake ID returns error changeset" do
-      attrs = emoji_valid_attrs(%{id: "-1"})
-      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_emoji(attrs)
-      assert %{id: ["invalid snowflake"]} = errors_on(changeset)
+    test "create_reaction/1 with invalid message ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{message_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{message: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_emoji/1 with existing ID returns error changeset" do
-      fixture = emoji_fixture()
-      attrs = emoji_valid_attrs(%{id: fixture.id})
-      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_emoji(attrs)
-      assert %{id: ["has already been taken"]} = errors_on(changeset)
+    test "create_reaction/1 with invalid user ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{user_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{user: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_reaction/1 with existing message ID, user ID, and emoji returns error changeset" do
+      fixture = reaction_fixture()
+
+      attrs =
+        reaction_valid_attrs(%{
+          message_id: fixture.message_id,
+          user_id: fixture.user_id,
+          emoji: fixture.emoji
+        })
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{message_id: ["has already been taken"]} = errors_on(changeset)
     end
   end
 end
