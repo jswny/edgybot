@@ -121,4 +121,44 @@ defmodule Edgybot.MetaTest do
       assert %{id: ["has already been taken"]} = errors_on(changeset)
     end
   end
+
+  describe "reactions" do
+    alias Edgybot.Meta.Reaction
+
+    test "create_reaction/1 with valid data creates a reaction" do
+      attrs = reaction_valid_attrs()
+      assert {:ok, %Reaction{}} = Meta.create_reaction(attrs)
+    end
+
+    test "create_reaction/1 with invalid data returns error changeset" do
+      attrs = reaction_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_reaction(attrs)
+    end
+
+    test "create_reaction/1 with invalid message ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{message_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{message: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_reaction/1 with invalid user ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{user_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{user: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_reaction/1 with existing message ID, user ID, and emoji returns error changeset" do
+      fixture = reaction_fixture()
+
+      attrs =
+        reaction_valid_attrs(%{
+          message_id: fixture.message_id,
+          user_id: fixture.user_id,
+          emoji: fixture.emoji
+        })
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
+      assert %{message_id: ["has already been taken"]} = errors_on(changeset)
+    end
+  end
 end

@@ -16,6 +16,7 @@ defmodule Edgybot.DataCase do
         ChannelFixtures,
         GuildFixtures,
         MessageFixtures,
+        ReactionFixtures,
         UserFixtures
       }
     end
