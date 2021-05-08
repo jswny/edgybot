@@ -5,6 +5,7 @@ defmodule Edgybot.Repo.Migrations.AddMessagesTable do
     create table("messages", primary_key: false) do
       add :id, :bigint, primary_key: true
       add :user_id, references(:users, type: :bigint), null: false
+      add :channel_id, references(:channels, type: :bigint), null: false
 
       timestamps()
     end
