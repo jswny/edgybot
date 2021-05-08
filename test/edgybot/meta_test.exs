@@ -54,6 +54,12 @@ defmodule Edgybot.MetaTest do
       assert %{user: ["does not exist"]} = errors_on(changeset)
     end
 
+    test "create_message/1 with invalid channel ID returns error changeset" do
+      attrs = message_valid_attrs(%{channel_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_message(attrs)
+      assert %{channel: ["does not exist"]} = errors_on(changeset)
+    end
+
     test "create_message/1 with existing ID returns error changeset" do
       fixture = message_fixture()
       attrs = message_valid_attrs(%{id: fixture.id})
