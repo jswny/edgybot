@@ -167,4 +167,37 @@ defmodule Edgybot.MetaTest do
       assert %{message_id: ["has already been taken"]} = errors_on(changeset)
     end
   end
+
+  describe "roles" do
+    alias Edgybot.Meta.Role
+
+    test "create_role/1 with valid data creates a role" do
+      attrs = role_valid_attrs()
+      assert {:ok, %Role{}} = Meta.create_role(attrs)
+    end
+
+    test "create_role/1 with invalid data returns error changeset" do
+      attrs = role_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_role(attrs)
+    end
+
+    test "create_role/1 with invalid snowflake ID returns error changeset" do
+      attrs = role_valid_attrs(%{id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_role(attrs)
+      assert %{id: ["invalid snowflake"]} = errors_on(changeset)
+    end
+
+    test "create_role/1 with invalid guild ID returns error changeset" do
+      attrs = role_valid_attrs(%{guild_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_role(attrs)
+      assert %{guild: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_role/1 with existing ID returns error changeset" do
+      fixture = role_fixture()
+      attrs = role_valid_attrs(%{id: fixture.id})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_role(attrs)
+      assert %{id: ["has already been taken"]} = errors_on(changeset)
+    end
+  end
 end
