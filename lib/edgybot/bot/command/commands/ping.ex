@@ -5,7 +5,7 @@ defmodule Edgybot.Bot.Command.Ping do
   def get_command() do
     %{
       name: "ping",
-      description: "check for alive-ness"
+      description: "Ping the bot"
     }
   end
 
