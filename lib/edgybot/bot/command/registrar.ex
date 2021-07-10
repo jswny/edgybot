@@ -1,11 +1,10 @@
 defmodule Edgybot.Bot.Command.Registrar do
   @moduledoc false
 
-  alias Edgybot.Bot.Command.{Ping, Dev}
+  alias Edgybot.Bot.Command.Ping
 
   @command_modules [
-    Ping,
-    Dev
+    Ping
   ]
 
   def get_command_module(name) do
