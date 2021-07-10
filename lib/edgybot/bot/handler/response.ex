@@ -62,11 +62,9 @@ defmodule Edgybot.Bot.Handler.Response do
     %Embed{}
     |> Embed.put_title("Error")
     |> Embed.put_color(@color_red)
-    |> Embed.put_description(code_inline(reason))
+    |> Embed.put_description(code_block(reason))
     |> Embed.put_timestamp(current_timestamp())
   end
-
-  defp code_inline(content) when is_binary(content), do: "`#{content}`"
 
   defp code_block(content) when is_binary(content), do: "```#{content}```"
 
