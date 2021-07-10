@@ -3,17 +3,16 @@ defmodule Edgybot.Bot.Handler.CommandTest do
   alias Edgybot.Bot
   alias Edgybot.Bot.Handler.Command
   import Edgybot.TestUtils
-
-  @interaction %{id: 123, token: "456"}
+  import Edgybot.Bot.InteractionFixtures
 
   describe "handle_command/2" do
     test "handles interaction" do
-      interaction = Map.put(@interaction, :data, %{name: "ping"})
+      interaction = interaction_fixture(%{data: %{name: "ping"}})
       assert {:message, _} = Command.handle_command(interaction)
     end
 
     test "skips interaction without matching command" do
-      interaction = Map.put(@interaction, :data, %{name: ""})
+      interaction = interaction_fixture(%{data: %{name: ""}})
       assert :noop = Command.handle_command(interaction)
     end
   end
