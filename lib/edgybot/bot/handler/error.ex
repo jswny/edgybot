@@ -10,8 +10,9 @@ defmodule Edgybot.Bot.Handler.Error do
       reason = Exception.message(e)
       stacktrace = __STACKTRACE__
 
+      log_error(reason, stacktrace)
+
       if censor do
-        log_error(reason, stacktrace)
         reason = "internal error"
         {:error, reason}
       else
