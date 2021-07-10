@@ -20,9 +20,12 @@ defmodule Edgybot.Bot.Command.Dev do
 
   @impl true
   def handle_interaction(interaction) do
-    case interaction.data.options[0].name do
-      "error" -> 1 / 0
-      _ -> :noop
+    subcommand_name = interaction.data.options[0].name
+
+    case subcommand_name do
+      "error" -> _ = 1 / 0
     end
+
+    {:error, "Unhandled subcommand"}
   end
 end
