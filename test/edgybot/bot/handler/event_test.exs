@@ -12,7 +12,6 @@ defmodule Edgybot.Bot.Handler.EventTest do
     end
 
     test "handles interaction create event" do
-      content = build_command("foo")
       event = :INTERACTION_CREATE
       payload = %{id: 123, token: "456", data: %{name: ""}}
 
