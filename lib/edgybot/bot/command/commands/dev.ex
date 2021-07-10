@@ -20,10 +20,15 @@ defmodule Edgybot.Bot.Command.Dev do
 
   @impl true
   def handle_interaction(interaction) do
-    subcommand_name = interaction.data.options[0].name
+    subcommand_name =
+      interaction
+      |> Map.get(:data)
+      |> Map.get(:options)
+      |> Enum.at(0)
+      |> Map.get(:name)
 
     case subcommand_name do
-      "error" -> _ = 1 / 0
+      "error" -> _ = raise("fake error")
     end
 
     {:error, "Unhandled subcommand"}
