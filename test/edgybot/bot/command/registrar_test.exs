@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Command.RegistrarTest do
   use ExUnit.Case
-  alias Edgybot.Bot.Command.Registrar
   alias Edgybot.Bot.Command.Ping
+  alias Edgybot.Bot.Command.Registrar
   import Edgybot.Bot.InteractionFixtures
 
   @command_name "ping"
