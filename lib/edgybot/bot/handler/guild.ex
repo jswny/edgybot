@@ -4,6 +4,7 @@ defmodule Edgybot.Bot.Handler.Guild do
   require Logger
   alias Edgybot.Bot.Command.Registrar
   alias Nostrum.Api
+  alias Nostrum.Cache.Me
 
   def handle_guild_available(guild) when is_map(guild) do
     application_id = get_discord_application_id()
@@ -30,7 +31,7 @@ defmodule Edgybot.Bot.Handler.Guild do
     :noop
   end
 
-  defp get_discord_application_id() do
-    Nostrum.Cache.Me.get().id
+  defp get_discord_application_id do
+    Me.get().id
   end
 end
