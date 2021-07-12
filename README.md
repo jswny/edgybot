@@ -19,7 +19,7 @@ mix run --no-halt
 
 ### Docker
 
-You can run with Docker Compose, which will build the image locally, and use the environment variables from your current environment.
+You can run with Docker Compose, which will build the image locally, and use the environment variables from your current environment. You can alternatively setup a .env file which contains the appropriate environment variables and values which Compose will pick up automatically.
 
 ```shell
 docker-compose up
