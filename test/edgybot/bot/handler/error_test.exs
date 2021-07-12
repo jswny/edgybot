@@ -21,7 +21,7 @@ defmodule Edgybot.Bot.Handler.ErrorTest do
       assert actual_message =~ expected_message
     end
 
-    test "converts errors to tuples to internal error message and no stacktrace and logs when censoring" do
+    test "logs errors" do
       fun = fn -> raise "test" end
 
       assert capture_log(fn ->

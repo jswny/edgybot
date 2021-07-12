@@ -11,32 +11,11 @@ defmodule Edgybot.Bot.Handler.EventTest do
       assert :noop = Event.handle_event(event, payload)
     end
 
-    test "doesn't handle message creation from bots" do
-      content = "foo"
-      event = :MESSAGE_CREATE
-      payload = message_payload(content, true)
+    test "handles interaction create event" do
+      event = :INTERACTION_CREATE
+      payload = %{id: 123, token: "456", data: %{name: ""}}
 
       assert :noop = Event.handle_event(event, payload)
     end
-
-    test "doesn't handle message creation event with no command" do
-      content = "foo"
-      event = :MESSAGE_CREATE
-      payload = message_payload(content, nil)
-
-      assert :noop = Event.handle_event(event, payload)
-    end
-
-    test "handles message creation event" do
-      content = build_command("foo")
-      event = :MESSAGE_CREATE
-      payload = message_payload(content, nil)
-
-      assert {:error, "no matching command"} = Event.handle_event(event, payload)
-    end
-  end
-
-  defp message_payload(content, bot) do
-    %{content: content, author: %{id: 1, bot: bot}}
   end
 end

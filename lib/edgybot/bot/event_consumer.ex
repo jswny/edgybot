@@ -17,20 +17,13 @@ defmodule Edgybot.Bot.EventConsumer do
 
     censor_error = Edgybot.runtime_env() == :prod
 
-    result =
-      Handler.Error.handle_error(
-        fn ->
-          Handler.Event.handle_event(event, payload)
-        end,
-        censor_error
-      )
-
     Handler.Error.handle_error(
       fn ->
-        Handler.Response.handle_response(result, payload)
+        Handler.Event.handle_event(event, payload)
       end,
-      true
+      censor_error
     )
+    |> Handler.Response.handle_response(payload)
   end
 
   @impl true
