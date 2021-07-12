@@ -53,7 +53,7 @@ defmodule Edgybot.Bot.Command.Dev do
     end
   end
 
-  def handle_subcommand_eval(subcommand_option) do
+  defp handle_subcommand_eval(subcommand_option) do
     code_string =
       subcommand_option
       |> Map.get(:options)
