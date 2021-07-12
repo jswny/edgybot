@@ -6,11 +6,11 @@ WORKDIR /usr/src/edgybot
 
 COPY . .
 
-RUN mix local.hex --force
-RUN mix local.rebar --force
-RUN mix deps.get
-RUN mix compile
-RUN mix release
+RUN mix local.hex --force \
+  && mix local.rebar --force \
+  && mix deps.get \
+  && mix compile \
+  && mix release
 
 FROM alpine:3.12 AS runner
 

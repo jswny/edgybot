@@ -1,6 +1,9 @@
 # Mix artifacts
 _build/
-deps
+deps/
+
+# Elixir LS
+.elixir_ls/
 
 # Postgres data
 pgdata/
