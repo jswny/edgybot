@@ -19,7 +19,7 @@ mix run --no-halt
 
 ### Docker
 
-You can run with Docker Compose, which will build the image locally.
+You can run with Docker Compose, which will build the image locally, and use the environment variables from your current environment.
 
 ```shell
 docker-compose up
@@ -27,7 +27,6 @@ docker-compose up
 
 ## Error Handling
 
-- Most errors will be reported back as messages if they occur
-- If a response cannot be sent in the channel, the message will be retried as a DM instead
-- If an error occurs when sending messages, it will be logged to the console
-- Internal errors and stacktraces will only be exposed if `MIX_ENV` is not `:prod`
+- Most errors, especially in commands, will be reported back as a response to the command execution
+- Internal errors and stacktraces will only be exposed in messages if `MIX_ENV` is not `:prod`
+- All errors with full stack traces will be logged to the console
