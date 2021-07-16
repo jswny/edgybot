@@ -2,12 +2,12 @@ defmodule Edgybot.Bot.Handler.Guild do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.Command.Registrar
+  alias Edgybot.Bot.CommandRegistrar
   alias Nostrum.Api
 
   def handle_guild_available(guild) when is_map(guild) do
     guild_id = guild.id
-    commands = Registrar.list_commands()
+    commands = CommandRegistrar.list_commands()
 
     register_guild_commands(guild_id, commands)
   end
