@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Handler.Guild do
+defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   require Logger

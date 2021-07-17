@@ -1,17 +1,17 @@
-defmodule Edgybot.Bot.Handler.Event do
+defmodule Edgybot.Bot.Handler.EventHandler do
   @moduledoc false
 
-  alias Edgybot.Bot.Handler
+  alias Edgybot.Bot.Handler.{CommandHandler, GuildHandler}
 
   def handle_event(event, payload) when is_atom(event) do
     case event do
       :GUILD_AVAILABLE ->
         {guild} = payload
-        Handler.Guild.handle_guild_available(guild)
+        GuildHandler.handle_guild_available(guild)
 
       :INTERACTION_CREATE ->
         interaction = payload
-        Handler.Command.handle_command(interaction)
+        CommandHandler.handle_command(interaction)
 
       _ ->
         :noop

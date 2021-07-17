@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Handler.Error do
+defmodule Edgybot.Bot.Handler.ErrorHandler do
   @moduledoc false
 
   require Logger
