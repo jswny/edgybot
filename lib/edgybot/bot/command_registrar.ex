@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Command.Registrar do
+defmodule Edgybot.Bot.CommandRegistrar do
   @moduledoc false
 
   alias Edgybot.Bot.Command.{Dev, Ping}

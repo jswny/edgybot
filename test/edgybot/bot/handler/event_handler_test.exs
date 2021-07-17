@@ -1,6 +1,6 @@
-defmodule Edgybot.Bot.Handler.EventTest do
+defmodule Edgybot.Bot.Handler.EventHandlerTest do
   use ExUnit.Case
-  alias Edgybot.Bot.Handler.Event
+  alias Edgybot.Bot.Handler.EventHandler
   import Edgybot.TestUtils
 
   describe "handle_event/2" do
@@ -8,14 +8,14 @@ defmodule Edgybot.Bot.Handler.EventTest do
       event = :FOO
       payload = nil
 
-      assert :noop = Event.handle_event(event, payload)
+      assert :noop = EventHandler.handle_event(event, payload)
     end
 
     test "handles interaction create event" do
       event = :INTERACTION_CREATE
       payload = %{id: 123, token: "456", data: %{name: ""}}
 
-      assert :noop = Event.handle_event(event, payload)
+      assert :noop = EventHandler.handle_event(event, payload)
     end
   end
 end

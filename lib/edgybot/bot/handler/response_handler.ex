@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Handler.Response do
+defmodule Edgybot.Bot.Handler.ResponseHandler do
   @moduledoc false
 
   alias Nostrum.Api
