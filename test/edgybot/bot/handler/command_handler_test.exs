@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Handler.CommandHandlerTest do
   use ExUnit.Case
-  alias Edgybot.Bot.Handler.CommandHandler
   alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.Bot.Handler.CommandHandler
   import Edgybot.Bot.InteractionFixtures
 
   setup do

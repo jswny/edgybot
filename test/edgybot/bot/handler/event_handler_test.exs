@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Handler.EventHandlerTest do
   use ExUnit.Case
-  alias Edgybot.Bot.Handler.EventHandler
   alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.Bot.Handler.EventHandler
 
   describe "handle_event/2" do
     test "doesn't handle invalid event" do
