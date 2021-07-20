@@ -2,12 +2,6 @@ defmodule Edgybot.Bot.CommandRegistrar do
   @moduledoc false
 
   use GenServer
-  alias Edgybot.Bot.Command.{Dev, Ping}
-
-  @command_modules [
-    Ping,
-    Dev
-  ]
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -27,7 +21,7 @@ defmodule Edgybot.Bot.CommandRegistrar do
 
   @impl true
   def init(_opts) do
-    state = %{command_modules: @command_modules}
+    state = %{command_modules: load_command_modules()}
     {:ok, state}
   end
 
@@ -55,5 +49,18 @@ defmodule Edgybot.Bot.CommandRegistrar do
     new_state = %{state | command_modules: new_command_modules}
 
     {:noreply, new_state}
+  end
+
+  defp load_command_modules do
+    {:ok, modules} =
+      __MODULE__
+      |> Application.get_application()
+      |> :application.get_key(:modules)
+
+    Enum.filter(modules, fn module ->
+      module
+      |> Atom.to_string()
+      |> String.starts_with?("Elixir.Edgybot.Bot.Command.")
+    end)
   end
 end
