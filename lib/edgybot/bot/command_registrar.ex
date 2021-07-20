@@ -21,6 +21,10 @@ defmodule Edgybot.Bot.CommandRegistrar do
     GenServer.call(__MODULE__, :list_commands)
   end
 
+  def load_command_module(command_module) do
+    GenServer.cast(__MODULE__, {:load_command_module, command_module})
+  end
+
   @impl true
   def init(_opts) do
     state = %{command_modules: @command_modules}
@@ -40,5 +44,16 @@ defmodule Edgybot.Bot.CommandRegistrar do
     commands = Enum.map(command_modules, fn module -> module.get_command() end)
 
     {:reply, commands, state}
+  end
+
+  @impl true
+  def handle_cast(
+        {:load_command_module, command_module},
+        %{command_modules: command_modules} = state
+      ) do
+    new_command_modules = [command_module | command_modules]
+    new_state = %{state | command_modules: new_command_modules}
+
+    {:noreply, new_state}
   end
 end
