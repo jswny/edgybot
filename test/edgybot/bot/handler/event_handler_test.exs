@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Handler.EventHandlerTest do
   use ExUnit.Case
   alias Edgybot.Bot.Handler.EventHandler
-  import Edgybot.TestUtils
+  alias Edgybot.Bot.CommandRegistrar
 
   describe "handle_event/2" do
     test "doesn't handle invalid event" do
@@ -12,6 +12,7 @@ defmodule Edgybot.Bot.Handler.EventHandlerTest do
     end
 
     test "handles interaction create event" do
+      start_supervised!(CommandRegistrar)
       event = :INTERACTION_CREATE
       payload = %{id: 123, token: "456", data: %{name: ""}}
 
