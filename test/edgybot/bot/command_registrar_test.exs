@@ -1,5 +1,5 @@
 defmodule Edgybot.Bot.CommandRegistrarTest do
-  use ExUnit.Case
+  use Edgybot.BotCase
   alias Edgybot.Bot.Command.Ping
   alias Edgybot.Bot.CommandRegistrar
 
@@ -8,11 +8,6 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
 
   defmodule TestCommand do
     def get_command, do: %{name: "test-command"}
-  end
-
-  setup do
-    start_supervised!(CommandRegistrar)
-    :ok
   end
 
   describe "get_command_module/1" do

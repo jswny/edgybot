@@ -1,13 +1,6 @@
 defmodule Edgybot.Bot.Handler.CommandHandlerTest do
-  use ExUnit.Case
-  alias Edgybot.Bot.CommandRegistrar
+  use Edgybot.BotCase
   alias Edgybot.Bot.Handler.CommandHandler
-  import Edgybot.Bot.InteractionFixtures
-
-  setup do
-    start_supervised!(CommandRegistrar)
-    :ok
-  end
 
   describe "handle_command/2" do
     test "handles interaction" do
