@@ -1,9 +1,6 @@
 defmodule Edgybot.Bot.Handler.CommandHandlerTest do
-  use ExUnit.Case
-  alias Edgybot.Bot
+  use Edgybot.BotCase
   alias Edgybot.Bot.Handler.CommandHandler
-  import Edgybot.TestUtils
-  import Edgybot.Bot.InteractionFixtures
 
   describe "handle_command/2" do
     test "handles interaction" do

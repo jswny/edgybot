@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Supervisor do
   @moduledoc false
 
   use Supervisor
-  alias Edgybot.Bot
+  alias Edgybot.Bot.{CommandRegistrar, EventConsumer}
 
   def start_link(_opts) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
@@ -11,7 +11,8 @@ defmodule Edgybot.Bot.Supervisor do
   @impl true
   def init(_opts) do
     children = [
-      Bot.EventConsumer
+      EventConsumer,
+      CommandRegistrar
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
