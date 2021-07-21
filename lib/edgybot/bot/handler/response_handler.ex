@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   @moduledoc false
 
   use Bitwise
+  alias Edgybot.Config
   alias Nostrum.Api
   alias Nostrum.Struct.Embed
 
@@ -77,7 +78,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   end
 
   defp maybe_silence_response(data) when is_map(data) do
-    silent_mode = Edgybot.silent_mode()
+    silent_mode = Config.silent_mode()
 
     if silent_mode do
       Map.put(data, :flags, 1 <<< 6)

@@ -5,6 +5,7 @@ defmodule Edgybot.Bot.EventConsumer do
 
   require Logger
   use Nostrum.Consumer
+  alias Edgybot.Config
   alias Edgybot.Bot.Handler.{ErrorHandler, EventHandler, ResponseHandler}
 
   def start_link do
@@ -15,7 +16,7 @@ defmodule Edgybot.Bot.EventConsumer do
   def handle_event({event, payload, _ws_state}) do
     Logger.debug("Received event: #{event}")
 
-    censor_error = Edgybot.runtime_env() == :prod
+    censor_error = Config.runtime_env() == :prod
 
     ErrorHandler.handle_error(
       fn ->
