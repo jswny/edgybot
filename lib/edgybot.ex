@@ -6,4 +6,10 @@ defmodule Edgybot do
     |> Application.get_application()
     |> Application.fetch_env!(:runtime_env)
   end
+
+  def silent_mode do
+    __MODULE__
+    |> Application.get_application()
+    |> Application.fetch_env!(:silent_mode)
+  end
 end
