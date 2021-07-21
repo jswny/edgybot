@@ -1,6 +1,8 @@
 defmodule Edgybot.Bot.Handler.ResponseHandler do
   @moduledoc false
 
+  use Bitwise
+  alias Edgybot.Config
   alias Nostrum.Api
   alias Nostrum.Struct.Embed
 
@@ -37,6 +39,8 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   def send_interaction_response(%{id: id, token: token} = interaction, data)
       when is_integer(id) and is_binary(token) and is_map(data) do
+    data = maybe_silence_response(data)
+
     response =
       Map.new()
       |> Map.put(:type, @interaction_message_response)
@@ -71,5 +75,15 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   defp current_timestamp do
     DateTime.utc_now()
     |> DateTime.to_string()
+  end
+
+  defp maybe_silence_response(data) when is_map(data) do
+    silent_mode = Config.silent_mode()
+
+    if silent_mode do
+      Map.put(data, :flags, 1 <<< 6)
+    else
+      data
+    end
   end
 end
