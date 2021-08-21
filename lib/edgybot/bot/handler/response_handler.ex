@@ -17,6 +17,12 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
     send_interaction_response(interaction, response_data)
   end
 
+  def handle_response({:embed, embed}, %{id: id, token: token} = interaction)
+      when is_map(embed) and is_integer(id) and is_binary(token) do
+    response_data = %{embeds: [embed]}
+    send_interaction_response(interaction, response_data)
+  end
+
   def handle_response(
         {:error, reason} = response,
         %{id: id, token: token} = interaction
@@ -46,7 +52,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
       |> Map.put(:type, @interaction_message_response)
       |> Map.put(:data, data)
 
-    Api.create_interaction_response(interaction, response)
+    {:ok} = Api.create_interaction_response(interaction, response)
   end
 
   defp build_error_embed({:error, reason})
