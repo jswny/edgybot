@@ -27,6 +27,10 @@ You can run with Docker Compose, which will build the image locally, and use the
 docker-compose up
 ```
 
+## Command Permissions
+
+For most commands, the default is to deny permission for all users. Please manage the individual command permissions for your server by using the command management command to enable them.
+
 ## Error Handling
 
 - Most errors, especially in commands, will be reported back as a response to the command execution
