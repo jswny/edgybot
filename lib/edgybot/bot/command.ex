@@ -1,7 +1,12 @@
 defmodule Edgybot.Bot.Command do
   @moduledoc false
 
-  @typep command_option :: %{name: binary(), description: binary(), type: 3..9}
+  @typep command_option :: %{
+           optional(:required) => boolean,
+           name: binary(),
+           description: binary(),
+           type: 3..9
+         }
 
   @typep option ::
            %{
@@ -33,5 +38,7 @@ defmodule Edgybot.Bot.Command do
             }
 
   @callback handle_interaction(Nostrum.Struct.Interaction.t()) ::
-              {:message, binary()} | {:error, binary()}
+              {:message, binary()}
+              | {:embed, Nostrum.Struct.Embed.t()}
+              | {:error, binary()}
 end
