@@ -27,6 +27,7 @@ defmodule Edgybot.Bot.Command do
 
   @callback get_command() :: %{
               optional(:options) => [option()],
+              optional(:default_permission) => boolean(),
               name: binary(),
               description: binary()
             }
