@@ -202,14 +202,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Image Metadata
         id: image-metadata
-        uses: crazy-max/ghaction-docker-meta@v2
+        uses: docker/metadata-action@v3
         with:
           images: ${{ env.container-registry }}/${{ github.repository }}
           flavor: |
             latest=auto
           tags: |
+            type=edge
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
       - name: Cache Image Layers
