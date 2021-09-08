@@ -1,16 +1,11 @@
 defmodule Edgybot.Bot.Command.Command do
   @moduledoc false
 
+  alias Edgybot.Bot.Designer
   alias Nostrum.Api
   alias Nostrum.Cache.Me
-  alias Nostrum.Struct.Embed
-  alias Nostrum.Struct.Guild.Role
 
   @behaviour Edgybot.Bot.Command
-  @color_green 3_066_993
-  @color_orange 16_227_348
-  @emoji_yes "✅"
-  @emoji_no "⛔"
   @api_error_no_permissions {:error, %{response: %{code: 10_066}, status_code: 404}}
 
   @impl true
@@ -132,12 +127,11 @@ defmodule Edgybot.Bot.Command.Command do
     command_id = get_guild_command_id(command_name, guild_id)
 
     if command_id == nil do
-      embed = warning_embed("Command `#{command_name}` does not exist!")
-      {:embed, embed}
+      command_does_not_exist_response(command_name)
     else
       permissions_list = get_command_permissions(command_id, guild_id)
 
-      {:embed, build_permissions_embed(permissions_list, command_name, guild_id)}
+      {:success, build_permissions_response_options(permissions_list, command_name, guild_id)}
     end
   end
 
@@ -157,8 +151,7 @@ defmodule Edgybot.Bot.Command.Command do
     command_id = get_guild_command_id(command_name, guild_id)
 
     if command_id == nil do
-      embed = warning_embed("Command `#{command_name}` does not exist!")
-      {:embed, embed}
+      command_does_not_exist_response(command_name)
     else
       route =
         "/applications/#{get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
@@ -179,16 +172,13 @@ defmodule Edgybot.Bot.Command.Command do
 
       action_message =
         if allow do
-          "#{@emoji_yes} allowed"
+          "#{Designer.emoji_yes()} allowed"
         else
-          "#{@emoji_no} disallowed"
+          "#{Designer.emoji_no()} disallowed"
         end
 
-      message =
-        "Successfully #{action_message} #{build_role_mention(role_id)} use of command `#{command_name}`"
-
-      embed = success_embed(message)
-      {:embed, embed}
+      {:success,
+       "Successfully #{action_message} #{Designer.role_mention(role_id)} use of command #{Designer.code_inline(command_name)}"}
     end
   end
 
@@ -206,8 +196,7 @@ defmodule Edgybot.Bot.Command.Command do
     command_id = get_guild_command_id(command_name, guild_id)
 
     if command_id == nil do
-      embed = warning_embed("Command `#{command_name}` does not exist!")
-      {:embed, embed}
+      command_does_not_exist_response(command_name)
     else
       current_permissions = get_command_permissions(command_id, guild_id)
       current_permissions_count = Enum.count(current_permissions)
@@ -224,11 +213,11 @@ defmodule Edgybot.Bot.Command.Command do
 
       new_permissions_count = Enum.count(new_permissions)
 
-      role_mention = build_role_mention(role_id)
+      role_mention = Designer.role_mention(role_id)
 
       if current_permissions_count == new_permissions_count do
-        embed = warning_embed("#{role_mention} has no permissions for command `#{command_name}`!")
-        {:embed, embed}
+        {:warning,
+         "#{role_mention} has no permissions for command #{Designer.code_inline(command_name)}!"}
       else
         body = %{
           permissions: new_permissions
@@ -239,15 +228,13 @@ defmodule Edgybot.Bot.Command.Command do
 
         {:ok, _permissions} = Api.request(:put, route, body)
 
-        embed =
-          success_embed("Removed permission for #{role_mention} for command `#{command_name}`")
-
-        {:embed, embed}
+        {:success,
+         "Removed permission for #{role_mention} for command #{Designer.code_inline(command_name)}"}
       end
     end
   end
 
-  defp build_permissions_embed(permissions, command_name, guild_id)
+  defp build_permissions_response_options(permissions, command_name, guild_id)
        when is_list(permissions) and is_binary(command_name) and is_integer(guild_id) do
     {allowed_role_ids, disallowed_role_ids} =
       Enum.reduce(
@@ -272,21 +259,25 @@ defmodule Edgybot.Bot.Command.Command do
     allowed_role_mentions = build_role_mentions_field_content(allowed_role_ids)
     disallowed_role_mentions = build_role_mentions_field_content(disallowed_role_ids)
 
-    success_embed()
-    |> Embed.put_title("Permissions for `#{command_name}`")
-    |> Embed.put_field(
-      "#{@emoji_yes} Allowed",
-      if(allowed_role_mentions == "", do: "None!", else: allowed_role_mentions)
-    )
-    |> Embed.put_field(
-      "#{@emoji_no} Disallowed",
-      if(disallowed_role_mentions == "", do: "None!", else: disallowed_role_mentions)
-    )
+    allowed_field = %{
+      name: "#{Designer.emoji_yes()} Allowed",
+      value: if(allowed_role_mentions == "", do: "None!", else: allowed_role_mentions)
+    }
+
+    disallowed_field = %{
+      name: "#{Designer.emoji_no()} Disallowed",
+      value: if(disallowed_role_mentions == "", do: "None!", else: disallowed_role_mentions)
+    }
+
+    [
+      title: "Permissions for #{Designer.code_inline(command_name)}",
+      fields: [allowed_field, disallowed_field]
+    ]
   end
 
   defp build_role_mentions_field_content(role_ids) when is_list(role_ids) do
     role_ids
-    |> Enum.map(fn role_id -> build_role_mention(role_id) end)
+    |> Enum.map(fn role_id -> Designer.role_mention(role_id) end)
     |> Enum.join("\n")
   end
 
@@ -326,19 +317,6 @@ defmodule Edgybot.Bot.Command.Command do
     end
   end
 
-  defp build_role_mention(role_id) when is_integer(role_id) do
-    Role.mention(%Role{
-      id: role_id,
-      color: 0,
-      hoist: false,
-      managed: false,
-      mentionable: false,
-      name: "",
-      permissions: 0,
-      position: 0
-    })
-  end
-
   defp get_subcommand_group_option(interaction) when is_map(interaction) do
     interaction
     |> Map.get(:data)
@@ -358,25 +336,9 @@ defmodule Edgybot.Bot.Command.Command do
     |> Map.get(:value)
   end
 
-  defp warning_embed(message) when is_binary(message) do
-    %Embed{}
-    |> Embed.put_title("Warning")
-    |> Embed.put_color(@color_orange)
-    |> Embed.put_description(message)
-  end
-
-  defp success_embed(message \\ "") when is_binary(message) do
-    embed =
-      %Embed{}
-      |> Embed.put_title("Success")
-      |> Embed.put_color(@color_green)
-
-    if message != "" do
-      Embed.put_description(embed, message)
-    else
-      embed
-    end
-  end
-
   defp get_application_id, do: Me.get().id
+
+  defp command_does_not_exist_response(command_name) when is_binary(command_name) do
+    {:warning, "Command #{Designer.code_inline(command_name)} does not exist!"}
+  end
 end

@@ -13,6 +13,6 @@ defmodule Edgybot.Bot.Command.Ping do
 
   @impl true
   def handle_interaction(_interaction) do
-    {:message, "Pong!"}
+    {:success, "Pong!"}
   end
 end
