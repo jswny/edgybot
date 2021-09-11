@@ -17,13 +17,14 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
   defp register_guild_commands(guild_id, commands)
        when is_integer(guild_id) and is_list(commands) do
-    Logger.info("Registering commands for guild #{guild_id}...")
+    {:ok, guild} = Api.get_guild(guild_id)
+    guild_name = guild.name
+
+    Logger.debug("Registering commands for guild #{guild_name}...")
 
     commands
     |> Enum.map(fn command ->
       Task.async(fn ->
-        command_name = command.name
-        Logger.info("Registering command #{command_name} for guild #{guild_id}...")
         Api.create_guild_application_command(guild_id, command)
       end)
     end)
