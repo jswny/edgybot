@@ -8,7 +8,7 @@ defmodule Edgybot.Bot.Handler.CommandHandler do
       when is_integer(id) and is_binary(token) do
     command_name = interaction.data.name
 
-    Logger.debug("Received command #{command_name}")
+    Logger.debug("Handling command #{command_name}...")
 
     matching_command = CommandRegistrar.get_command_module(command_name)
 
