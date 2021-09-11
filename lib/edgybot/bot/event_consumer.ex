@@ -14,8 +14,6 @@ defmodule Edgybot.Bot.EventConsumer do
 
   @impl true
   def handle_event({event, payload, _ws_state}) do
-    Logger.debug("Received event: #{event}")
-
     censor_error = Config.runtime_env() == :prod
 
     ErrorHandler.handle_error(
@@ -29,11 +27,6 @@ defmodule Edgybot.Bot.EventConsumer do
 
   @impl true
   def handle_event(_event) do
-    ignore("undefined", "event")
-  end
-
-  defp ignore(type, thing) do
-    Logger.debug("Ignored #{type} #{thing}")
     :noop
   end
 end
