@@ -1,6 +1,8 @@
 defmodule Edgybot.Bot.Command.Dev do
   @moduledoc false
 
+  alias Edgybot.Bot.Designer
+
   @behaviour Edgybot.Bot.Command
 
   @impl true
@@ -61,6 +63,12 @@ defmodule Edgybot.Bot.Command.Dev do
       |> Map.get(:value)
 
     {result, _binding} = Code.eval_string(code_string)
-    {:message, "```#{inspect(result)}```"}
+
+    result_string =
+      result
+      |> inspect(pretty: true, width: 0)
+      |> Designer.code_block()
+
+    {:success, result_string}
   end
 end

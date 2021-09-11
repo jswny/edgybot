@@ -1,6 +1,7 @@
 defmodule Edgybot.Bot.Handler.ErrorHandler do
   @moduledoc false
 
+  alias Edgybot.Bot.Designer
   require Logger
 
   def handle_error(fun, censor) when is_function(fun) and is_boolean(censor) do
@@ -13,10 +14,10 @@ defmodule Edgybot.Bot.Handler.ErrorHandler do
       log_error(reason, stacktrace)
 
       if censor do
-        reason = "internal error"
+        reason = "Internal error"
         {:error, reason}
       else
-        {:error, reason, __STACKTRACE__}
+        {:error, [description: Designer.code_inline(reason), stacktrace: __STACKTRACE__]}
       end
   end
 

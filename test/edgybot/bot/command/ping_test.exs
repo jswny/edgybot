@@ -12,7 +12,7 @@ defmodule Edgybot.Bot.Command.PingTest do
   describe "handle_interaction/1" do
     test "responds with pong" do
       interaction = interaction_fixture(%{data: %{name: "ping"}})
-      assert {:message, "Pong!"} = Ping.handle_interaction(interaction)
+      assert {:success, "Pong!"} = Ping.handle_interaction(interaction)
     end
   end
 end

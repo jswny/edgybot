@@ -1,11 +1,10 @@
 defmodule Edgybot.Bot.Command.Topic do
   @moduledoc false
 
+  alias Edgybot.Bot.Designer
   alias Nostrum.Api
-  alias Nostrum.Struct.Embed
 
   @behaviour Edgybot.Bot.Command
-  @color_green 3_066_993
 
   @impl true
   def get_command do
@@ -37,12 +36,6 @@ defmodule Edgybot.Bot.Command.Topic do
     channel_options = %{topic: content}
     {:ok, _channel} = Api.modify_channel(channel_id, channel_options)
 
-    embed =
-      %Embed{}
-      |> Embed.put_title("Success")
-      |> Embed.put_color(@color_green)
-      |> Embed.put_description("Set the topic channel to ```#{content}```")
-
-    {:embed, embed}
+    {:success, "Set the channel topic to #{Designer.code_inline(content)}"}
   end
 end

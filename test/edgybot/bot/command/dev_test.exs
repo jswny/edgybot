@@ -48,7 +48,7 @@ defmodule Edgybot.Bot.Command.DevTest do
 
       interaction = interaction_fixture(interaction_attrs)
 
-      assert {:message, "```2```"} = Dev.handle_interaction(interaction)
+      assert {:success, "```2```"} = Dev.handle_interaction(interaction)
     end
 
     test "with eval subcommand evaluates code and handles results that require inspection" do
@@ -70,7 +70,7 @@ defmodule Edgybot.Bot.Command.DevTest do
 
       interaction = interaction_fixture(interaction_attrs)
 
-      assert {:message, "```[:foo, :bar]```"} = Dev.handle_interaction(interaction)
+      assert {:success, "```[:foo,\n :bar]```"} = Dev.handle_interaction(interaction)
     end
   end
 end
