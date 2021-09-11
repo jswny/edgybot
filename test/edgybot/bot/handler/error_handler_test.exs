@@ -3,29 +3,21 @@ defmodule Edgybot.Bot.Handler.ErrorHandlerTest do
   import ExUnit.CaptureLog
   alias Edgybot.Bot.Handler.ErrorHandler
 
+  defp error_fun, do: raise("test")
+
   describe "handle_error/1" do
-    test "converts errors to tuples when not censoring" do
-      fun = fn -> raise "test" end
-
-      assert {:error, "test", _} = ErrorHandler.handle_error(fun, false)
+    test "converts errors to responses when not censoring" do
+      assert {:error, [description: "``test``", stacktrace: _]} =
+               ErrorHandler.handle_error(&error_fun/0, false)
     end
 
-    test "converts errors with no message to tuples when not censoring" do
-      fun = fn -> "#{{:string, "foo"}}" end
-
-      expected_message =
-        ~s/protocol String.Chars not implemented for {:string, "foo"} of type / <>
-          ~s/Tuple. This protocol is implemented for the following type(s):/
-
-      assert {:error, actual_message, _} = ErrorHandler.handle_error(fun, false)
-      assert actual_message =~ expected_message
-    end
-
-    test "logs errors" do
-      fun = fn -> raise "test" end
+    test "always logs errors" do
+      assert capture_log(fn ->
+               ErrorHandler.handle_error(&error_fun/0, true)
+             end) =~ "Erlang error: \"test\""
 
       assert capture_log(fn ->
-               assert {:error, "internal error"} = ErrorHandler.handle_error(fun, true)
+               ErrorHandler.handle_error(&error_fun/0, false)
              end) =~ "Erlang error: \"test\""
     end
 

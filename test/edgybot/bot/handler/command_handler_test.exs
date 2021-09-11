@@ -5,7 +5,7 @@ defmodule Edgybot.Bot.Handler.CommandHandlerTest do
   describe "handle_command/2" do
     test "handles interaction" do
       interaction = interaction_fixture(%{data: %{name: "ping"}})
-      assert {:message, _} = CommandHandler.handle_command(interaction)
+      assert {:success, _} = CommandHandler.handle_command(interaction)
     end
 
     test "skips interaction without matching command" do
