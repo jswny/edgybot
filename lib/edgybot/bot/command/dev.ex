@@ -6,7 +6,7 @@ defmodule Edgybot.Bot.Command.Dev do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command do
+  def get_command_definition do
     %{
       name: "dev",
       description: "Developer options",
@@ -34,34 +34,13 @@ defmodule Edgybot.Bot.Command.Dev do
   end
 
   @impl true
-  def handle_interaction(interaction) do
-    subcommand_option =
-      interaction
-      |> Map.get(:data)
-      |> Map.get(:options)
-      |> Enum.at(0)
-
-    subcommand_name = Map.get(subcommand_option, :name)
-
-    case subcommand_name do
-      "error" ->
-        _ = raise("fake error")
-
-      "eval" ->
-        handle_subcommand_eval(subcommand_option)
-
-      _ ->
-        {:error, "Unhandled subcommand"}
-    end
+  def handle_command(["dev", "error"], [], _interaction) do
+    raise("fake error")
   end
 
-  defp handle_subcommand_eval(subcommand_option) do
-    code_string =
-      subcommand_option
-      |> Map.get(:options)
-      |> Enum.at(0)
-      |> Map.get(:value)
-
+  @impl true
+  def handle_command(["dev", "eval"], [{"code", 3, code_string}], _interaction)
+      when is_binary(code_string) do
     {result, _binding} = Code.eval_string(code_string)
 
     result_string =

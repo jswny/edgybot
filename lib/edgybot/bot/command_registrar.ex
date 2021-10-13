@@ -28,14 +28,16 @@ defmodule Edgybot.Bot.CommandRegistrar do
   @impl true
   def handle_call({:get_module, command_name}, _from, %{command_modules: command_modules} = state) do
     module =
-      Enum.find(command_modules, fn module -> module.get_command().name == command_name end)
+      Enum.find(command_modules, fn module ->
+        module.get_command_definition().name == command_name
+      end)
 
     {:reply, module, state}
   end
 
   @impl true
   def handle_call(:list_commands, _from, %{command_modules: command_modules} = state) do
-    commands = Enum.map(command_modules, fn module -> module.get_command() end)
+    commands = Enum.map(command_modules, fn module -> module.get_command_definition() end)
 
     {:reply, commands, state}
   end

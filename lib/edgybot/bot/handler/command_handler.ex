@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.CommandHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.Bot.{Command, CommandRegistrar}
 
   def handle_command(%{id: id, token: token} = interaction)
       when is_integer(id) and is_binary(token) do
@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Handler.CommandHandler do
 
     case matching_command do
       nil -> :noop
-      _ -> matching_command.handle_interaction(interaction)
+      _ -> Command.handle_interaction(matching_command, interaction)
     end
   end
 end

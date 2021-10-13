@@ -1,76 +1,28 @@
 defmodule Edgybot.Bot.Command.DevTest do
   use ExUnit.Case
   alias Edgybot.Bot.Command.Dev
-  import Edgybot.Bot.InteractionFixtures
 
-  describe "get_command/1" do
+  describe "get_command_definition/1" do
     test "has name and description" do
-      assert %{name: _, description: _} = Dev.get_command()
+      assert %{name: _, description: _} = Dev.get_command_definition()
     end
   end
 
-  describe "handle_interaction/1" do
+  describe "handle_command/1" do
     test "with error subcommand raises" do
-      interaction_attrs = %{
-        data: %{
-          name: "dev",
-          options: [
-            %{
-              name: "error"
-            }
-          ]
-        }
-      }
-
-      interaction = interaction_fixture(interaction_attrs)
-
       assert_raise RuntimeError, ~r/.*/, fn ->
-        Dev.handle_interaction(interaction)
+        Dev.handle_command(["dev", "error"], [], %{})
       end
     end
 
     test "with eval subcommand evaluates code" do
-      interaction_attrs = %{
-        data: %{
-          name: "dev",
-          options: [
-            %{
-              name: "eval",
-              options: [
-                %{
-                  value: "1 + 1"
-                }
-              ]
-            }
-          ]
-        }
-      }
-
-      interaction = interaction_fixture(interaction_attrs)
-
-      assert {:success, "```2```"} = Dev.handle_interaction(interaction)
+      assert {:success, "```2```"} =
+               Dev.handle_command(["dev", "eval"], [{"code", 3, "1 + 1"}], %{})
     end
 
     test "with eval subcommand evaluates code and handles results that require inspection" do
-      interaction_attrs = %{
-        data: %{
-          name: "dev",
-          options: [
-            %{
-              name: "eval",
-              options: [
-                %{
-                  value: "[:foo, :bar]"
-                }
-              ]
-            }
-          ]
-        }
-      }
-
-      interaction = interaction_fixture(interaction_attrs)
-
-      assert {:success, "```[:foo,\n :bar]```"} = Dev.handle_interaction(interaction)
+      assert {:success, "```[:foo,\n :bar]```"} =
+               Dev.handle_command(["dev", "eval"], [{"code", 3, "[:foo, :bar]"}], %{})
     end
   end
 end

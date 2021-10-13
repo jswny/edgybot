@@ -7,7 +7,7 @@ defmodule Edgybot.Bot.Command.Topic do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command do
+  def get_command_definition do
     %{
       name: "topic",
       description: "Set the channel topic",
@@ -23,16 +23,8 @@ defmodule Edgybot.Bot.Command.Topic do
   end
 
   @impl true
-  def handle_interaction(interaction) do
-    channel_id = Map.get(interaction, :channel_id)
-
-    content =
-      interaction
-      |> Map.get(:data)
-      |> Map.get(:options)
-      |> Enum.at(0)
-      |> Map.get(:value)
-
+  def handle_command(["topic"], [{"content", 3, content}], %{channel_id: channel_id})
+      when is_binary(content) and is_integer(channel_id) do
     channel_options = %{topic: content}
     {:ok, _channel} = Api.modify_channel(channel_id, channel_options)
 

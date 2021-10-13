@@ -3,14 +3,14 @@ defmodule Edgybot.Bot.Command do
 
   alias Edgybot.Bot.Designer
 
-  @typep command_option :: %{
+  @typep application_command_definition_parameter_option :: %{
            optional(:required) => boolean,
            name: binary(),
            description: binary(),
-           type: 3..9
+           type: 3..10
          }
 
-  @typep option ::
+  @typep application_command_definition_option ::
            %{
              name: binary(),
              description: binary(),
@@ -20,7 +20,7 @@ defmodule Edgybot.Bot.Command do
                  name: binary(),
                  description: binary(),
                  type: 1,
-                 options: [command_option()]
+                 options: [application_command_definition_parameter_option()]
                }
              ]
            }
@@ -28,22 +28,133 @@ defmodule Edgybot.Bot.Command do
                name: binary(),
                description: binary(),
                type: 1,
-               options: [command_option()]
+               options: [application_command_definition_parameter_option()]
              }
-           | command_option()
+           | application_command_definition_parameter_option()
 
-  @callback get_command() :: %{
-              optional(:options) => [option()],
+  @type command_option_name :: binary()
+
+  @type command_option_type :: 3..10
+
+  @type command_option_value :: binary()
+
+  @type command_option :: {command_option_name(), command_option_type(), command_option_value()}
+
+  @callback get_command_definition() :: %{
+              optional(:options) => [application_command_definition_option()],
               optional(:default_permission) => boolean(),
               name: binary(),
               description: binary()
             }
 
-  @callback handle_interaction(Nostrum.Struct.Interaction.t()) ::
+  @callback handle_command(
+              nonempty_list(binary()),
+              [command_option],
+              Nostrum.Struct.Interaction.t()
+            ) ::
               {:success, binary()}
               | {:warning, binary()}
               | {:error, binary()}
               | {:success, Designer.options()}
               | {:warning, Designer.options()}
               | {:error, Designer.options()}
+
+  def handle_interaction(command_module, interaction)
+      when is_atom(command_module) and is_map(interaction) do
+    {command, options} = parse_interaction(interaction)
+    command_module.handle_command(command, options, interaction)
+  end
+
+  defp parse_interaction(%{data: command_data}) when is_map(command_data) do
+    resolved_data = Map.get(command_data, :resolved)
+
+    {parsed_command, parsed_options} = parse_interaction(command_data, resolved_data)
+    {flatten_reverse(parsed_command), flatten_reverse(parsed_options)}
+  end
+
+  defp parse_interaction(%{name: name, options: options} = command_data, resolved_data)
+       when is_binary(name) and is_list(options) and is_map(command_data) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    Enum.reduce(options, {[name], []}, fn option, {parsed_command, parsed_options} ->
+      {parsed_command_part, parsed_option} = parse_interaction(option, resolved_data)
+      {[parsed_command_part | parsed_command], [parsed_option | parsed_options]}
+    end)
+  end
+
+  defp parse_interaction(%{name: name, type: type, value: value}, resolved_data)
+       when is_binary(name) and is_integer(type) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    resolved_value = get_resolved_option_value(type, value, resolved_data)
+    parsed_option = {name, type, resolved_value}
+    {[], [parsed_option]}
+  end
+
+  defp parse_interaction(%{name: name}, _resolved_data) when is_binary(name) do
+    parsed_command_part = name
+    {[parsed_command_part], []}
+  end
+
+  defp get_resolved_option_value(type, value, resolved_data)
+       when is_integer(type) and type in [6, 7, 8] and is_binary(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    get_resolved_data_for_type(type, value, resolved_data)
+  end
+
+  defp get_resolved_option_value(type, value, resolved_data)
+       when is_integer(type) and type == 9 and is_binary(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    [6, 7, 8]
+    |> Enum.map(fn t ->
+      try do
+        get_resolved_data_for_type(t, value, resolved_data)
+      rescue
+        KeyError -> nil
+      end
+    end)
+    |> Enum.find(&(&1 != nil))
+  end
+
+  defp get_resolved_option_value(_type, value, _resolved_data), do: value
+
+  defp get_resolved_data_for_type(type, value, resolved_data)
+       when is_integer(type) and is_binary(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    get_resolved_data_for_type(type, String.to_atom(value), resolved_data)
+  end
+
+  defp get_resolved_data_for_type(type, value, resolved_data)
+       when is_integer(type) and type == 6 and is_atom(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    user_data =
+      resolved_data
+      |> Map.fetch!(:users)
+      |> Map.fetch!(value)
+
+    member_data =
+      resolved_data
+      |> Map.fetch!(:members)
+      |> Map.fetch!(value)
+
+    Map.merge(user_data, member_data)
+  end
+
+  defp get_resolved_data_for_type(type, value, resolved_data)
+       when is_integer(type) and type in [7, 8] and is_atom(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    resolved_data_field =
+      case type do
+        7 -> :channels
+        8 -> :roles
+      end
+
+    resolved_data
+    |> Map.fetch!(resolved_data_field)
+    |> Map.fetch!(value)
+  end
+
+  defp flatten_reverse(list) when is_list(list) do
+    list
+    |> List.flatten()
+    |> Enum.reverse()
+  end
 end

@@ -7,7 +7,7 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
   @test_command_name "test-command"
 
   defmodule TestCommand do
-    def get_command, do: %{name: "test-command"}
+    def get_command_definition, do: %{name: "test-command"}
   end
 
   describe "get_command_module/1" do
