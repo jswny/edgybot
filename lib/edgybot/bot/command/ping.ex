@@ -4,7 +4,7 @@ defmodule Edgybot.Bot.Command.Ping do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command do
+  def get_command_definition do
     %{
       name: "ping",
       description: "Ping the bot"
@@ -12,7 +12,7 @@ defmodule Edgybot.Bot.Command.Ping do
   end
 
   @impl true
-  def handle_interaction(_interaction) do
+  def handle_command(["ping"], [], _interaction) do
     {:success, "Pong!"}
   end
 end

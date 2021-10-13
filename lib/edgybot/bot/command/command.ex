@@ -9,7 +9,7 @@ defmodule Edgybot.Bot.Command.Command do
   @api_error_no_permissions {:error, %{response: %{code: 10_066}, status_code: 404}}
 
   @impl true
-  def get_command do
+  def get_command_definition do
     %{
       name: "command",
       description: "Command management",
@@ -84,46 +84,10 @@ defmodule Edgybot.Bot.Command.Command do
   end
 
   @impl true
-  def handle_interaction(interaction) when is_map(interaction) do
-    subcommand_group_option = get_subcommand_group_option(interaction)
-    guild_id = Map.get(interaction, :guild_id)
-    subcommand_group_name = Map.get(subcommand_group_option, :name)
-
-    case subcommand_group_name do
-      "permissions" ->
-        handle_subcommand_group_permissions(subcommand_group_option, guild_id)
-
-      _ ->
-        {:error, "Unhandled subcommand group"}
-    end
-  end
-
-  defp handle_subcommand_group_permissions(subcommand_group_option, guild_id)
-       when is_map(subcommand_group_option) and is_integer(guild_id) do
-    subcommand_option = get_subcommand_option(subcommand_group_option)
-    subcommand_name = Map.get(subcommand_option, :name)
-
-    case subcommand_name do
-      "list" ->
-        handle_subcommand_permissions_list(subcommand_option, guild_id)
-
-      "add-role" ->
-        handle_subcommand_permissions_add_role(subcommand_option, guild_id)
-
-      "remove-role" ->
-        handle_subcommand_permissions_remove_role(subcommand_option, guild_id)
-
-      _ ->
-        {:error, "Unhandled subcommand"}
-    end
-  end
-
-  defp handle_subcommand_permissions_list(subcommand_option, guild_id)
-       when is_map(subcommand_option) and is_integer(guild_id) do
-    options = Map.get(subcommand_option, :options)
-
-    command_name = get_option_value(options, 0)
-
+  def handle_command(["command", "permissions", "list"], [{"command", 3, command_name}], %{
+        guild_id: guild_id
+      })
+      when is_binary(command_name) and is_integer(guild_id) do
     command_id = get_guild_command_id(command_name, guild_id)
 
     if command_id == nil do
@@ -135,18 +99,17 @@ defmodule Edgybot.Bot.Command.Command do
     end
   end
 
-  defp handle_subcommand_permissions_add_role(subcommand_option, guild_id)
-       when is_map(subcommand_option) and is_integer(guild_id) do
-    options = Map.get(subcommand_option, :options)
-
-    command_name = get_option_value(options, 0)
-
-    role_id =
-      options
-      |> get_option_value(1)
-      |> String.to_integer()
-
-    allow = get_option_value(options, 2)
+  @impl true
+  def handle_command(
+        ["command", "permissions", "add-role"],
+        [{"command", 3, command_name}, {"role", 8, role}, {"allow", 5, allow?}],
+        %{
+          guild_id: guild_id
+        }
+      )
+      when is_binary(command_name) and is_map(role) and is_boolean(allow?) and
+             is_integer(guild_id) do
+    role_id = Map.fetch!(role, :id)
 
     command_id = get_guild_command_id(command_name, guild_id)
 
@@ -159,7 +122,7 @@ defmodule Edgybot.Bot.Command.Command do
       new_permission = %{
         id: role_id,
         type: 1,
-        permission: allow
+        permission: allow?
       }
 
       current_permissions = get_command_permissions(command_id, guild_id)
@@ -171,7 +134,7 @@ defmodule Edgybot.Bot.Command.Command do
       {:ok, _permissions} = Api.request(:put, route, body)
 
       action_message =
-        if allow do
+        if allow? do
           "#{Designer.emoji_yes()} allowed"
         else
           "#{Designer.emoji_no()} disallowed"
@@ -182,16 +145,16 @@ defmodule Edgybot.Bot.Command.Command do
     end
   end
 
-  defp handle_subcommand_permissions_remove_role(subcommand_option, guild_id)
-       when is_map(subcommand_option) and is_integer(guild_id) do
-    options = Map.get(subcommand_option, :options)
-
-    command_name = get_option_value(options, 0)
-
-    role_id =
-      options
-      |> get_option_value(1)
-      |> String.to_integer()
+  @impl true
+  def handle_command(
+        ["command", "permissions", "remove-role"],
+        [{"command", 3, command_name}, {"role", 8, role}],
+        %{
+          guild_id: guild_id
+        }
+      )
+      when is_binary(command_name) and is_map(role) and is_integer(guild_id) do
+    role_id = Map.fetch!(role, :id)
 
     command_id = get_guild_command_id(command_name, guild_id)
 
@@ -315,25 +278,6 @@ defmodule Edgybot.Bot.Command.Command do
       |> Map.get(:id)
       |> String.to_integer()
     end
-  end
-
-  defp get_subcommand_group_option(interaction) when is_map(interaction) do
-    interaction
-    |> Map.get(:data)
-    |> Map.get(:options)
-    |> Enum.at(0)
-  end
-
-  defp get_subcommand_option(subcommand_group_option) when is_map(subcommand_group_option) do
-    subcommand_group_option
-    |> Map.get(:options)
-    |> Enum.at(0)
-  end
-
-  defp get_option_value(options, index) when is_list(options) and is_integer(index) do
-    options
-    |> Enum.at(index)
-    |> Map.get(:value)
   end
 
   defp get_application_id, do: Me.get().id
