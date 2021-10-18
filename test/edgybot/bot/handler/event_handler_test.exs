@@ -10,11 +10,11 @@ defmodule Edgybot.Bot.Handler.EventHandlerTest do
       assert :noop = EventHandler.handle_event(event, payload)
     end
 
-    test "handles interaction create event" do
+    test "handles interaction create event", %{command_name: command_name} do
       event = :INTERACTION_CREATE
-      payload = %{id: 123, token: "456", data: %{name: ""}}
+      payload = %{id: 123, token: "abc", data: %{name: command_name}}
 
-      assert :noop = EventHandler.handle_event(event, payload)
+      assert :ok = EventHandler.handle_event(event, payload)
     end
   end
 end
