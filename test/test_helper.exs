@@ -1,4 +1,4 @@
-Application.ensure_all_started(:ecto)
+Logger.configure(level: Application.get_env(:logger, :level))
 
 children = [Edgybot.Repo]
 opts = [strategy: :one_for_one, name: Edgybot.TestSupervisor]
