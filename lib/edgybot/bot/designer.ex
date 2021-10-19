@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Designer do
   @moduledoc false
 
-  alias Nostrum.Struct.Embed
+  alias Nostrum.Struct.{Embed, User}
   alias Nostrum.Struct.Guild.Role
 
   @type options() :: [option]
@@ -61,6 +61,20 @@ defmodule Edgybot.Bot.Designer do
       name: "",
       permissions: 0,
       position: 0
+    })
+  end
+
+  def user_mention(user_id) when is_integer(user_id) do
+    User.mention(%User{
+      avatar: nil,
+      bot: nil,
+      discriminator: "",
+      email: nil,
+      id: user_id,
+      mfa_enabled: nil,
+      public_flags: %Nostrum.Struct.User.Flags{},
+      username: "",
+      verified: nil
     })
   end
 
