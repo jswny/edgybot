@@ -90,9 +90,6 @@ defmodule Edgybot.Bot.Command.Nick do
        }} ->
         handle_max_length_error(user_id, new_nickname, error_message)
 
-      {:error, _error} ->
-        raise "no"
-
       _ ->
         {:ok} = result
 
