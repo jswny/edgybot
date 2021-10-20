@@ -35,11 +35,11 @@ defmodule Edgybot.Bot.Command.Nick do
         guild_id: guild_id
       })
       when is_integer(user_id) and is_integer(guild_id) do
-    split_old_nick = get_and_split_nickname(guild_id, user_id)
+    split_old_nick = parse_nickname(guild_id, user_id)
 
     base_nick = Enum.fetch!(split_old_nick, 0)
 
-    set_nickname_and_handle_response(guild_id, user_id, base_nick, "cleared")
+    set_nickname_and_handle_response(guild_id, user_id, base_nick, :cleared)
   end
 
   @impl true
@@ -47,7 +47,7 @@ defmodule Edgybot.Bot.Command.Nick do
         guild_id: guild_id
       })
       when is_integer(user_id) and is_binary(postfix) and is_integer(guild_id) do
-    split_old_nick = get_and_split_nickname(guild_id, user_id)
+    split_old_nick = parse_nickname(guild_id, user_id)
 
     if Enum.empty?(split_old_nick) do
       {:warning, "Could not parse the base nickname for #{Designer.user_mention(user_id)}!"}
@@ -62,11 +62,11 @@ defmodule Edgybot.Bot.Command.Nick do
 
       new_nick = "#{base_nick}#{@special_space}#{converted_postfix}"
 
-      set_nickname_and_handle_response(guild_id, user_id, new_nick, "set")
+      set_nickname_and_handle_response(guild_id, user_id, new_nick, :set)
     end
   end
 
-  defp get_and_split_nickname(guild_id, user_id)
+  defp parse_nickname(guild_id, user_id)
        when is_integer(guild_id) and is_integer(user_id) do
     {:ok, member} = Api.get_guild_member(guild_id, user_id)
 
@@ -80,7 +80,7 @@ defmodule Edgybot.Bot.Command.Nick do
 
   defp set_nickname_and_handle_response(guild_id, user_id, new_nickname, action)
        when is_integer(guild_id) and is_integer(user_id) and is_binary(new_nickname) and
-              is_binary(action) do
+              action in [:set, :cleared] do
     result = Api.modify_guild_member(guild_id, user_id, nick: new_nickname)
 
     case result do
@@ -92,9 +92,20 @@ defmodule Edgybot.Bot.Command.Nick do
 
       _ ->
         {:ok} = result
-
-        {:success, "Successfully #{action} the nickname of #{Designer.user_mention(user_id)}"}
+        nickname_set_success_response(user_id, new_nickname, action)
     end
+  end
+
+  defp nickname_set_success_response(user_id, new_nickname, :set = action)
+       when is_integer(user_id) and is_binary(new_nickname) and is_atom(action) do
+    {:success,
+     "Successfully #{Atom.to_string(action)} the nickname of #{Designer.user_mention(user_id)} to #{Designer.code_inline(new_nickname)}"}
+  end
+
+  defp nickname_set_success_response(user_id, new_nickname, :cleared = action)
+       when is_integer(user_id) and is_binary(new_nickname) and is_atom(action) do
+    {:success,
+     "Successfully #{Atom.to_string(action)} the nickname of #{Designer.user_mention(user_id)}"}
   end
 
   defp handle_max_length_error(user_id, new_nickname, error_message)
@@ -110,7 +121,7 @@ defmodule Edgybot.Bot.Command.Nick do
       |> Enum.fetch!(1)
 
     {:warning,
-     "New nickname was too long to set for #{Designer.user_mention(user_id)}! New length was #{Designer.code_inline(new_length)}. Maximum length is #{Designer.code_inline(max_length)}."}
+     "New nickname #{Designer.code_inline(new_nickname)} was too long to set for #{Designer.user_mention(user_id)}! New length was #{Designer.code_inline(new_length)}. Maximum length is #{Designer.code_inline(max_length)}."}
   end
 
   defp convert_codepoint(104), do: ?ℎ
