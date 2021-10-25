@@ -9,7 +9,7 @@ defmodule Edgybot.Meta.GuildFixtures do
     |> Enum.into(%{id: random_number()})
   end
 
-  def guild_invalid_attrs, do: %{id: nil}
+  def guild_invalid_attrs, do: %{}
 
   def guild_fixture(attrs \\ %{}) do
     {:ok, guild} =

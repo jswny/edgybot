@@ -14,7 +14,7 @@ defmodule Edgybot.Meta.ReactionFixtures do
     })
   end
 
-  def reaction_invalid_attrs, do: %{message_id: nil, member_id: nil, emoji: nil}
+  def reaction_invalid_attrs, do: %{}
 
   def reaction_fixture(attrs \\ %{}) do
     {:ok, reaction} =

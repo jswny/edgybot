@@ -13,7 +13,7 @@ defmodule Edgybot.Meta.ChannelFixtures do
     })
   end
 
-  def channel_invalid_attrs, do: %{id: nil, guild_id: nil}
+  def channel_invalid_attrs, do: %{}
 
   def channel_fixture(attrs \\ %{}) do
     {:ok, channel} =

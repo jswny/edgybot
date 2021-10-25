@@ -9,7 +9,7 @@ defmodule Edgybot.Meta.UserFixtures do
     |> Enum.into(%{id: random_number()})
   end
 
-  def user_invalid_attrs, do: %{id: nil}
+  def user_invalid_attrs, do: %{}
 
   def user_fixture(attrs \\ %{}) do
     {:ok, user} =
