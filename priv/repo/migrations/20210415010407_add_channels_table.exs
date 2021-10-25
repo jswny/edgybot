@@ -8,5 +8,7 @@ defmodule Edgybot.Repo.Migrations.AddChannelsTable do
 
       timestamps()
     end
+
+    create index("channels", [:guild_id])
   end
 end

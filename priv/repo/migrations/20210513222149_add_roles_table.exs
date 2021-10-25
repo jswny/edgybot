@@ -8,5 +8,7 @@ defmodule Edgybot.Repo.Migrations.AddRolesTable do
 
       timestamps()
     end
+
+    create index("roles", [:guild_id])
   end
 end

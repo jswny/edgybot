@@ -11,5 +11,6 @@ defmodule Edgybot.Repo.Migrations.AddMessagesTable do
     end
 
     create index("messages", [:member_id])
+    create index("messages", [:channel_id])
   end
 end
