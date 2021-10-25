@@ -3,12 +3,12 @@ defmodule Edgybot.Meta.Reaction do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias Edgybot.Meta.{Message, User}
+  alias Edgybot.Meta.{Member, Message}
 
   @primary_key {:id, :id, autogenerate: false}
   schema "reactions" do
     belongs_to(:message, Message)
-    belongs_to(:user, User)
+    belongs_to(:member, Member)
     field(:emoji, :string)
 
     timestamps()
@@ -16,10 +16,10 @@ defmodule Edgybot.Meta.Reaction do
 
   def changeset(reaction, params \\ %{}) do
     reaction
-    |> cast(params, [:message_id, :user_id, :emoji])
-    |> validate_required([:message_id, :user_id, :emoji])
+    |> cast(params, [:message_id, :member_id, :emoji])
+    |> validate_required([:message_id, :member_id, :emoji])
     |> assoc_constraint(:message)
-    |> assoc_constraint(:user)
-    |> unique_constraint([:message_id, :user_id, :emoji])
+    |> assoc_constraint(:member)
+    |> unique_constraint([:message_id, :member_id, :emoji])
   end
 end

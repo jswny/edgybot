@@ -3,19 +3,18 @@ defmodule Edgybot.Meta.ReactionFixtures do
 
   alias Edgybot.Meta
   import Edgybot.TestUtils
-  import Edgybot.Meta.MessageFixtures
-  import Edgybot.Meta.UserFixtures
+  import Edgybot.Meta.{MemberFixtures, MessageFixtures}
 
   def reaction_valid_attrs(attrs \\ %{}) do
     attrs
     |> Enum.into(%{
       message_id: Map.get(attrs, :message_id) || message_fixture().id,
-      user_id: Map.get(attrs, :user_id) || user_fixture().id,
+      member_id: Map.get(attrs, :member_id) || member_fixture().id,
       emoji: random_string()
     })
   end
 
-  def reaction_invalid_attrs, do: %{message_id: nil, user_id: nil, emoji: nil}
+  def reaction_invalid_attrs, do: %{message_id: nil, member_id: nil, emoji: nil}
 
   def reaction_fixture(attrs \\ %{}) do
     {:ok, reaction} =

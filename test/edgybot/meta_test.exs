@@ -48,10 +48,10 @@ defmodule Edgybot.MetaTest do
       assert %{id: ["invalid snowflake"]} = errors_on(changeset)
     end
 
-    test "create_message/1 with invalid user ID returns error changeset" do
-      attrs = message_valid_attrs(%{user_id: -1})
+    test "create_message/1 with invalid member ID returns error changeset" do
+      attrs = message_valid_attrs(%{member_id: -1})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_message(attrs)
-      assert %{user: ["does not exist"]} = errors_on(changeset)
+      assert %{member: ["does not exist"]} = errors_on(changeset)
     end
 
     test "create_message/1 with invalid channel ID returns error changeset" do
@@ -147,19 +147,19 @@ defmodule Edgybot.MetaTest do
       assert %{message: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_reaction/1 with invalid user ID returns error changeset" do
-      attrs = reaction_valid_attrs(%{user_id: -1})
+    test "create_reaction/1 with invalid member ID returns error changeset" do
+      attrs = reaction_valid_attrs(%{member_id: -1})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
-      assert %{user: ["does not exist"]} = errors_on(changeset)
+      assert %{member: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_reaction/1 with existing message ID, user ID, and emoji returns error changeset" do
+    test "create_reaction/1 with existing message ID, member ID, and emoji returns error changeset" do
       fixture = reaction_fixture()
 
       attrs =
         reaction_valid_attrs(%{
           message_id: fixture.message_id,
-          user_id: fixture.user_id,
+          member_id: fixture.member_id,
           emoji: fixture.emoji
         })
 
@@ -198,6 +198,40 @@ defmodule Edgybot.MetaTest do
       attrs = role_valid_attrs(%{id: fixture.id})
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_role(attrs)
       assert %{id: ["has already been taken"]} = errors_on(changeset)
+    end
+  end
+
+  describe "members" do
+    alias Edgybot.Meta.Member
+
+    test "create_member/1 with valid data creates a member and returns ID" do
+      attrs = member_valid_attrs()
+      assert {:ok, %Member{id: id}} = Meta.create_member(attrs)
+      assert is_integer(id)
+    end
+
+    test "create_member/1 with invalid data returns error changeset" do
+      attrs = member_invalid_attrs()
+      assert {:error, %Ecto.Changeset{}} = Meta.create_member(attrs)
+    end
+
+    test "create_member/1 with invalid guild ID returns error changeset" do
+      attrs = member_valid_attrs(%{guild_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_member(attrs)
+      assert %{guild: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_member/1 with invalid user_id returns error changeset" do
+      attrs = member_valid_attrs(%{user_id: -1})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_member(attrs)
+      assert %{user: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "create_member/1 with existing guild ID and user ID returns error changeset" do
+      fixture = member_fixture()
+      attrs = member_valid_attrs(%{guild_id: fixture.guild_id, user_id: fixture.user_id})
+      assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_member(attrs)
+      assert %{guild_id: ["has already been taken"]} = errors_on(changeset)
     end
   end
 end
