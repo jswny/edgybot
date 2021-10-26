@@ -4,9 +4,11 @@ defmodule Edgybot.Repo.Migrations.AddRolesTable do
   def change do
     create table("roles", primary_key: false) do
       add :id, :bigint, primary_key: true
-      add :guild_id, references(:guilds, type: :bigint)
+      add :guild_id, references(:guilds)
 
       timestamps()
     end
+
+    create index("roles", [:guild_id])
   end
 end

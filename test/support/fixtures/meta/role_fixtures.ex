@@ -13,7 +13,7 @@ defmodule Edgybot.Meta.RoleFixtures do
     })
   end
 
-  def role_invalid_attrs, do: %{id: nil, guild_id: nil}
+  def role_invalid_attrs, do: %{}
 
   def role_fixture(attrs \\ %{}) do
     {:ok, role} =

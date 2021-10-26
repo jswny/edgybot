@@ -14,7 +14,7 @@ defmodule Edgybot.Meta.MessageFixtures do
     })
   end
 
-  def message_invalid_attrs, do: %{id: nil, member_id: nil, channel_id: nil}
+  def message_invalid_attrs, do: %{}
 
   def message_fixture(attrs \\ %{}) do
     {:ok, message} =

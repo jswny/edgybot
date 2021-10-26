@@ -3,7 +3,7 @@ defmodule Edgybot.Repo.Migrations.AddReactionsTable do
 
   def change do
     create table("reactions", primary_key: false) do
-      add :message_id, references(:messages, type: :bigint), null: false
+      add :message_id, references(:messages), null: false
       add :member_id, references(:members), null: false
       add :emoji, :string, null: false
 
