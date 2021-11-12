@@ -10,7 +10,7 @@ defmodule Edgybot.Meta.ReactionFixtures do
     |> Enum.into(%{
       message_id: Map.get(attrs, :message_id) || message_fixture().id,
       member_id: Map.get(attrs, :member_id) || member_fixture().id,
-      emoji: random_string()
+      emote_id: random_number()
     })
   end
 
