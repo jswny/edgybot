@@ -3,11 +3,13 @@ defmodule Edgybot.Meta.Member do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias Edgybot.Meta.{Guild, User}
+  alias Edgybot.Meta.{Guild, Reaction, User}
 
   schema "members" do
     belongs_to(:guild, Guild)
     belongs_to(:user, User)
+
+    has_many(:reactions, Reaction)
 
     timestamps()
   end

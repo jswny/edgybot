@@ -4,12 +4,14 @@ defmodule Edgybot.Meta.Message do
   use Ecto.Schema
   import Ecto.Changeset
   import Edgybot.Meta.Snowflake
-  alias Edgybot.Meta.{Channel, Member}
+  alias Edgybot.Meta.{Channel, Member, Reaction}
 
   @primary_key {:id, :id, autogenerate: false}
   schema "messages" do
     belongs_to(:member, Member)
     belongs_to(:channel, Channel)
+
+    has_many(:reactions, Reaction)
 
     timestamps()
   end
