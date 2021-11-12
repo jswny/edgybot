@@ -134,7 +134,7 @@ defmodule Edgybot.MetaTest do
     test "create_reaction/1 with valid data creates a reaction with an ID" do
       attrs = reaction_valid_attrs()
       assert {:ok, %Reaction{id: id}} = Meta.create_reaction(attrs)
-      assert true = is_integer(id)
+      assert is_integer(id)
     end
 
     test "create_reaction/1 with invalid data returns error changeset" do
@@ -205,7 +205,7 @@ defmodule Edgybot.MetaTest do
   describe "members" do
     alias Edgybot.Meta.Member
 
-    test "create_member/1 with valid data creates a member and returns ID" do
+    test "create_member/1 with valid data creates a member with an ID" do
       attrs = member_valid_attrs()
       assert {:ok, %Member{id: id}} = Meta.create_member(attrs)
       assert is_integer(id)
