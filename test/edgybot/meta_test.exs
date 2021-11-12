@@ -131,9 +131,10 @@ defmodule Edgybot.MetaTest do
   describe "reactions" do
     alias Edgybot.Meta.Reaction
 
-    test "create_reaction/1 with valid data creates a reaction" do
+    test "create_reaction/1 with valid data creates a reaction with an ID" do
       attrs = reaction_valid_attrs()
-      assert {:ok, %Reaction{}} = Meta.create_reaction(attrs)
+      assert {:ok, %Reaction{id: id}} = Meta.create_reaction(attrs)
+      assert true = is_integer(id)
     end
 
     test "create_reaction/1 with invalid data returns error changeset" do
@@ -153,14 +154,14 @@ defmodule Edgybot.MetaTest do
       assert %{member: ["does not exist"]} = errors_on(changeset)
     end
 
-    test "create_reaction/1 with existing message ID, member ID, and emoji returns error changeset" do
+    test "create_reaction/1 with existing message ID, member ID, and emote ID returns error changeset" do
       fixture = reaction_fixture()
 
       attrs =
         reaction_valid_attrs(%{
           message_id: fixture.message_id,
           member_id: fixture.member_id,
-          emoji: fixture.emoji
+          emote_id: fixture.emote_id
         })
 
       assert {:error, %Ecto.Changeset{} = changeset} = Meta.create_reaction(attrs)
