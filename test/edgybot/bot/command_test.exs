@@ -5,9 +5,7 @@ defmodule Edgybot.Bot.CommandTest do
   describe "handle_interaction/2" do
     test "passes through interaction" do
       defmodule TestCommand1 do
-        def handle_command(_command, _options, interaction) do
-          assert interaction.data.name == "command"
-        end
+        def handle_command(_command, _options, interaction), do: interaction.data.name
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -16,14 +14,12 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand1, interaction)
+      assert "command" = Command.handle_interaction(TestCommand1, interaction)
     end
 
     test "handles command with no options" do
       defmodule TestCommand2 do
-        def handle_command(["command"], options, _interaction) do
-          assert [] = options
-        end
+        def handle_command(["command"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -32,14 +28,12 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand2, interaction)
+      assert [] = Command.handle_interaction(TestCommand2, interaction)
     end
 
     test "handles command with option" do
       defmodule TestCommand3 do
-        def handle_command(["command"], options, _interaction) do
-          assert [{"option", 3, "value"}] = options
-        end
+        def handle_command(["command"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -51,14 +45,12 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand3, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand3, interaction)
     end
 
     test "handles subcommand with no option" do
       defmodule TestCommand4 do
-        def handle_command(["command", "subcommand"], options, _interaction) do
-          assert [] = options
-        end
+        def handle_command(["command", "subcommand"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -72,14 +64,12 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand4, interaction)
+      assert [] = Command.handle_interaction(TestCommand4, interaction)
     end
 
     test "handles subcommand with option" do
       defmodule TestCommand5 do
-        def handle_command(["command", "subcommand"], options, _interaction) do
-          assert [{"option", 3, "value"}] = options
-        end
+        def handle_command(["command", "subcommand"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -96,14 +86,13 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand5, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand5, interaction)
     end
 
     test "handles subcommand group with no options" do
       defmodule TestCommand6 do
-        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction) do
-          assert [] = options
-        end
+        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
+          do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -122,14 +111,13 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand6, interaction)
+      assert [] = Command.handle_interaction(TestCommand6, interaction)
     end
 
     test "handles subcommand group with option" do
       defmodule TestCommand7 do
-        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction) do
-          assert [{"option", 3, "value"}] = options
-        end
+        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
+          do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -151,14 +139,12 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand7, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand7, interaction)
     end
 
     test "handles multiple options" do
       defmodule TestCommand8 do
-        def handle_command(["command"], options, _interaction) do
-          assert [{"option", 3, "value"}, {"option2", 3, "value2"}] = options
-        end
+        def handle_command(["command"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -171,23 +157,13 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand8, interaction)
+      assert [{"option", 3, "value"}, {"option2", 3, "value2"}] =
+               Command.handle_interaction(TestCommand8, interaction)
     end
 
     test "handles and converts all option types" do
       defmodule TestCommand9 do
-        def handle_command(["command"], options, _interaction) do
-          assert [
-                   {"option-type-3", 3, "value"},
-                   {"option-type-4", 4, 123},
-                   {"option-type-5", 5, true},
-                   {"option-type-6", 6, %{id: 100, nick: "user"}},
-                   {"option-type-7", 7, %{id: 200}},
-                   {"option-type-8", 8, %{id: 300}},
-                   {"option-type-9", 9, %{id: 300}},
-                   {"option-type-10", 10, 1.1}
-                 ] = options
-        end
+        def handle_command(["command"], options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
@@ -228,7 +204,18 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      Command.handle_interaction(TestCommand9, interaction)
+      expected = [
+        {"option-type-3", 3, "value"},
+        {"option-type-4", 4, 123},
+        {"option-type-5", 5, true},
+        {"option-type-6", 6, %{id: 100, nick: "user"}},
+        {"option-type-7", 7, %{id: 200}},
+        {"option-type-8", 8, %{id: 300}},
+        {"option-type-9", 9, %{id: 300}},
+        {"option-type-10", 10, 1.1}
+      ]
+
+      assert ^expected = Command.handle_interaction(TestCommand9, interaction)
     end
   end
 end
