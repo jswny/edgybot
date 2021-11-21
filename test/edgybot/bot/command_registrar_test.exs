@@ -11,9 +11,9 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
     end
   end
 
-  describe "list_commands/1" do
-    test "lists commands", %{command_name: command_name} do
-      commands = CommandRegistrar.list_commands()
+  describe "list_command_definitions/1" do
+    test "lists command definitions", %{command_name: command_name} do
+      commands = CommandRegistrar.list_command_definitions()
       assert Enum.find(commands, fn command -> command.name == command_name end)
     end
   end
