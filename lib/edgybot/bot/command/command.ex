@@ -1,9 +1,8 @@
 defmodule Edgybot.Bot.Command.Command do
   @moduledoc false
 
-  alias Edgybot.Bot.Designer
+  alias Edgybot.Bot.{Designer, Utils}
   alias Nostrum.Api
-  alias Nostrum.Cache.Me
 
   @behaviour Edgybot.Bot.Command
   @api_error_no_permissions {:error, %{response: %{code: 10_066}, status_code: 404}}
@@ -117,7 +116,7 @@ defmodule Edgybot.Bot.Command.Command do
       command_does_not_exist_response(command_name)
     else
       route =
-        "/applications/#{get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
+        "/applications/#{Utils.get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
 
       new_permission = %{
         id: role_id,
@@ -187,7 +186,7 @@ defmodule Edgybot.Bot.Command.Command do
         }
 
         route =
-          "/applications/#{get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
+          "/applications/#{Utils.get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
 
         {:ok, _permissions} = Api.request(:put, route, body)
 
@@ -247,7 +246,7 @@ defmodule Edgybot.Bot.Command.Command do
   defp get_command_permissions(command_id, guild_id)
        when is_integer(command_id) and is_integer(guild_id) do
     route =
-      "/applications/#{get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
+      "/applications/#{Utils.get_application_id()}/guilds/#{guild_id}/commands/#{command_id}/permissions"
 
     response = Api.request(:get, route)
 
@@ -279,8 +278,6 @@ defmodule Edgybot.Bot.Command.Command do
       |> String.to_integer()
     end
   end
-
-  defp get_application_id, do: Me.get().id
 
   defp command_does_not_exist_response(command_name) when is_binary(command_name) do
     {:warning, "Command #{Designer.code_inline(command_name)} does not exist!"}
