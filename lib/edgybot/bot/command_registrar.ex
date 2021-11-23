@@ -8,7 +8,7 @@ defmodule Edgybot.Bot.CommandRegistrar do
   end
 
   def get_command_module(command_name) do
-    GenServer.call(__MODULE__, {:get_module, command_name})
+    GenServer.call(__MODULE__, {:get_command_module, command_name})
   end
 
   def list_command_definitions do
@@ -26,7 +26,11 @@ defmodule Edgybot.Bot.CommandRegistrar do
   end
 
   @impl true
-  def handle_call({:get_module, command_name}, _from, %{command_modules: command_modules} = state) do
+  def handle_call(
+        {:get_command_module, command_name},
+        _from,
+        %{command_modules: command_modules} = state
+      ) do
     module = Map.get(command_modules, command_name)
     {:reply, module, state}
   end
