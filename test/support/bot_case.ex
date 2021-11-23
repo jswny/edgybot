@@ -17,7 +17,7 @@ defmodule Edgybot.BotCase do
 
     def command_name, do: @command_name
 
-    def get_command_definition, do: %{name: @command_name}
+    def get_command_definitions, do: [%{name: @command_name}]
 
     def handle_command([@command_name], _options, _interaction), do: :ok
   end

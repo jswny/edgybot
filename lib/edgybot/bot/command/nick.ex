@@ -9,25 +9,27 @@ defmodule Edgybot.Bot.Command.Nick do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command_definition do
-    %{
-      name: "nick",
-      description: "Set or clear someone's nickname postfix",
-      options: [
-        %{
-          name: "user",
-          description: "The user to set or clear the nickname for",
-          type: 6,
-          required: true
-        },
-        %{
-          name: "postfix",
-          description: "The postfix to set",
-          type: 3,
-          required: false
-        }
-      ]
-    }
+  def get_command_definitions do
+    [
+      %{
+        name: "nick",
+        description: "Set or clear someone's nickname postfix",
+        options: [
+          %{
+            name: "user",
+            description: "The user to set or clear the nickname for",
+            type: 6,
+            required: true
+          },
+          %{
+            name: "postfix",
+            description: "The postfix to set",
+            type: 3,
+            required: false
+          }
+        ]
+      }
+    ]
   end
 
   @impl true

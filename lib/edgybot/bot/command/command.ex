@@ -8,78 +8,80 @@ defmodule Edgybot.Bot.Command.Command do
   @api_error_no_permissions {:error, %{response: %{code: 10_066}, status_code: 404}}
 
   @impl true
-  def get_command_definition do
-    %{
-      name: "command",
-      description: "Command management",
-      default_permission: true,
-      options: [
-        %{
-          name: "permissions",
-          description: "Command permissions management",
-          type: 2,
-          options: [
-            %{
-              name: "list",
-              description: "List the permissions for a command",
-              type: 1,
-              options: [
-                %{
-                  name: "command",
-                  description: "The command for which the permissions should be returned",
-                  type: 3,
-                  required: true
-                }
-              ]
-            },
-            %{
-              name: "add-role",
-              description: "Allow or deny access to a command for a specific role",
-              type: 1,
-              options: [
-                %{
-                  name: "command",
-                  description: "The command for which the permissions should be adjusted",
-                  type: 3,
-                  required: true
-                },
-                %{
-                  name: "role",
-                  description: "The role to allow or deny access to the command",
-                  type: 8,
-                  required: true
-                },
-                %{
-                  name: "allow",
-                  description: "Whether to allow or deny permission",
-                  type: 5,
-                  required: true
-                }
-              ]
-            },
-            %{
-              name: "remove-role",
-              description: "Remove a role permission for a command",
-              type: 1,
-              options: [
-                %{
-                  name: "command",
-                  description: "The command for which the permissions should be adjusted",
-                  type: 3,
-                  required: true
-                },
-                %{
-                  name: "role",
-                  description: "The role to remove from the permissions",
-                  type: 8,
-                  required: true
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
+  def get_command_definitions do
+    [
+      %{
+        name: "command",
+        description: "Command management",
+        default_permission: true,
+        options: [
+          %{
+            name: "permissions",
+            description: "Command permissions management",
+            type: 2,
+            options: [
+              %{
+                name: "list",
+                description: "List the permissions for a command",
+                type: 1,
+                options: [
+                  %{
+                    name: "command",
+                    description: "The command for which the permissions should be returned",
+                    type: 3,
+                    required: true
+                  }
+                ]
+              },
+              %{
+                name: "add-role",
+                description: "Allow or deny access to a command for a specific role",
+                type: 1,
+                options: [
+                  %{
+                    name: "command",
+                    description: "The command for which the permissions should be adjusted",
+                    type: 3,
+                    required: true
+                  },
+                  %{
+                    name: "role",
+                    description: "The role to allow or deny access to the command",
+                    type: 8,
+                    required: true
+                  },
+                  %{
+                    name: "allow",
+                    description: "Whether to allow or deny permission",
+                    type: 5,
+                    required: true
+                  }
+                ]
+              },
+              %{
+                name: "remove-role",
+                description: "Remove a role permission for a command",
+                type: 1,
+                options: [
+                  %{
+                    name: "command",
+                    description: "The command for which the permissions should be adjusted",
+                    type: 3,
+                    required: true
+                  },
+                  %{
+                    name: "role",
+                    description: "The role to remove from the permissions",
+                    type: 8,
+                    required: true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   end
 
   @impl true
