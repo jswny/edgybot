@@ -4,11 +4,13 @@ defmodule Edgybot.Bot.Command.Ping do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command_definition do
-    %{
-      name: "ping",
-      description: "Ping the bot"
-    }
+  def get_command_definitions do
+    [
+      %{
+        name: "ping",
+        description: "Ping the bot"
+      }
+    ]
   end
 
   @impl true

@@ -7,19 +7,21 @@ defmodule Edgybot.Bot.Command.Topic do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command_definition do
-    %{
-      name: "topic",
-      description: "Set the channel topic",
-      options: [
-        %{
-          name: "content",
-          description: "The new channel topic",
-          type: 3,
-          required: true
-        }
-      ]
-    }
+  def get_command_definitions do
+    [
+      %{
+        name: "topic",
+        description: "Set the channel topic",
+        options: [
+          %{
+            name: "content",
+            description: "The new channel topic",
+            type: 3,
+            required: true
+          }
+        ]
+      }
+    ]
   end
 
   @impl true

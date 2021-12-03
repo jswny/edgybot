@@ -40,12 +40,14 @@ defmodule Edgybot.Bot.Command do
 
   @type command_option :: {command_option_name(), command_option_type(), command_option_value()}
 
-  @callback get_command_definition() :: %{
-              optional(:options) => [application_command_definition_option()],
-              optional(:default_permission) => boolean(),
-              name: binary(),
-              description: binary()
-            }
+  @callback get_command_definitions() :: [
+              %{
+                optional(:options) => [application_command_definition_option()],
+                optional(:default_permission) => boolean(),
+                name: binary(),
+                description: binary()
+              }
+            ]
 
   @callback handle_command(
               nonempty_list(binary()),

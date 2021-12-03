@@ -6,31 +6,33 @@ defmodule Edgybot.Bot.Command.Dev do
   @behaviour Edgybot.Bot.Command
 
   @impl true
-  def get_command_definition do
-    %{
-      name: "dev",
-      description: "Developer options",
-      options: [
-        %{
-          name: "error",
-          description: "Purposefully error handling a command",
-          type: 1
-        },
-        %{
-          name: "eval",
-          description: "Evaluate some Elixir code",
-          type: 1,
-          options: [
-            %{
-              name: "code",
-              description: "The code to be evaluated",
-              type: 3,
-              required: true
-            }
-          ]
-        }
-      ]
-    }
+  def get_command_definitions do
+    [
+      %{
+        name: "dev",
+        description: "Developer options",
+        options: [
+          %{
+            name: "error",
+            description: "Purposefully error handling a command",
+            type: 1
+          },
+          %{
+            name: "eval",
+            description: "Evaluate some Elixir code",
+            type: 1,
+            options: [
+              %{
+                name: "code",
+                description: "The code to be evaluated",
+                type: 3,
+                required: true
+              }
+            ]
+          }
+        ]
+      }
+    ]
   end
 
   @impl true
