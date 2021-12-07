@@ -24,10 +24,10 @@ defmodule Edgybot.DataCase do
     end
   end
 
-  setup tags do
+  setup context do
     :ok = Sandbox.checkout(Edgybot.Repo)
 
-    unless tags[:async] do
+    unless context[:async] do
       Sandbox.mode(Edgybot.Repo, {:shared, self()})
     end
 
