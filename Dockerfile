@@ -1,4 +1,4 @@
-FROM elixir:1.11.2-alpine AS builder
+FROM elixir:1.13.1-alpine AS builder
 
 ENV MIX_ENV="prod"
 
@@ -13,11 +13,6 @@ RUN mix local.hex --force \
   && mix release
 
 FROM alpine:3.12 AS runner
-
-ENV NCURSES_DEV_VERSION="6.2_p20200523-r0"
-
-RUN apk update \
-  && apk add --no-cache ncurses-dev="${NCURSES_DEV_VERSION}"
 
 WORKDIR /edgybot
 
