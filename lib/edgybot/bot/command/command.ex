@@ -240,9 +240,7 @@ defmodule Edgybot.Bot.Command.Command do
   end
 
   defp build_role_mentions_field_content(role_ids) when is_list(role_ids) do
-    role_ids
-    |> Enum.map(fn role_id -> Designer.role_mention(role_id) end)
-    |> Enum.join("\n")
+    Enum.map_join(role_ids, "\n", fn role_id -> Designer.role_mention(role_id) end)
   end
 
   defp get_command_permissions(command_id, guild_id)
