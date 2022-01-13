@@ -3,6 +3,7 @@ defmodule Edgybot.BotCase do
 
   use ExUnit.CaseTemplate
   alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.TestUtils
 
   using do
     quote do
@@ -11,28 +12,32 @@ defmodule Edgybot.BotCase do
     end
   end
 
-  defmodule TestCommand do
-    @moduledoc false
-    @command_name "command"
-
-    def command_name, do: @command_name
-
-    def get_command_definitions, do: [%{name: @command_name}]
-
-    def handle_command([@command_name], _options, _interaction), do: :ok
-  end
-
   setup context do
-    unless context[:skip_command_registrar] do
+    if context[:skip_command_registrar] do
+      :ok
+    else
       start_supervised!(CommandRegistrar)
 
-      unless context[:skip_default_command] do
-        CommandRegistrar.load_command_module(TestCommand)
-      end
+      if context[:skip_default_command] do
+        :ok
+      else
+        [module_name] = TestUtils.generate_module_names(context, 1)
 
-      [command_module: TestCommand, command_name: TestCommand.command_name()]
-    else
-      :ok
+        defmodule module_name do
+          @moduledoc false
+          @command_name "command"
+
+          def command_name, do: @command_name
+
+          def get_command_definitions, do: [%{name: @command_name}]
+
+          def handle_command([@command_name], _options, _interaction), do: :ok
+        end
+
+        CommandRegistrar.load_command_module(module_name)
+
+        [command_module: module_name, command_name: module_name.command_name()]
+      end
     end
   end
 end

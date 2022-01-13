@@ -1,10 +1,17 @@
 defmodule Edgybot.Bot.CommandTest do
   use ExUnit.Case
   alias Edgybot.Bot.Command
+  alias Edgybot.TestUtils
 
   describe "handle_interaction/2" do
-    test "passes through interaction" do
-      defmodule TestCommand1 do
+    setup context do
+      [generated_module_name] = TestUtils.generate_module_names(context, 1)
+
+      [generated_module_name: generated_module_name]
+    end
+
+    test "passes through interaction", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(_command, _options, interaction), do: interaction.data.name
       end
 
@@ -14,11 +21,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert "command" = Command.handle_interaction(TestCommand1, interaction)
+      assert "command" = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles command with no options" do
-      defmodule TestCommand2 do
+    test "handles command with no options", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command"], options, _interaction), do: options
       end
 
@@ -28,11 +35,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [] = Command.handle_interaction(TestCommand2, interaction)
+      assert [] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles command with option" do
-      defmodule TestCommand3 do
+    test "handles command with option", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command"], options, _interaction), do: options
       end
 
@@ -45,11 +52,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand3, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles subcommand with no option" do
-      defmodule TestCommand4 do
+    test "handles subcommand with no option", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command", "subcommand"], options, _interaction), do: options
       end
 
@@ -64,11 +71,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [] = Command.handle_interaction(TestCommand4, interaction)
+      assert [] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles subcommand with option" do
-      defmodule TestCommand5 do
+    test "handles subcommand with option", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command", "subcommand"], options, _interaction), do: options
       end
 
@@ -86,11 +93,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand5, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles subcommand group with no options" do
-      defmodule TestCommand6 do
+    test "handles subcommand group with no options", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
           do: options
       end
@@ -111,11 +118,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [] = Command.handle_interaction(TestCommand6, interaction)
+      assert [] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles subcommand group with option" do
-      defmodule TestCommand7 do
+    test "handles subcommand group with option", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
           do: options
       end
@@ -139,11 +146,11 @@ defmodule Edgybot.Bot.CommandTest do
         }
       }
 
-      assert [{"option", 3, "value"}] = Command.handle_interaction(TestCommand7, interaction)
+      assert [{"option", 3, "value"}] = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles multiple options" do
-      defmodule TestCommand8 do
+    test "handles multiple options", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command"], options, _interaction), do: options
       end
 
@@ -158,11 +165,11 @@ defmodule Edgybot.Bot.CommandTest do
       }
 
       assert [{"option", 3, "value"}, {"option2", 3, "value2"}] =
-               Command.handle_interaction(TestCommand8, interaction)
+               Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles and converts all option types" do
-      defmodule TestCommand9 do
+    test "handles and converts all option types", %{generated_module_name: module_name} do
+      defmodule module_name do
         def handle_command(["command"], options, _interaction), do: options
       end
 
@@ -215,7 +222,7 @@ defmodule Edgybot.Bot.CommandTest do
         {"option-type-10", 10, 1.1}
       ]
 
-      assert ^expected = Command.handle_interaction(TestCommand9, interaction)
+      assert ^expected = Command.handle_interaction(module_name, interaction)
     end
   end
 end
