@@ -34,7 +34,7 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(["nick"], [{"user", 6, %{id: user_id}}], %{
+  def handle_command(["nick"], 1, [{"user", 6, %{id: user_id}}], %{
         guild_id: guild_id
       })
       when is_integer(user_id) and is_integer(guild_id) do
@@ -46,7 +46,7 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(["nick"], [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}], %{
+  def handle_command(["nick"], 1, [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}], %{
         guild_id: guild_id
       })
       when is_integer(user_id) and is_binary(postfix) and is_integer(guild_id) do
