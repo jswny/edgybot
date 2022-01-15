@@ -13,6 +13,7 @@ defmodule Edgybot.Bot.Command.Command do
       %{
         name: "command",
         description: "Command management",
+        type: 1,
         default_permission: true,
         options: [
           %{

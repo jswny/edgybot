@@ -12,26 +12,43 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "passes through interaction", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(_command, _options, interaction), do: interaction.data.name
+        def handle_command(_command, _type, _options, interaction), do: interaction.data.name
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
-          name: "command"
+          name: "command",
+          type: 1
         }
       }
 
       assert "command" = Command.handle_interaction(module_name, interaction)
     end
 
-    test "handles command with no options", %{generated_module_name: module_name} do
+    test "handles command type", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command"], options, _interaction), do: options
+        def handle_command(["command"], type, _options, _interaction), do: type
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
-          name: "command"
+          name: "command",
+          type: 1
+        }
+      }
+
+      assert 1 = Command.handle_interaction(module_name, interaction)
+    end
+
+    test "handles command with no options", %{generated_module_name: module_name} do
+      defmodule module_name do
+        def handle_command(["command"], _type, options, _interaction), do: options
+      end
+
+      interaction = %Nostrum.Struct.Interaction{
+        data: %{
+          name: "command",
+          type: 1
         }
       }
 
@@ -40,12 +57,13 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles command with option", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command"], options, _interaction), do: options
+        def handle_command(["command"], _type, options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{name: "option", type: 3, value: "value"}
           ]
@@ -57,12 +75,13 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles subcommand with no option", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command", "subcommand"], options, _interaction), do: options
+        def handle_command(["command", "subcommand"], _type, options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{
               name: "subcommand"
@@ -76,12 +95,13 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles subcommand with option", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command", "subcommand"], options, _interaction), do: options
+        def handle_command(["command", "subcommand"], _type, options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{
               name: "subcommand",
@@ -98,13 +118,19 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles subcommand group with no options", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
-          do: options
+        def handle_command(
+              ["command", "subcommand group", "subcommand"],
+              1,
+              options,
+              _interaction
+            ),
+            do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{
               name: "subcommand group",
@@ -123,13 +149,19 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles subcommand group with option", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command", "subcommand group", "subcommand"], options, _interaction),
-          do: options
+        def handle_command(
+              ["command", "subcommand group", "subcommand"],
+              _type,
+              options,
+              _interaction
+            ),
+            do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{
               name: "subcommand group",
@@ -151,12 +183,13 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles multiple options", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command"], options, _interaction), do: options
+        def handle_command(["command"], _type, options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{name: "option", type: 3, value: "value"},
             %{name: "option2", type: 3, value: "value2"}
@@ -170,12 +203,13 @@ defmodule Edgybot.Bot.CommandTest do
 
     test "handles and converts all option types", %{generated_module_name: module_name} do
       defmodule module_name do
-        def handle_command(["command"], options, _interaction), do: options
+        def handle_command(["command"], _type, options, _interaction), do: options
       end
 
       interaction = %Nostrum.Struct.Interaction{
         data: %{
           name: "command",
+          type: 1,
           options: [
             %{name: "option-type-3", type: 3, value: "value"},
             %{name: "option-type-4", type: 4, value: 123},

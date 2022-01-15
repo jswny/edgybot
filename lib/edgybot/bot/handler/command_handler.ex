@@ -7,14 +7,15 @@ defmodule Edgybot.Bot.Handler.CommandHandler do
   def handle_command(%{id: id, token: token} = interaction)
       when is_integer(id) and is_binary(token) do
     command_name = interaction.data.name
+    command_type = interaction.data.type
 
-    Logger.debug("Handling command #{command_name}...")
+    Logger.debug("Handling command #{command_name} (type: #{command_type})...")
 
-    matching_command = CommandRegistrar.get_command_module(command_name)
+    matching_command_module = CommandRegistrar.get_command_module(command_name, command_type)
 
-    case matching_command do
+    case matching_command_module do
       nil -> :noop
-      _ -> Command.handle_interaction(matching_command, interaction)
+      _ -> Command.handle_interaction(matching_command_module, interaction)
     end
   end
 end

@@ -11,6 +11,7 @@ defmodule Edgybot.Bot.Command.Dev do
       %{
         name: "dev",
         description: "Developer options",
+        type: 1,
         options: [
           %{
             name: "error",

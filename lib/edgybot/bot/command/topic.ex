@@ -12,6 +12,7 @@ defmodule Edgybot.Bot.Command.Topic do
       %{
         name: "topic",
         description: "Set the channel topic",
+        type: 1,
         options: [
           %{
             name: "content",

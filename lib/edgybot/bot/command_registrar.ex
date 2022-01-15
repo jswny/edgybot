@@ -7,8 +7,8 @@ defmodule Edgybot.Bot.CommandRegistrar do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def get_command_module(command_name) do
-    GenServer.call(__MODULE__, {:get_command_module, command_name})
+  def get_command_module(command_name, command_type) do
+    GenServer.call(__MODULE__, {:get_command_module, command_name, command_type})
   end
 
   def list_command_definitions do
@@ -27,11 +27,11 @@ defmodule Edgybot.Bot.CommandRegistrar do
 
   @impl true
   def handle_call(
-        {:get_command_module, command_name},
+        {:get_command_module, command_name, command_type},
         _from,
         %{command_modules: command_modules} = state
       ) do
-    module = Map.get(command_modules, command_name)
+    module = Map.get(command_modules, {command_name, command_type})
     {:reply, module, state}
   end
 
@@ -39,7 +39,7 @@ defmodule Edgybot.Bot.CommandRegistrar do
   def handle_call(:list_command_definitions, _from, %{command_modules: command_modules} = state) do
     commands =
       command_modules
-      |> Enum.flat_map(fn {_command_name, command_module} ->
+      |> Enum.flat_map(fn {_key, command_module} ->
         command_module.get_command_definitions()
       end)
       |> Enum.uniq()
@@ -78,7 +78,11 @@ defmodule Edgybot.Bot.CommandRegistrar do
        when is_map(command_modules) and is_atom(command_module) do
     command_module.get_command_definitions()
     |> Enum.reduce(command_modules, fn command_definition, current_command_modules ->
-      Map.put(current_command_modules, command_definition.name, command_module)
+      Map.put(
+        current_command_modules,
+        {command_definition.name, command_definition.type},
+        command_module
+      )
     end)
   end
 end

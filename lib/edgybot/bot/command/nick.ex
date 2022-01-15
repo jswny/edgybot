@@ -14,6 +14,7 @@ defmodule Edgybot.Bot.Command.Nick do
       %{
         name: "nick",
         description: "Set or clear someone's nickname postfix",
+        type: 1,
         options: [
           %{
             name: "user",

@@ -8,7 +8,8 @@ defmodule Edgybot.Bot.Command.Ping do
     [
       %{
         name: "ping",
-        description: "Ping the bot"
+        description: "Ping the bot",
+        type: 1
       }
     ]
   end

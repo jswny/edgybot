@@ -12,7 +12,13 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
         def command_name_1, do: "command1"
         def command_name_2, do: "command2"
 
-        def get_command_definitions, do: [%{name: command_name_1()}, %{name: command_name_2()}]
+        def command_type, do: 1
+
+        def get_command_definitions,
+          do: [
+            %{name: command_name_1(), type: command_type()},
+            %{name: command_name_2(), type: command_type()}
+          ]
       end
 
       [command_module: module_name]
@@ -22,12 +28,20 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
   end
 
   describe "get_command_module/1" do
-    test "returns command module", %{command_module: command_module, command_name: command_name} do
-      assert ^command_module = CommandRegistrar.get_command_module(command_name)
+    test "returns command module", %{
+      command_module: command_module,
+      command_name: command_name,
+      command_type: command_type
+    } do
+      assert ^command_module = CommandRegistrar.get_command_module(command_name, command_type)
     end
 
-    test "returns nil when command module doesn't exist" do
-      assert CommandRegistrar.get_command_module("") == nil
+    test "returns nil when command module name doesn't exist", %{command_type: command_type} do
+      assert CommandRegistrar.get_command_module("", command_type) == nil
+    end
+
+    test "returns nil when command module type doesn't exist", %{command_name: command_name} do
+      assert CommandRegistrar.get_command_module(command_name, -1) == nil
     end
   end
 
@@ -56,10 +70,16 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
       CommandRegistrar.load_command_module(command_module)
 
       assert ^command_module =
-               CommandRegistrar.get_command_module(command_module.command_name_1())
+               CommandRegistrar.get_command_module(
+                 command_module.command_name_1(),
+                 command_module.command_type()
+               )
 
       assert ^command_module =
-               CommandRegistrar.get_command_module(command_module.command_name_2())
+               CommandRegistrar.get_command_module(
+                 command_module.command_name_2(),
+                 command_module.command_type()
+               )
     end
   end
 end

@@ -3,6 +3,8 @@ defmodule Edgybot.Bot.Command do
 
   alias Edgybot.Bot.Designer
 
+  @type application_command_type :: 1..3
+
   @typep application_command_definition_parameter_option :: %{
            optional(:required) => boolean,
            name: binary(),
@@ -45,12 +47,14 @@ defmodule Edgybot.Bot.Command do
                 optional(:options) => [application_command_definition_option()],
                 optional(:default_permission) => boolean(),
                 name: binary(),
-                description: binary()
+                description: binary(),
+                type: application_command_type()
               }
             ]
 
   @callback handle_command(
               nonempty_list(binary()),
+              application_command_type,
               [command_option],
               Nostrum.Struct.Interaction.t()
             ) ::
@@ -63,15 +67,16 @@ defmodule Edgybot.Bot.Command do
 
   def handle_interaction(command_module, interaction)
       when is_atom(command_module) and is_map(interaction) do
-    {command, options} = parse_interaction(interaction)
-    command_module.handle_command(command, options, interaction)
+    {command, application_command_type, options} = parse_interaction(interaction)
+    command_module.handle_command(command, application_command_type, options, interaction)
   end
 
-  defp parse_interaction(%{data: command_data}) when is_map(command_data) do
+  defp parse_interaction(%{data: %{type: application_command_type} = command_data})
+       when is_integer(application_command_type) and is_map(command_data) do
     resolved_data = Map.get(command_data, :resolved)
 
     {parsed_command, parsed_options} = parse_interaction(command_data, resolved_data)
-    {flatten_reverse(parsed_command), flatten_reverse(parsed_options)}
+    {flatten_reverse(parsed_command), application_command_type, flatten_reverse(parsed_options)}
   end
 
   defp parse_interaction(%{name: name, options: options} = command_data, resolved_data)
