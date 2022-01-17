@@ -1,12 +1,7 @@
 defmodule Edgybot.Bot.Command.DevTest do
   use ExUnit.Case
   alias Edgybot.Bot.Command.Dev
-
-  describe "get_command_definitions/0" do
-    test "has name, type, and description" do
-      assert [%{name: _, type: _, description: _}] = Dev.get_command_definitions()
-    end
-  end
+  use Edgybot.CommandCase, command_module: Dev
 
   describe "handle_command/1" do
     test "with error subcommand raises" do
