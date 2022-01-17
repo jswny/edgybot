@@ -13,6 +13,7 @@ defmodule Edgybot.Bot.Command.Command do
       %{
         name: "command",
         description: "Command management",
+        type: 1,
         default_permission: true,
         options: [
           %{
@@ -85,7 +86,7 @@ defmodule Edgybot.Bot.Command.Command do
   end
 
   @impl true
-  def handle_command(["command", "permissions", "list"], [{"command", 3, command_name}], %{
+  def handle_command(["command", "permissions", "list"], 1, [{"command", 3, command_name}], %{
         guild_id: guild_id
       })
       when is_binary(command_name) and is_integer(guild_id) do
@@ -103,6 +104,7 @@ defmodule Edgybot.Bot.Command.Command do
   @impl true
   def handle_command(
         ["command", "permissions", "add-role"],
+        1,
         [{"command", 3, command_name}, {"role", 8, role}, {"allow", 5, allow?}],
         %{
           guild_id: guild_id
@@ -149,6 +151,7 @@ defmodule Edgybot.Bot.Command.Command do
   @impl true
   def handle_command(
         ["command", "permissions", "remove-role"],
+        1,
         [{"command", 3, command_name}, {"role", 8, role}],
         %{
           guild_id: guild_id

@@ -12,6 +12,7 @@ defmodule Edgybot.Bot.Command.Topic do
       %{
         name: "topic",
         description: "Set the channel topic",
+        type: 1,
         options: [
           %{
             name: "content",
@@ -25,7 +26,7 @@ defmodule Edgybot.Bot.Command.Topic do
   end
 
   @impl true
-  def handle_command(["topic"], [{"content", 3, content}], %{channel_id: channel_id})
+  def handle_command(["topic"], 1, [{"content", 3, content}], %{channel_id: channel_id})
       when is_binary(content) and is_integer(channel_id) do
     channel_options = %{topic: content}
     {:ok, _channel} = Api.modify_channel(channel_id, channel_options)
