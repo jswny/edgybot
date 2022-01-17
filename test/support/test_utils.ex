@@ -35,6 +35,6 @@ defmodule Edgybot.TestUtils do
       true -> Atom.to_string(piece)
       false -> piece
     end
-    |> String.replace(~r/[^A-Za-z0-9_.]/, "")
+    |> String.replace(~r/[^A-Za-z0-9_.]/, "_")
   end
 end
