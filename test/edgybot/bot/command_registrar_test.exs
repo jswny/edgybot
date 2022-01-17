@@ -9,15 +9,12 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
       defmodule module_name do
         @moduledoc false
 
-        def command_name_1, do: "command1"
-        def command_name_2, do: "command2"
-
-        def command_type, do: 1
+        @command_type 1
 
         def get_command_definitions,
           do: [
-            %{name: command_name_1(), type: command_type()},
-            %{name: command_name_2(), type: command_type()}
+            %{name: "command1", type: @command_type},
+            %{name: "command2", type: @command_type}
           ]
       end
 
@@ -57,9 +54,14 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
 
       command_definitions = CommandRegistrar.list_command_definitions()
 
+      command_name_1 =
+        command_module.get_command_definitions()
+        |> Enum.at(0)
+        |> Map.get(:name)
+
       assert 1 =
                Enum.count(command_definitions, fn command_definitions ->
-                 command_definitions.name == command_module.command_name_1()
+                 command_definitions.name == command_name_1
                end)
     end
   end
@@ -69,17 +71,13 @@ defmodule Edgybot.Bot.CommandRegistrarTest do
     test "loads command module with multiple definitions", %{command_module: command_module} do
       CommandRegistrar.load_command_module(command_module)
 
-      assert ^command_module =
-               CommandRegistrar.get_command_module(
-                 command_module.command_name_1(),
-                 command_module.command_type()
-               )
-
-      assert ^command_module =
-               CommandRegistrar.get_command_module(
-                 command_module.command_name_2(),
-                 command_module.command_type()
-               )
+      for command_definition <- command_module.get_command_definitions() do
+        assert ^command_module =
+                 CommandRegistrar.get_command_module(
+                   command_definition.name,
+                   command_definition.type
+                 )
+      end
     end
   end
 end
