@@ -11,7 +11,7 @@ defmodule Edgybot.Bot.Handler.CommandHandler do
 
     Logger.debug("Handling command #{command_name} (type: #{command_type})...")
 
-    matching_command_module = CommandRegistrar.get_command_module(command_name, command_type)
+    matching_command_module = CommandRegistrar.get_module({command_name, command_type})
 
     case matching_command_module do
       nil -> :noop
