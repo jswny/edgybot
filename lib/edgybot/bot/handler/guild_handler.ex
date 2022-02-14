@@ -11,7 +11,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
     Logger.debug("Registering commands for guild #{guild_name}...")
 
-    CommandRegistrar.list_command_definitions()
+    CommandRegistrar.list_definitions()
     |> apply_default_deny_permission()
     |> bulk_overwrite_guild_application_commands(guild_id)
 

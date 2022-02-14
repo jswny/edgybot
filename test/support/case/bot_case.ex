@@ -33,14 +33,17 @@ defmodule Edgybot.BotCase do
           def handle_command([@command_name], @command_type, _options, _interaction), do: :ok
         end
 
-        CommandRegistrar.load_command_module(module_name)
+        CommandRegistrar.load_module(module_name)
 
         [%{name: command_name, type: command_type}] = module_name.get_command_definitions()
+
+        command_definitions = module_name.get_command_definitions()
 
         [
           command_module: module_name,
           command_name: command_name,
-          command_type: command_type
+          command_type: command_type,
+          command_definitions: command_definitions
         ]
       end
     end
