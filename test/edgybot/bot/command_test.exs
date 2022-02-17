@@ -214,10 +214,10 @@ defmodule Edgybot.Bot.CommandTest do
             %{name: "option-type-3", type: 3, value: "value"},
             %{name: "option-type-4", type: 4, value: 123},
             %{name: "option-type-5", type: 5, value: true},
-            %{name: "option-type-6", type: 6, value: "100"},
-            %{name: "option-type-7", type: 7, value: "200"},
-            %{name: "option-type-8", type: 8, value: "300"},
-            %{name: "option-type-9", type: 9, value: "300"},
+            %{name: "option-type-6", type: 6, value: 100},
+            %{name: "option-type-7", type: 7, value: 200},
+            %{name: "option-type-8", type: 8, value: 300},
+            %{name: "option-type-9", type: 9, value: 300},
             %{name: "option-type-10", type: 10, value: 1.1}
           ],
           resolved: %{

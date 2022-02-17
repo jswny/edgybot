@@ -102,6 +102,13 @@ defmodule Edgybot.Bot.Command do
   end
 
   defp get_resolved_option_value(type, value, resolved_data)
+       when is_integer(type) and type in [6, 7, 8, 9] and is_integer(value) and
+              (is_map(resolved_data) or is_nil(resolved_data)) do
+    string_value = Integer.to_string(value)
+    get_resolved_option_value(type, string_value, resolved_data)
+  end
+
+  defp get_resolved_option_value(type, value, resolved_data)
        when is_integer(type) and type in [6, 7, 8] and is_binary(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
     get_resolved_data_for_type(type, value, resolved_data)
