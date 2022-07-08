@@ -102,22 +102,15 @@ defmodule Edgybot.Bot.Command do
   end
 
   defp get_resolved_option_value(type, value, resolved_data)
-       when is_integer(type) and type in [6, 7, 8, 9] and is_integer(value) and
-              (is_map(resolved_data) or is_nil(resolved_data)) do
-    string_value = Integer.to_string(value)
-    get_resolved_option_value(type, string_value, resolved_data)
-  end
-
-  defp get_resolved_option_value(type, value, resolved_data)
-       when is_integer(type) and type in [6, 7, 8] and is_binary(value) and
+       when is_integer(type) and type in [6, 7, 8] and is_integer(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
     get_resolved_data_for_type(type, value, resolved_data)
   end
 
   defp get_resolved_option_value(type, value, resolved_data)
-       when is_integer(type) and type == 9 and is_binary(value) and
+       when is_integer(type) and type == 9 and is_integer(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
-    [6, 7, 8]
+    [6, 8]
     |> Enum.map(fn t ->
       try do
         get_resolved_data_for_type(t, value, resolved_data)
@@ -130,14 +123,14 @@ defmodule Edgybot.Bot.Command do
 
   defp get_resolved_option_value(_type, value, _resolved_data), do: value
 
-  defp get_resolved_data_for_type(type, value, resolved_data)
-       when is_integer(type) and is_binary(value) and
-              (is_map(resolved_data) or is_nil(resolved_data)) do
-    get_resolved_data_for_type(type, String.to_atom(value), resolved_data)
-  end
+  # defp get_resolved_data_for_type(type, value, resolved_data)
+  #      when is_integer(type) and is_binary(value) and
+  #             (is_map(resolved_data) or is_nil(resolved_data)) do
+  #   get_resolved_data_for_type(type, String.to_atom(value), resolved_data)
+  # end
 
   defp get_resolved_data_for_type(type, value, resolved_data)
-       when is_integer(type) and type == 6 and is_atom(value) and
+       when is_integer(type) and type == 6 and is_integer(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
     user_data =
       resolved_data
@@ -153,7 +146,7 @@ defmodule Edgybot.Bot.Command do
   end
 
   defp get_resolved_data_for_type(type, value, resolved_data)
-       when is_integer(type) and type in [7, 8] and is_atom(value) and
+       when is_integer(type) and type in [7, 8] and is_integer(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
     resolved_data_field =
       case type do
