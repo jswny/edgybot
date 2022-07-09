@@ -6,7 +6,7 @@ defmodule Edgybot.Bot.Handler.EventHandler do
   def handle_event(event, payload) when is_atom(event) do
     case event do
       :GUILD_AVAILABLE ->
-        {guild} = payload
+        guild = payload
         GuildHandler.handle_guild_available(guild)
 
       :INTERACTION_CREATE ->

@@ -222,22 +222,22 @@ defmodule Edgybot.Bot.CommandTest do
           ],
           resolved: %{
             channels: %{
-              "200": %{
+              200 => %{
                 id: 200
               }
             },
             members: %{
-              "100": %{
+              100 => %{
                 nick: "user"
               }
             },
             roles: %{
-              "300": %{
+              300 => %{
                 id: 300
               }
             },
             users: %{
-              "100": %{
+              100 => %{
                 id: 100
               }
             }

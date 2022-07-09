@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.{CommandRegistrar, Utils}
+  alias Edgybot.Bot.CommandRegistrar
   alias Nostrum.Api
 
   def handle_guild_available(guild) when is_map(guild) do
@@ -35,8 +35,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
   defp bulk_overwrite_guild_application_commands(commands, guild_id)
        when is_list(commands) and is_integer(guild_id) do
-    route = "/applications/#{Utils.get_application_id()}/guilds/#{guild_id}/commands"
-    body = commands
-    {:ok, _application_commands} = Api.request(:put, route, body)
+    {:ok, _application_commands} =
+      Api.bulk_overwrite_guild_application_commands(guild_id, commands)
   end
 end
