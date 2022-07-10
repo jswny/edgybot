@@ -6,7 +6,16 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   alias Edgybot.Config
   alias Nostrum.Api
 
-  @interaction_message_response 4
+  @interaction_deferred_channel_message_with_source 5
+
+  def defer_interaction_response(%{id: id, token: token} = interaction)
+      when is_integer(id) and
+             is_binary(token) do
+    response = Map.put(Map.new(), :type, @interaction_deferred_channel_message_with_source)
+
+    {:ok} = Api.create_interaction_response(interaction, response)
+    interaction
+  end
 
   def handle_response(:noop, _source), do: :noop
 
@@ -44,12 +53,9 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
        when is_integer(id) and is_binary(token) and is_map(data) do
     data = maybe_silence_response(data)
 
-    response =
-      Map.new()
-      |> Map.put(:type, @interaction_message_response)
-      |> Map.put(:data, data)
+    response = data
 
-    {:ok} = Api.create_interaction_response(interaction, response)
+    {:ok, _message} = Api.edit_interaction_response(interaction, response)
   end
 
   defp maybe_silence_response(data) when is_map(data) do
