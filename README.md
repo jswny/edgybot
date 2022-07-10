@@ -10,8 +10,6 @@ Before running, make sure you have an environment variable `DISCORD_TOKEN` set t
 - `DATABASE_PASSWORD` (default: `postgres`)
 - `DATABASE_HOSTNAME` (default: `localhost`)
 
-You may also set `SILENT_MODE` if you want to prevent the bot from responding publicly and instead send responses that only the caller of the command can see.
-
 ### Local
 
 ```shell

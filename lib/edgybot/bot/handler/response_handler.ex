@@ -3,7 +3,6 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   use Bitwise
   alias Edgybot.Bot.Designer
-  alias Edgybot.Config
   alias Nostrum.Api
 
   @interaction_deferred_channel_message_with_source 5
@@ -51,20 +50,8 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   defp send_interaction_response(%{id: id, token: token} = interaction, data)
        when is_integer(id) and is_binary(token) and is_map(data) do
-    data = maybe_silence_response(data)
-
     response = data
 
     {:ok, _message} = Api.edit_interaction_response(interaction, response)
-  end
-
-  defp maybe_silence_response(data) when is_map(data) do
-    silent_mode = Config.silent_mode()
-
-    if silent_mode do
-      Map.put(data, :flags, 1 <<< 6)
-    else
-      data
-    end
   end
 end
