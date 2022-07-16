@@ -35,7 +35,8 @@ defmodule Edgybot.MixProject do
       {:nostrum, "~> 0.6"},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:finch, "~> 0.12"}
     ]
   end
 

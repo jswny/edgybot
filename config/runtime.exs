@@ -19,7 +19,8 @@ get_env_var = fn var_name, default ->
 end
 
 config app_name,
-  runtime_env: config_env()
+  runtime_env: config_env(),
+  memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link")
 
 config app_name, Edgybot.Repo,
   database: "edgybot_#{config_env()}",

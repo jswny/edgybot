@@ -11,7 +11,8 @@ defmodule Edgybot.Application do
   def start(_type, _args) do
     children = [
       Bot.Supervisor,
-      Edgybot.Repo
+      Edgybot.Repo,
+      {Finch, name: FinchPool}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
