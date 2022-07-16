@@ -92,7 +92,16 @@ defmodule Edgybot.Bot.Designer do
 
   defp build_embed(color, options, default_options)
        when is_integer(color) and is_list(options) and is_map(default_options) do
-    merged_options = Enum.into(options, default_options)
+    merged_options =
+      options
+      |> Enum.into(default_options)
+      |> Enum.map(fn {option, value} ->
+        case value do
+          :none -> {option, nil}
+          _ -> {option, value}
+        end
+      end)
+      |> Enum.into(Map.new())
 
     %Embed{}
     |> Embed.put_color(color)
@@ -100,6 +109,8 @@ defmodule Edgybot.Bot.Designer do
     |> embed_description(Map.get(merged_options, :description))
     |> embed_fields(Map.get(merged_options, :fields))
     |> embed_stacktrace(Map.get(merged_options, :stacktrace))
+    |> embed_image(Map.get(merged_options, :image))
+    |> embed_url(Map.get(merged_options, :url))
   end
 
   defp embed_title(embed, title) when is_map(embed) and is_binary(title),
@@ -133,4 +144,14 @@ defmodule Edgybot.Bot.Designer do
   end
 
   defp embed_stacktrace(embed, nil) when is_map(embed), do: embed
+
+  defp embed_image(embed, image_url) when is_map(embed) and is_binary(image_url),
+    do: Embed.put_image(embed, image_url)
+
+  defp embed_image(embed, nil) when is_map(embed), do: embed
+
+  defp embed_url(embed, url) when is_map(embed) and is_binary(url),
+    do: Embed.put_url(embed, url)
+
+  defp embed_url(embed, nil) when is_map(embed), do: embed
 end
