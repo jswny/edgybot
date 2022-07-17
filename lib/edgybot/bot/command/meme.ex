@@ -115,7 +115,13 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(["meme", "search"], 1, [{"query", 3, query} | other_options], _interaction)
+  def handle_command(
+        ["meme", "search"],
+        1,
+        [{"query", 3, query} | other_options],
+        _interaction,
+        _middleware_data
+      )
       when is_binary(query) and is_list(other_options) do
     animated? =
       Enum.any?(other_options, fn {name, _type, value} -> name == "animated" && value == true end)
@@ -140,7 +146,13 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(["meme", "template"], 1, [{"id", 3, id} | other_options], _interaction)
+  def handle_command(
+        ["meme", "template"],
+        1,
+        [{"id", 3, id} | other_options],
+        _interaction,
+        _middleware_data
+      )
       when is_binary(id) and is_list(other_options) do
     case get_template(id) do
       {:ok, template} ->
@@ -185,7 +197,13 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(["meme", "make"], 1, [{"id", 3, template_id} | other_options], _interaction)
+  def handle_command(
+        ["meme", "make"],
+        1,
+        [{"id", 3, template_id} | other_options],
+        _interaction,
+        _middleware_data
+      )
       when is_binary(template_id) and is_list(other_options) do
     case get_template(template_id) do
       {:ok, template} ->
@@ -221,7 +239,8 @@ defmodule Edgybot.Bot.Command.Meme do
         ["meme", "custom"],
         1,
         [{"image_url", 3, image_url} | other_options],
-        _interaction
+        _interaction,
+        _middleware_data
       )
       when is_binary(image_url) and is_list(other_options) do
     text_lines = get_matching_numbered_options(other_options, "text")
