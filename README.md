@@ -14,7 +14,7 @@ Before running, make sure you have an environment variable `DISCORD_TOKEN` set t
 
 ```shell
 mix deps.get
-mix run --no-halt
+mix run
 ```
 
 ### Docker
