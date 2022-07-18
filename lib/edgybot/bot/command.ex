@@ -46,6 +46,7 @@ defmodule Edgybot.Bot.Command do
               %{
                 optional(:options) => [application_command_definition_option()],
                 optional(:default_permission) => boolean(),
+                optional(:middleware) => [atom()],
                 name: binary(),
                 description: binary(),
                 type: application_command_type()
@@ -56,7 +57,8 @@ defmodule Edgybot.Bot.Command do
               nonempty_list(binary()),
               application_command_type,
               [command_option],
-              Nostrum.Struct.Interaction.t()
+              Nostrum.Struct.Interaction.t(),
+              map()
             ) ::
               {:success, binary()}
               | {:warning, binary()}
@@ -65,10 +67,17 @@ defmodule Edgybot.Bot.Command do
               | {:warning, Designer.options()}
               | {:error, Designer.options()}
 
-  def handle_interaction(command_module, interaction)
-      when is_atom(command_module) and is_map(interaction) do
+  def handle_interaction(command_module, interaction, middleware_data)
+      when is_atom(command_module) and is_map(interaction) and is_map(middleware_data) do
     {command, application_command_type, options} = parse_interaction(interaction)
-    command_module.handle_command(command, application_command_type, options, interaction)
+
+    command_module.handle_command(
+      command,
+      application_command_type,
+      options,
+      interaction,
+      middleware_data
+    )
   end
 
   defp parse_interaction(%{data: %{type: application_command_type} = command_data})

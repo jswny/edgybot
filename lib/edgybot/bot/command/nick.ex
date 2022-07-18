@@ -34,9 +34,15 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(["nick"], 1, [{"user", 6, %{id: user_id}}], %{
-        guild_id: guild_id
-      })
+  def handle_command(
+        ["nick"],
+        1,
+        [{"user", 6, %{id: user_id}}],
+        %{
+          guild_id: guild_id
+        },
+        _middleware_data
+      )
       when is_integer(user_id) and is_integer(guild_id) do
     split_old_nick = parse_nickname(guild_id, user_id)
 
@@ -46,9 +52,15 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(["nick"], 1, [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}], %{
-        guild_id: guild_id
-      })
+  def handle_command(
+        ["nick"],
+        1,
+        [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}],
+        %{
+          guild_id: guild_id
+        },
+        _middleware_data
+      )
       when is_integer(user_id) and is_binary(postfix) and is_integer(guild_id) do
     split_old_nick = parse_nickname(guild_id, user_id)
 

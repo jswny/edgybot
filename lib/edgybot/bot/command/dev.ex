@@ -37,12 +37,18 @@ defmodule Edgybot.Bot.Command.Dev do
   end
 
   @impl true
-  def handle_command(["dev", "error"], 1, [], _interaction) do
+  def handle_command(["dev", "error"], 1, [], _interaction, _middleware_data) do
     raise("fake error")
   end
 
   @impl true
-  def handle_command(["dev", "eval"], 1, [{"code", 3, code_string}], _interaction)
+  def handle_command(
+        ["dev", "eval"],
+        1,
+        [{"code", 3, code_string}],
+        _interaction,
+        _middleware_data
+      )
       when is_binary(code_string) do
     {result, _binding} = Code.eval_string(code_string)
 

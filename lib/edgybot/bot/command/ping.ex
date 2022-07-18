@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Command.Ping do
   end
 
   @impl true
-  def handle_command(["ping"], 1, [], _interaction) do
+  def handle_command(["ping"], 1, [], _interaction, _middleware_data) do
     {:success, "Pong!"}
   end
 end
