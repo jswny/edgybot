@@ -14,7 +14,7 @@ Before running, make sure you have an environment variable `DISCORD_TOKEN` set t
 
 ```shell
 mix deps.get
-mix run --no-halt
+mix run
 ```
 
 ### Docker
@@ -24,13 +24,3 @@ You can run with Docker Compose, which will build the image locally, and use the
 ```shell
 docker-compose up
 ```
-
-## Command Permissions
-
-For most commands, the default is to deny permission for all users. Please manage the individual command permissions for your server by using the command management command to enable them.
-
-## Error Handling
-
-- Most errors, especially in commands, will be reported back as a response to the command execution
-- Internal errors and stacktraces will only be exposed in messages if `MIX_ENV` is not `:prod`
-- All errors with full stack traces will be logged to the console
