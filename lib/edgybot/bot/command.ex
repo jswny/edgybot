@@ -132,12 +132,6 @@ defmodule Edgybot.Bot.Command do
 
   defp get_resolved_option_value(_type, value, _resolved_data), do: value
 
-  # defp get_resolved_data_for_type(type, value, resolved_data)
-  #      when is_integer(type) and is_binary(value) and
-  #             (is_map(resolved_data) or is_nil(resolved_data)) do
-  #   get_resolved_data_for_type(type, String.to_atom(value), resolved_data)
-  # end
-
   defp get_resolved_data_for_type(type, value, resolved_data)
        when is_integer(type) and type == 6 and is_integer(value) and
               (is_map(resolved_data) or is_nil(resolved_data)) do
