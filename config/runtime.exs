@@ -18,6 +18,28 @@ get_env_var = fn var_name, default ->
   end
 end
 
+maybe_string_to_boolean = fn value ->
+  if value == "true" do
+    true
+  else
+    false
+  end
+end
+
+logflare_enabled =
+  "LF_ENABLED"
+  |> get_env_var.(false)
+  |> maybe_string_to_boolean.()
+
+if logflare_enabled do
+  config :logger,
+    backends: [:console, LogflareLogger.HttpBackend]
+
+  config :logflare_logger_backend,
+    api_key: get_env_var.("LF_API_KEY", nil),
+    source_id: get_env_var.("LF_SOURCE_ID", nil)
+end
+
 config app_name,
   runtime_env: config_env(),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link")

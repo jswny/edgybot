@@ -36,7 +36,8 @@ defmodule Edgybot.MixProject do
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.2"},
-      {:finch, "~> 0.12"}
+      {:finch, "~> 0.12"},
+      {:logflare_logger_backend, "~> 0.11.0"}
     ]
   end
 
