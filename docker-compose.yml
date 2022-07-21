@@ -26,4 +26,6 @@ services:
     environment:
       - DATABASE_HOSTNAME=edgybot-db
       - DISCORD_TOKEN
-      - SILENT_MODE
+      - LF_ENABLED
+      - LF_API_KEY
+      - LF_SOURCE_ID
