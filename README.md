@@ -24,3 +24,11 @@ You can run with Docker Compose, which will build the image locally, and use the
 ```shell
 docker-compose up
 ```
+
+## Logflare
+
+You can enable the [Logflare](https://logflare.app/) integration, which will ship logs out to Logflare in addition to continuing to log to the console normally. To enable the Logflare, set up a source and then set the following environment variables:
+
+- `LF_ENABLED` (default: `false`)
+- `LF_API_KEY` (your Logflare ingest API key)
+- `LF_SOURCE_ID`
