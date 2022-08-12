@@ -85,7 +85,11 @@ defmodule Edgybot.Bot.Command.Nick do
        when is_integer(guild_id) and is_integer(user_id) do
     {:ok, member} = Api.get_guild_member(guild_id, user_id)
 
-    old_nick = Map.get(member, :nick, "")
+    old_nick =
+      Map.get(member, :nick) ||
+        member
+        |> Map.fetch!(:user)
+        |> Map.fetch!(:username)
 
     old_nick
     |> String.split(@special_space, trim: true)
