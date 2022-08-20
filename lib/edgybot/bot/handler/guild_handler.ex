@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.Bot.PluginRegistrar
   alias Nostrum.Api
 
   def handle_guild_available(guild) when is_map(guild) do
@@ -11,7 +11,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
     Logger.debug("Registering commands for guild #{guild_name}...")
 
-    CommandRegistrar.list_definitions()
+    PluginRegistrar.list_definitions()
     |> apply_default_deny_permission()
     |> bulk_overwrite_guild_application_commands(guild_id)
 

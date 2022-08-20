@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Supervisor do
   @moduledoc false
 
   use Supervisor
-  alias Edgybot.Bot.{CommandRegistrar, EventConsumer, MiddlewareRegistrar}
+  alias Edgybot.Bot.{EventConsumer, MiddlewareRegistrar, PluginRegistrar}
 
   def start_link(_opts) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
@@ -12,7 +12,7 @@ defmodule Edgybot.Bot.Supervisor do
   def init(_opts) do
     children = [
       EventConsumer,
-      CommandRegistrar,
+      PluginRegistrar,
       MiddlewareRegistrar
     ]
 

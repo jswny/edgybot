@@ -1,10 +1,10 @@
-defmodule Edgybot.Bot.Command.Ping do
+defmodule Edgybot.Bot.Plugin.PingPlugin do
   @moduledoc false
 
-  @behaviour Edgybot.Bot.Command
+  @behaviour Edgybot.Bot.Plugin
 
   @impl true
-  def get_command_definitions do
+  def get_plugin_definitions do
     [
       %{
         name: "ping",
@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Command.Ping do
   end
 
   @impl true
-  def handle_command(["ping"], 1, [], _interaction, _middleware_data) do
+  def handle_interaction(["ping"], 1, [], _interaction, _middleware_data) do
     {:success, "Pong!"}
   end
 end

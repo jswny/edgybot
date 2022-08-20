@@ -1,13 +1,13 @@
-defmodule Edgybot.Bot.Command.Meme do
+defmodule Edgybot.Bot.Plugin.MemePlugin do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
 
-  @behaviour Edgybot.Bot.Command
+  @behaviour Edgybot.Bot.Plugin
 
   @impl true
-  def get_command_definitions do
+  def get_plugin_definitions do
     meme_text_options =
       Enum.map(1..10, fn n ->
         %{
@@ -115,7 +115,7 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["meme", "search"],
         1,
         [{"query", 3, query} | other_options],
@@ -146,7 +146,7 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["meme", "template"],
         1,
         [{"id", 3, id} | other_options],
@@ -197,7 +197,7 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["meme", "make"],
         1,
         [{"id", 3, template_id} | other_options],
@@ -235,7 +235,7 @@ defmodule Edgybot.Bot.Command.Meme do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["meme", "custom"],
         1,
         [{"image_url", 3, image_url} | other_options],
