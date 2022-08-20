@@ -104,7 +104,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
 
     case result do
       {:error,
-       %Nostrum.Error.ApiError{
+       %{
          response: %{code: 50_035, errors: %{nick: %{_errors: [%{message: error_message}]}}}
        }} ->
         handle_max_length_error(user_id, new_nickname, error_message)
