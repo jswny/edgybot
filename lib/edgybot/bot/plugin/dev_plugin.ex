@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
         options: [
           %{
             name: "error",
-            description: "Purposefully error handling a command",
+            description: "Purposefully throw an error",
             type: 1
           },
           %{
