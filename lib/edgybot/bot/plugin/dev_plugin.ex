@@ -1,12 +1,12 @@
-defmodule Edgybot.Bot.Command.Dev do
+defmodule Edgybot.Bot.Plugin.DevPlugin do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
 
-  @behaviour Edgybot.Bot.Command
+  @behaviour Edgybot.Bot.Plugin
 
   @impl true
-  def get_command_definitions do
+  def get_plugin_definitions do
     [
       %{
         name: "dev",
@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Command.Dev do
         options: [
           %{
             name: "error",
-            description: "Purposefully error handling a command",
+            description: "Purposefully throw an error",
             type: 1
           },
           %{
@@ -37,12 +37,12 @@ defmodule Edgybot.Bot.Command.Dev do
   end
 
   @impl true
-  def handle_command(["dev", "error"], 1, [], _interaction, _middleware_data) do
+  def handle_interaction(["dev", "error"], 1, [], _interaction, _middleware_data) do
     raise("fake error")
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["dev", "eval"],
         1,
         [{"code", 3, code_string}],

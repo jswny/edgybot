@@ -1,13 +1,13 @@
-defmodule Edgybot.Bot.Command.Topic do
+defmodule Edgybot.Bot.Plugin.TopicPlugin do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
 
-  @behaviour Edgybot.Bot.Command
+  @behaviour Edgybot.Bot.Plugin
 
   @impl true
-  def get_command_definitions do
+  def get_plugin_definitions do
     [
       %{
         name: "topic",
@@ -26,7 +26,7 @@ defmodule Edgybot.Bot.Command.Topic do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["topic"],
         1,
         [{"content", 3, content}],

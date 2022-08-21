@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Command.Nick do
+defmodule Edgybot.Bot.Plugin.Nick do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
@@ -6,10 +6,10 @@ defmodule Edgybot.Bot.Command.Nick do
 
   @special_space " "
 
-  @behaviour Edgybot.Bot.Command
+  @behaviour Edgybot.Bot.Plugin
 
   @impl true
-  def get_command_definitions do
+  def get_plugin_definitions do
     [
       %{
         name: "nick",
@@ -34,7 +34,7 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}],
@@ -52,7 +52,7 @@ defmodule Edgybot.Bot.Command.Nick do
   end
 
   @impl true
-  def handle_command(
+  def handle_interaction(
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}],
@@ -104,7 +104,7 @@ defmodule Edgybot.Bot.Command.Nick do
 
     case result do
       {:error,
-       %Nostrum.Error.ApiError{
+       %{
          response: %{code: 50_035, errors: %{nick: %{_errors: [%{message: error_message}]}}}
        }} ->
         handle_max_length_error(user_id, new_nickname, error_message)

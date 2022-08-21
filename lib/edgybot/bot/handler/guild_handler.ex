@@ -2,28 +2,29 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.CommandRegistrar
+  alias Edgybot.Bot.PluginRegistrar
   alias Nostrum.Api
 
   def handle_guild_available(guild) when is_map(guild) do
     guild_id = guild.id
     guild_name = get_guild_name(guild_id)
 
-    Logger.debug("Registering commands for guild #{guild_name}...")
+    Logger.debug("Registering application commands for guild #{guild_name}...")
 
-    CommandRegistrar.list_definitions()
+    PluginRegistrar.list_definitions()
     |> apply_default_deny_permission()
     |> bulk_overwrite_guild_application_commands(guild_id)
 
     :noop
   end
 
-  defp apply_default_deny_permission(commands) when is_list(commands) do
-    Enum.map(commands, fn command ->
-      if Map.get(command, :default_permission) == nil do
-        Map.put(command, :default_permission, false)
+  defp apply_default_deny_permission(application_command_definitions)
+       when is_list(application_command_definitions) do
+    Enum.map(application_command_definitions, fn application_command_definition ->
+      if Map.get(application_command_definition, :default_permission) == nil do
+        Map.put(application_command_definition, :default_permission, false)
       else
-        command
+        application_command_definition
       end
     end)
   end
@@ -33,9 +34,9 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     Map.get(guild, :name)
   end
 
-  defp bulk_overwrite_guild_application_commands(commands, guild_id)
-       when is_list(commands) and is_integer(guild_id) do
+  defp bulk_overwrite_guild_application_commands(application_command_definitions, guild_id)
+       when is_list(application_command_definitions) and is_integer(guild_id) do
     {:ok, _application_commands} =
-      Api.bulk_overwrite_guild_application_commands(guild_id, commands)
+      Api.bulk_overwrite_guild_application_commands(guild_id, application_command_definitions)
   end
 end

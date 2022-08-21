@@ -1,11 +1,11 @@
-defmodule Edgybot.Bot.CommandRegistrar do
+defmodule Edgybot.Bot.PluginRegistrar do
   @moduledoc false
 
-  use Edgybot.Registrar, module_prefix: Edgybot.Bot.Command
+  use Edgybot.Registrar, module_prefix: Edgybot.Bot.Plugin
 
   @impl true
   def get_definitions_from_module(module) when is_atom(module) do
-    module.get_command_definitions()
+    module.get_plugin_definitions()
   end
 
   @impl true

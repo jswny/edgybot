@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Handler.EventHandler do
   @moduledoc false
 
-  alias Edgybot.Bot.Handler.{CommandHandler, GuildHandler, ResponseHandler}
+  alias Edgybot.Bot.Handler.{GuildHandler, InteractionHandler, ResponseHandler}
 
   def handle_event(event, payload) when is_atom(event) do
     case event do
@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Handler.EventHandler do
 
         interaction
         |> ResponseHandler.defer_interaction_response()
-        |> CommandHandler.handle_command()
+        |> InteractionHandler.handle_interaction()
 
       _ ->
         :noop
