@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Handler.MiddlewareHandler do
   @moduledoc false
 
-  alias Edgybot.Bot.MiddlewareRegistrar
+  alias Edgybot.Bot.Registrar.MiddlewareRegistrar
 
   def handle_middleware(middleware_list, interaction)
       when is_list(middleware_list) and is_map(interaction) do

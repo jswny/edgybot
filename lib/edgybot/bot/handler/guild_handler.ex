@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.PluginRegistrar
+  alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Nostrum.Api
 
   def handle_guild_available(guild) when is_map(guild) do

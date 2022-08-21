@@ -3,7 +3,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
 
   require Logger
   alias Edgybot.Bot.Handler.MiddlewareHandler
-  alias Edgybot.Bot.PluginRegistrar
+  alias Edgybot.Bot.Registrar.PluginRegistrar
 
   @default_metadata [:metadata]
 
