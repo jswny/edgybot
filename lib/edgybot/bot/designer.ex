@@ -7,14 +7,14 @@ defmodule Edgybot.Bot.Designer do
   @type options() :: [option]
 
   @type option() ::
-          {:title, String.t()}
-          | {:description, String.t()}
+          {:title, binary()}
+          | {:description, binary()}
           | {:fields, [field_options()]}
           | {:stacktrace, Exception.stacktrace()}
 
   @type field_options() :: %{
-          name: String.t(),
-          value: String.t(),
+          name: binary(),
+          value: binary(),
           inline?: boolean()
         }
 

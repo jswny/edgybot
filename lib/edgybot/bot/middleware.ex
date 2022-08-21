@@ -1,7 +1,9 @@
 defmodule Edgybot.Bot.Middleware do
   @moduledoc false
 
-  @callback get_middleware_definition() :: %{name: atom(), order: number()}
+  @type name :: atom()
+
+  @callback get_middleware_definition() :: %{name: name(), order: number()}
 
   @callback(
     process_interaction(Nostrum.Struct.Interaction.t()) :: {:ok, any()},

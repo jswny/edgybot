@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
+  alias Edgybot.Bot.Middleware
 
   @type application_command_option_name :: binary()
 
@@ -9,38 +10,38 @@ defmodule Edgybot.Bot.Plugin do
 
   @type application_command_option_description :: binary()
 
-  @typep application_command_option_parameter :: %{
-           optional(:required) => boolean(),
-           name: application_command_option_name(),
-           description: application_command_option_description(),
-           type: application_command_option_type_value()
-         }
+  @type application_command_option_parameter :: %{
+          optional(:required) => boolean(),
+          name: application_command_option_name(),
+          description: application_command_option_description(),
+          type: application_command_option_type_value()
+        }
 
   @type application_command_option_type_subcommand :: 1
 
   @type application_command_option_type_subcommand_group :: 2
 
-  @typep application_command_definition_option ::
-           %{
-             name: application_command_option_name,
-             description: binary(),
-             type: application_command_option_type_subcommand_group(),
-             options: [
-               %{
-                 name: binary(),
-                 description: application_command_option_description(),
-                 type: application_command_option_type_subcommand(),
-                 options: [application_command_option_parameter()]
-               }
-             ]
-           }
-           | %{
-               name: application_command_option_name(),
-               description: application_command_option_description(),
-               type: application_command_option_type_subcommand(),
-               options: [application_command_option_parameter()]
-             }
-           | application_command_option_parameter()
+  @type application_command_definition_option ::
+          %{
+            name: application_command_option_name,
+            description: binary(),
+            type: application_command_option_type_subcommand_group(),
+            options: [
+              %{
+                name: binary(),
+                description: application_command_option_description(),
+                type: application_command_option_type_subcommand(),
+                options: [application_command_option_parameter()]
+              }
+            ]
+          }
+          | %{
+              name: application_command_option_name(),
+              description: application_command_option_description(),
+              type: application_command_option_type_subcommand(),
+              options: [application_command_option_parameter()]
+            }
+          | application_command_option_parameter()
 
   @type interaction_option_value :: binary()
 
@@ -53,7 +54,7 @@ defmodule Edgybot.Bot.Plugin do
   @type plugin_definition :: %{
           optional(:options) => [application_command_definition_option()],
           optional(:default_permission) => boolean(),
-          optional(:middleware) => [atom()],
+          optional(:middleware) => [Middleware.name()],
           name: binary(),
           description: binary(),
           type: application_command_type()
@@ -61,10 +62,12 @@ defmodule Edgybot.Bot.Plugin do
 
   @type application_command_name_list :: nonempty_list(binary())
 
+  @type interaction_response_message :: binary()
+
   @type interaction_response ::
-          {:success, binary()}
-          | {:warning, binary()}
-          | {:error, binary()}
+          {:success, interaction_response_message()}
+          | {:warning, interaction_response_message()}
+          | {:error, interaction_response_message()}
           | {:success, Designer.options()}
           | {:warning, Designer.options()}
           | {:error, Designer.options()}
