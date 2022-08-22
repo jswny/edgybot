@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin do
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Bot.Middleware
+  alias Nostrum.Struct.Interaction
 
   @type application_command_option_name :: binary()
 
@@ -78,7 +79,7 @@ defmodule Edgybot.Bot.Plugin do
               application_command_name_list(),
               application_command_type,
               [interaction_option],
-              Nostrum.Struct.Interaction.t(),
+              Interaction.t(),
               map()
             ) :: interaction_response()
 end

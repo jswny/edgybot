@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Interaction
 
   @behaviour Edgybot.Bot.Plugin
 
@@ -30,7 +31,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
         ["topic"],
         1,
         [{"content", 3, content}],
-        %{channel_id: channel_id},
+        %Interaction{channel_id: channel_id},
         _middleware_data
       )
       when is_binary(content) and is_integer(channel_id) do

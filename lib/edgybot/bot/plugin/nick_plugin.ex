@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Interaction
 
   @special_space " "
 
@@ -38,7 +39,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}],
-        %{
+        %Interaction{
           guild_id: guild_id
         },
         _middleware_data
@@ -56,7 +57,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}],
-        %{
+        %Interaction{
           guild_id: guild_id
         },
         _middleware_data

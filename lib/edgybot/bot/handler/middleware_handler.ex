@@ -2,9 +2,10 @@ defmodule Edgybot.Bot.Handler.MiddlewareHandler do
   @moduledoc false
 
   alias Edgybot.Bot.Registrar.MiddlewareRegistrar
+  alias Nostrum.Struct.Interaction
 
-  def handle_middleware(middleware_list, interaction)
-      when is_list(middleware_list) and is_map(interaction) do
+  def handle_middleware(middleware_list, %Interaction{} = interaction)
+      when is_list(middleware_list) do
     middleware_list
     |> Enum.map(&MiddlewareRegistrar.get_module({&1}))
     |> Enum.sort_by(& &1.get_middleware_definition().order)
