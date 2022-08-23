@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Interaction
 
   @special_space " "
 
@@ -12,23 +13,25 @@ defmodule Edgybot.Bot.Plugin.Nick do
   def get_plugin_definitions do
     [
       %{
-        name: "nick",
-        description: "Set or clear someone's nickname postfix",
-        type: 1,
-        options: [
-          %{
-            name: "user",
-            description: "The user to set or clear the nickname for",
-            type: 6,
-            required: true
-          },
-          %{
-            name: "postfix",
-            description: "The postfix to set",
-            type: 3,
-            required: false
-          }
-        ]
+        application_command: %{
+          name: "nick",
+          description: "Set or clear someone's nickname postfix",
+          type: 1,
+          options: [
+            %{
+              name: "user",
+              description: "The user to set or clear the nickname for",
+              type: 6,
+              required: true
+            },
+            %{
+              name: "postfix",
+              description: "The postfix to set",
+              type: 3,
+              required: false
+            }
+          ]
+        }
       }
     ]
   end
@@ -38,7 +41,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}],
-        %{
+        %Interaction{
           guild_id: guild_id
         },
         _middleware_data
@@ -56,7 +59,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}],
-        %{
+        %Interaction{
           guild_id: guild_id
         },
         _middleware_data

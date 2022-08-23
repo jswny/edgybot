@@ -3,64 +3,19 @@ defmodule Edgybot.Bot.Plugin do
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Bot.Middleware
+  alias Nostrum.Struct.{ApplicationCommand, Interaction}
 
-  @type application_command_option_name :: binary()
-
-  @type application_command_option_type_value :: 3..10
-
-  @type application_command_option_description :: binary()
-
-  @type application_command_option_parameter :: %{
-          optional(:required) => boolean(),
-          name: application_command_option_name(),
-          description: application_command_option_description(),
-          type: application_command_option_type_value()
+  @type plugin_definition :: %{
+          optional(:middleware) => [Middleware.name()],
+          application_command: ApplicationCommand.application_command_map()
         }
-
-  @type application_command_option_type_subcommand :: 1
-
-  @type application_command_option_type_subcommand_group :: 2
-
-  @type application_command_definition_option ::
-          %{
-            name: application_command_option_name,
-            description: binary(),
-            type: application_command_option_type_subcommand_group(),
-            options: [
-              %{
-                name: binary(),
-                description: application_command_option_description(),
-                type: application_command_option_type_subcommand(),
-                options: [application_command_option_parameter()]
-              }
-            ]
-          }
-          | %{
-              name: application_command_option_name(),
-              description: application_command_option_description(),
-              type: application_command_option_type_subcommand(),
-              options: [application_command_option_parameter()]
-            }
-          | application_command_option_parameter()
+  @type application_command_name_list :: nonempty_list(ApplicationCommand.command_name())
 
   @type interaction_option_value :: binary()
 
   @type interaction_option ::
-          {application_command_option_name(), application_command_option_type_value(),
+          {ApplicationCommand.command_name(), ApplicationCommand.command_option_type(),
            interaction_option_value()}
-
-  @type application_command_type :: 1..3
-
-  @type plugin_definition :: %{
-          optional(:options) => [application_command_definition_option()],
-          optional(:default_permission) => boolean(),
-          optional(:middleware) => [Middleware.name()],
-          name: binary(),
-          description: binary(),
-          type: application_command_type()
-        }
-
-  @type application_command_name_list :: nonempty_list(binary())
 
   @type interaction_response_message :: binary()
 
@@ -76,9 +31,9 @@ defmodule Edgybot.Bot.Plugin do
 
   @callback handle_interaction(
               application_command_name_list(),
-              application_command_type,
+              ApplicationCommand.command_type(),
               [interaction_option],
-              Nostrum.Struct.Interaction.t(),
+              Interaction.t(),
               map()
             ) :: interaction_response()
 end

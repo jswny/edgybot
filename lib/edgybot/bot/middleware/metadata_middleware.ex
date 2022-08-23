@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Middleware.MetadataMiddleware do
     {:ok, create_metadata(interaction)}
   end
 
-  defp create_metadata(interaction) when is_map(interaction) do
+  defp create_metadata(%Interaction{} = interaction) do
     with user_id <- interaction.member.user.id,
          guild_id <- interaction.guild_id,
          channel_id <- interaction.channel_id,
@@ -39,7 +39,7 @@ defmodule Edgybot.Bot.Middleware.MetadataMiddleware do
     end
   end
 
-  defp create_roles(interaction, guild_id) when is_map(interaction) and is_integer(guild_id) do
+  defp create_roles(%Interaction{} = interaction, guild_id) when is_integer(guild_id) do
     interaction
     |> Map.fetch!(:member)
     |> Map.fetch!(:roles)
@@ -49,8 +49,7 @@ defmodule Edgybot.Bot.Middleware.MetadataMiddleware do
     end)
   end
 
-  defp create_messages(interaction, channel_id)
-       when is_map(interaction) and is_integer(channel_id) do
+  defp create_messages(%Interaction{} = interaction, channel_id) when is_integer(channel_id) do
     interaction
     |> get_in([Access.key(:data), Access.key(:resolved), Access.key(:messages)])
     |> case do

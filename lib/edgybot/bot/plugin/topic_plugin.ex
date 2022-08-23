@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Interaction
 
   @behaviour Edgybot.Bot.Plugin
 
@@ -10,17 +11,19 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   def get_plugin_definitions do
     [
       %{
-        name: "topic",
-        description: "Set the channel topic",
-        type: 1,
-        options: [
-          %{
-            name: "content",
-            description: "The new channel topic",
-            type: 3,
-            required: true
-          }
-        ]
+        application_command: %{
+          name: "topic",
+          description: "Set the channel topic",
+          type: 1,
+          options: [
+            %{
+              name: "content",
+              description: "The new channel topic",
+              type: 3,
+              required: true
+            }
+          ]
+        }
       }
     ]
   end
@@ -30,7 +33,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
         ["topic"],
         1,
         [{"content", 3, content}],
-        %{channel_id: channel_id},
+        %Interaction{channel_id: channel_id},
         _middleware_data
       )
       when is_binary(content) and is_integer(channel_id) do

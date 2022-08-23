@@ -1,21 +1,21 @@
 defmodule Edgybot.Bot.Designer do
   @moduledoc false
 
-  alias Nostrum.Struct.{Embed, User}
+  alias Nostrum.Struct.{Embed, Embed.Field, User}
   alias Nostrum.Struct.Guild.Role
 
   @type options() :: [option]
 
   @type option() ::
-          {:title, binary()}
-          | {:description, binary()}
+          {:title, Embed.title()}
+          | {:description, Embed.description()}
           | {:fields, [field_options()]}
           | {:stacktrace, Exception.stacktrace()}
 
   @type field_options() :: %{
-          name: binary(),
-          value: binary(),
-          inline?: boolean()
+          name: Field.name(),
+          value: Field.value(),
+          inline?: Field.inline()
         }
 
   @zero_width_space "​"
@@ -113,18 +113,18 @@ defmodule Edgybot.Bot.Designer do
     |> embed_url(Map.get(merged_options, :url))
   end
 
-  defp embed_title(embed, title) when is_map(embed) and is_binary(title),
+  defp embed_title(%Embed{} = embed, title) when is_binary(title),
     do: Embed.put_title(embed, title)
 
-  defp embed_title(embed, nil) when is_map(embed), do: embed
+  defp embed_title(%Embed{} = embed, nil), do: embed
 
-  defp embed_description(embed, description) when is_map(embed) and is_binary(description),
+  defp embed_description(%Embed{} = embed, description) when is_binary(description),
     do: Embed.put_description(embed, description)
 
-  defp embed_description(embed, nil) when is_map(embed), do: embed
+  defp embed_description(%Embed{} = embed, nil), do: embed
 
-  defp embed_fields(embed, [%{name: name, value: value} = field | rest])
-       when is_map(embed) and is_binary(name) and is_binary(value) and is_list(rest) do
+  defp embed_fields(%Embed{} = embed, [%{name: name, value: value} = field | rest])
+       when is_binary(name) and is_binary(value) and is_list(rest) do
     inline? = Map.get(field, :inline?, false)
 
     embed
@@ -132,26 +132,24 @@ defmodule Edgybot.Bot.Designer do
     |> embed_fields(rest)
   end
 
-  defp embed_fields(embed, []) when is_map(embed) do
-    embed
-  end
+  defp embed_fields(%Embed{} = embed, []), do: embed
 
-  defp embed_fields(embed, nil) when is_map(embed), do: embed
+  defp embed_fields(%Embed{} = embed, nil), do: embed
 
-  defp embed_stacktrace(embed, stacktrace) when is_map(embed) and is_list(stacktrace) do
+  defp embed_stacktrace(%Embed{} = embed, stacktrace) when is_list(stacktrace) do
     formatted_stacktrace = Exception.format_stacktrace(stacktrace)
     Embed.put_field(embed, "Stacktrace", code_block(formatted_stacktrace))
   end
 
-  defp embed_stacktrace(embed, nil) when is_map(embed), do: embed
+  defp embed_stacktrace(%Embed{} = embed, nil), do: embed
 
-  defp embed_image(embed, image_url) when is_map(embed) and is_binary(image_url),
+  defp embed_image(%Embed{} = embed, image_url) when is_binary(image_url),
     do: Embed.put_image(embed, image_url)
 
-  defp embed_image(embed, nil) when is_map(embed), do: embed
+  defp embed_image(%Embed{} = embed, nil), do: embed
 
-  defp embed_url(embed, url) when is_map(embed) and is_binary(url),
+  defp embed_url(%Embed{} = embed, url) when is_binary(url),
     do: Embed.put_url(embed, url)
 
-  defp embed_url(embed, nil) when is_map(embed), do: embed
+  defp embed_url(%Embed{} = embed, nil), do: embed
 end
