@@ -10,6 +10,6 @@ defmodule Edgybot.Bot.Registrar.PluginRegistrar do
 
   @impl true
   def get_definition_key(definition) when is_map(definition) do
-    {definition.name, definition.type}
+    {definition.application_command.name, definition.application_command.type}
   end
 end

@@ -13,23 +13,25 @@ defmodule Edgybot.Bot.Plugin.Nick do
   def get_plugin_definitions do
     [
       %{
-        name: "nick",
-        description: "Set or clear someone's nickname postfix",
-        type: 1,
-        options: [
-          %{
-            name: "user",
-            description: "The user to set or clear the nickname for",
-            type: 6,
-            required: true
-          },
-          %{
-            name: "postfix",
-            description: "The postfix to set",
-            type: 3,
-            required: false
-          }
-        ]
+        application_command: %{
+          name: "nick",
+          description: "Set or clear someone's nickname postfix",
+          type: 1,
+          options: [
+            %{
+              name: "user",
+              description: "The user to set or clear the nickname for",
+              type: 6,
+              required: true
+            },
+            %{
+              name: "postfix",
+              description: "The postfix to set",
+              type: 3,
+              required: false
+            }
+          ]
+        }
       }
     ]
   end

@@ -11,17 +11,19 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   def get_plugin_definitions do
     [
       %{
-        name: "topic",
-        description: "Set the channel topic",
-        type: 1,
-        options: [
-          %{
-            name: "content",
-            description: "The new channel topic",
-            type: 3,
-            required: true
-          }
-        ]
+        application_command: %{
+          name: "topic",
+          description: "Set the channel topic",
+          type: 1,
+          options: [
+            %{
+              name: "content",
+              description: "The new channel topic",
+              type: 3,
+              required: true
+            }
+          ]
+        }
       }
     ]
   end

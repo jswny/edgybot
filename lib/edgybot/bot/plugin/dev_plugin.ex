@@ -9,29 +9,31 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
   def get_plugin_definitions do
     [
       %{
-        name: "dev",
-        description: "Developer options",
-        type: 1,
-        options: [
-          %{
-            name: "error",
-            description: "Purposefully throw an error",
-            type: 1
-          },
-          %{
-            name: "eval",
-            description: "Evaluate some Elixir code",
-            type: 1,
-            options: [
-              %{
-                name: "code",
-                description: "The code to be evaluated",
-                type: 3,
-                required: true
-              }
-            ]
-          }
-        ]
+        application_command: %{
+          name: "dev",
+          description: "Developer options",
+          type: 1,
+          options: [
+            %{
+              name: "error",
+              description: "Purposefully throw an error",
+              type: 1
+            },
+            %{
+              name: "eval",
+              description: "Evaluate some Elixir code",
+              type: 1,
+              options: [
+                %{
+                  name: "code",
+                  description: "The code to be evaluated",
+                  type: 3,
+                  required: true
+                }
+              ]
+            }
+          ]
+        }
       }
     ]
   end

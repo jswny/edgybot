@@ -30,86 +30,88 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
 
     [
       %{
-        name: "meme",
-        description: "Generate memes",
-        type: 1,
-        options: [
-          %{
-            name: "search",
-            description: "Search for a meme template",
-            type: 1,
-            options: [
-              %{
-                name: "query",
-                description: "The meme template to search for",
-                type: 3,
-                required: true
-              },
-              %{
-                name: "animated",
-                description: "Search only for animated templates",
-                type: 5,
-                required: false
-              }
-            ]
-          },
-          %{
-            name: "template",
-            description: "Get the details for a specific template",
-            type: 1,
-            options: [
-              %{
-                name: "id",
-                description: "The ID of the meme template to get",
-                type: 3,
-                required: true
-              },
-              %{
-                name: "style",
-                description: "The style to apply to the template",
-                type: 3,
-                required: false
-              }
-            ]
-          },
-          %{
-            name: "make",
-            description: "Make a meme",
-            type: 1,
-            options:
-              [
+        application_command: %{
+          name: "meme",
+          description: "Generate memes",
+          type: 1,
+          options: [
+            %{
+              name: "search",
+              description: "Search for a meme template",
+              type: 1,
+              options: [
                 %{
-                  name: "id",
-                  description: "The ID of the meme template to use",
+                  name: "query",
+                  description: "The meme template to search for",
                   type: 3,
                   required: true
                 },
-                meme_text_options,
-                meme_overlay_options,
+                %{
+                  name: "animated",
+                  description: "Search only for animated templates",
+                  type: 5,
+                  required: false
+                }
+              ]
+            },
+            %{
+              name: "template",
+              description: "Get the details for a specific template",
+              type: 1,
+              options: [
+                %{
+                  name: "id",
+                  description: "The ID of the meme template to get",
+                  type: 3,
+                  required: true
+                },
                 %{
                   name: "style",
-                  description: "The style to apply to the template. Will override any overlays",
+                  description: "The style to apply to the template",
                   type: 3,
                   required: false
                 }
               ]
-              |> List.flatten()
-          },
-          %{
-            name: "custom",
-            description: "Make a meme with a custom image",
-            type: 1,
-            options: [
-              %{
-                name: "image_url",
-                description: "The URL of the image to use for the meme",
-                type: 3,
-                required: true
-              }
-              | meme_text_options
-            ]
-          }
-        ]
+            },
+            %{
+              name: "make",
+              description: "Make a meme",
+              type: 1,
+              options:
+                [
+                  %{
+                    name: "id",
+                    description: "The ID of the meme template to use",
+                    type: 3,
+                    required: true
+                  },
+                  meme_text_options,
+                  meme_overlay_options,
+                  %{
+                    name: "style",
+                    description: "The style to apply to the template. Will override any overlays",
+                    type: 3,
+                    required: false
+                  }
+                ]
+                |> List.flatten()
+            },
+            %{
+              name: "custom",
+              description: "Make a meme with a custom image",
+              type: 1,
+              options: [
+                %{
+                  name: "image_url",
+                  description: "The URL of the image to use for the meme",
+                  type: 3,
+                  required: true
+                }
+                | meme_text_options
+              ]
+            }
+          ]
+        }
       }
     ]
   end

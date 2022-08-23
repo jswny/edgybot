@@ -53,7 +53,9 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
        when is_atom(plugin_module) and is_integer(interaction_type) do
     middleware_list =
       plugin_module.get_plugin_definitions()
-      |> Enum.find(nil, fn definition -> definition.type == interaction_type end)
+      |> Enum.find(nil, fn definition ->
+        definition.application_command.type == interaction_type
+      end)
       |> Map.get(:middleware, [])
       |> Enum.concat(@default_metadata)
       |> Enum.uniq()

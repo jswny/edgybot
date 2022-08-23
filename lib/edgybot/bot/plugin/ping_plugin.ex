@@ -7,9 +7,11 @@ defmodule Edgybot.Bot.Plugin.PingPlugin do
   def get_plugin_definitions do
     [
       %{
-        name: "ping",
-        description: "Ping the bot",
-        type: 1
+        application_command: %{
+          name: "ping",
+          description: "Ping the bot",
+          type: 1
+        }
       }
     ]
   end

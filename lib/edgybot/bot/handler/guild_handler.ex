@@ -4,14 +4,16 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   require Logger
   alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Nostrum.Api
+  alias Nostrum.Struct.Guild
 
-  def handle_guild_available(guild) when is_map(guild) do
+  def handle_guild_available(%Guild{} = guild) do
     guild_id = guild.id
     guild_name = get_guild_name(guild_id)
 
     Logger.debug("Registering application commands for guild #{guild_name}...")
 
     PluginRegistrar.list_definitions()
+    |> Enum.map(&Map.fetch!(&1, :application_command))
     |> apply_default_deny_permission()
     |> bulk_overwrite_guild_application_commands(guild_id)
 
