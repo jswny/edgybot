@@ -11,6 +11,12 @@ defmodule Edgybot.Bot.Plugin.PingPlugin do
           name: "ping",
           description: "Ping the bot",
           type: 1
+        },
+        metadata: %{
+          name: "ping",
+          data: %{
+            ephemeral: true
+          }
         }
       }
     ]

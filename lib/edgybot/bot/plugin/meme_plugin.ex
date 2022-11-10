@@ -111,6 +111,23 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
               ]
             }
           ]
+        },
+        metadata: %{
+          name: "meme",
+          children: [
+            %{
+              name: "search",
+              data: %{
+                ephemeral: true
+              }
+            },
+            %{
+              name: "template",
+              data: %{
+                ephemeral: true
+              }
+            }
+          ]
         }
       }
     ]
