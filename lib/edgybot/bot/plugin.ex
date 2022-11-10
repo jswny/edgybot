@@ -5,8 +5,19 @@ defmodule Edgybot.Bot.Plugin do
   alias Edgybot.Bot.Middleware
   alias Nostrum.Struct.{ApplicationCommand, Interaction}
 
+  @type metadata_data() :: %{
+          optional(:ephemeral) => boolean()
+        }
+
+  @type metadata :: %{
+          optional(:children) => nonempty_list(metadata()),
+          optional(:data) => metadata_data(),
+          name: binary()
+        }
+
   @type plugin_definition :: %{
           optional(:middleware) => [Middleware.name()],
+          optional(:metadata) => metadata(),
           application_command: ApplicationCommand.application_command_map()
         }
   @type application_command_name_list :: nonempty_list(ApplicationCommand.command_name())
@@ -27,7 +38,7 @@ defmodule Edgybot.Bot.Plugin do
           | {:warning, Designer.options()}
           | {:error, Designer.options()}
 
-  @callback get_plugin_definitions() :: [plugin_definition()]
+  @callback get_plugin_definitions() :: nonempty_list(plugin_definition())
 
   @callback handle_interaction(
               application_command_name_list(),
@@ -36,4 +47,15 @@ defmodule Edgybot.Bot.Plugin do
               Interaction.t(),
               map()
             ) :: interaction_response()
+
+  def get_definition_by_key(plugin_module, application_command_name, application_command_type)
+      when is_atom(plugin_module) do
+    plugin_module.get_plugin_definitions()
+    |> Enum.find(nil, fn definition ->
+      matching_name? = definition.application_command.name == application_command_name
+      matching_type? = definition.application_command.type == application_command_type
+
+      matching_name? && matching_type?
+    end)
+  end
 end

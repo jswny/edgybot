@@ -8,8 +8,15 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   @interaction_deferred_channel_message_with_source 5
 
-  def defer_interaction_response(%Interaction{} = interaction) do
+  def defer_interaction_response(%Interaction{} = interaction, ephemeral?)
+      when is_boolean(ephemeral?) do
     response = Map.put(Map.new(), :type, @interaction_deferred_channel_message_with_source)
+
+    response =
+      case ephemeral? do
+        true -> Map.put(response, :data, %{flags: 1 <<< 6})
+        false -> response
+      end
 
     {:ok} = Api.create_interaction_response(interaction, response)
     interaction
