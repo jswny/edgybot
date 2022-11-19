@@ -2,7 +2,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   @moduledoc false
 
   require Logger
-  alias Edgybot.Bot.Handler.MiddlewareHandler
+  alias Edgybot.Bot.Handler.{MiddlewareHandler, ResponseHandler}
+  alias Edgybot.Bot.Plugin
   alias Edgybot.Bot.Registrar.PluginRegistrar
 
   alias Nostrum.Struct.{
@@ -18,22 +19,33 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
             when is_struct(resolved_data, ApplicationCommandInteractionDataResolved) or
                    is_nil(resolved_data)
 
-  def handle_interaction(%Interaction{data: %{name: name, type: type}} = interaction)
-      when is_binary(name) and is_integer(type) do
-    Logger.debug("Handling interaction #{name} (type: #{type})...")
+  def handle_interaction(
+        %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction
+      )
+      when is_binary(interaction_name) and is_integer(interaction_type) do
+    Logger.debug("Handling interaction #{interaction_name} (type: #{interaction_type})...")
 
-    matching_plugin_module = PluginRegistrar.get_module({name, type})
+    matching_plugin_module = PluginRegistrar.get_module({interaction_name, interaction_type})
 
     case matching_plugin_module do
       nil ->
         :noop
 
       _ ->
-        middleware_data =
-          process_middleware_for_interaction(matching_plugin_module, type, interaction)
-
         {application_command_name_list, application_command_type, options} =
           parse_interaction(interaction)
+
+        application_command_metadata =
+          get_application_command_metadata_for_interaction(
+            interaction,
+            matching_plugin_module,
+            application_command_name_list
+          )
+
+        middleware_data =
+          interaction
+          |> defer_interaction_response(application_command_metadata)
+          |> process_middleware_for_interaction(matching_plugin_module)
 
         matching_plugin_module.handle_interaction(
           application_command_name_list,
@@ -45,17 +57,95 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     end
   end
 
-  defp process_middleware_for_interaction(
-         plugin_module,
-         interaction_type,
-         %Interaction{} = interaction
+  defp build_application_command_metadata(
+         %{name: name, children: children} = parent_meatadata_tree_node,
+         [interaction_name_head | interaction_name_rest],
+         current_metadata
        )
-       when is_atom(plugin_module) and is_integer(interaction_type) do
-    middleware_list =
-      plugin_module.get_plugin_definitions()
-      |> Enum.find(nil, fn definition ->
-        definition.application_command.type == interaction_type
+       when is_binary(name) and is_list(children) and is_binary(interaction_name_head) and
+              is_list(interaction_name_rest) and is_map(current_metadata) do
+    parent_current_metadata =
+      merge_metadata_heirarchy(parent_meatadata_tree_node, current_metadata)
+
+    if name == interaction_name_head do
+      children
+      |> Enum.map(fn metadata_tree_node ->
+        new_current_metadata =
+          merge_metadata_heirarchy(metadata_tree_node, parent_current_metadata)
+
+        build_application_command_metadata(
+          metadata_tree_node,
+          interaction_name_rest,
+          new_current_metadata
+        )
       end)
+      |> Enum.find(%{}, &(!is_nil(&1)))
+    else
+      nil
+    end
+  end
+
+  defp build_application_command_metadata(
+         %{name: name} = metadata_tree_node,
+         [interaction_name_head | _interaction_name_rest],
+         current_metadata
+       )
+       when is_binary(name) and is_binary(interaction_name_head) and is_map(current_metadata) do
+    if name == interaction_name_head do
+      merge_metadata_heirarchy(metadata_tree_node, current_metadata)
+    else
+      nil
+    end
+  end
+
+  defp build_application_command_metadata(%{}, _interaction_name_list, current_metadata)
+       when is_map(current_metadata),
+       do: current_metadata
+
+  defp build_application_command_metadata(metadata_tree, interaction_name_list)
+       when is_map(metadata_tree) and is_list(interaction_name_list) do
+    build_application_command_metadata(metadata_tree, interaction_name_list, %{})
+  end
+
+  defp merge_metadata_heirarchy(metadata_tree_node, current_metadata)
+       when is_map(metadata_tree_node) and is_map(current_metadata) do
+    metadata_tree_node_metadata = Map.get(metadata_tree_node, :data, %{})
+    Map.merge(current_metadata, metadata_tree_node_metadata)
+  end
+
+  defp get_application_command_metadata_for_interaction(
+         %Interaction{data: %{name: interaction_name, type: interaction_type}},
+         plugin_module,
+         interaction_name_list
+       )
+       when is_binary(interaction_name) and is_integer(interaction_type) and
+              is_atom(plugin_module) and is_list(interaction_name_list) do
+    application_command_metadata_tree =
+      plugin_module
+      |> Plugin.get_definition_by_key(interaction_name, interaction_type)
+      |> Map.get(:metadata, Map.new())
+
+    build_application_command_metadata(
+      application_command_metadata_tree,
+      interaction_name_list
+    )
+  end
+
+  defp defer_interaction_response(%Interaction{} = interaction, application_command_metadata) do
+    ephemeral? = Map.get(application_command_metadata, :ephemeral, false)
+
+    ResponseHandler.defer_interaction_response(interaction, ephemeral?)
+  end
+
+  defp process_middleware_for_interaction(
+         %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction,
+         plugin_module
+       )
+       when is_binary(interaction_name) and is_integer(interaction_type) and
+              is_atom(plugin_module) do
+    middleware_list =
+      plugin_module
+      |> Plugin.get_definition_by_key(interaction_name, interaction_type)
       |> Map.get(:middleware, [])
       |> Enum.concat(@default_metadata)
       |> Enum.uniq()
