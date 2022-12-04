@@ -51,6 +51,8 @@ defmodule Edgybot.Bot.Designer do
   def code_inline(content, escape? \\ true) when is_binary(content) and is_boolean(escape?),
     do: render_code("``", content, escape?)
 
+  def bold(content) when is_binary(content), do: "**#{content}**"
+
   def role_mention(role_id) when is_integer(role_id) do
     Role.mention(%Role{
       id: role_id,
