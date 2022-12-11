@@ -13,15 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.generate-exact-version.outputs.version }}
-      mix-cache-key: ${{ steps.generate-exact-version.outputs.mix-cache-key }}
+      mix-build-cache-key: ${{ steps.generate-exact-version.outputs.mix-build-cache-key }}
     steps:
       - name: Generate Exact Version
         id: generate-exact-version
         run: |
           VERSION="${{ runner.os }}-otp-${{ env.otp-version }}-elixir-${{ env.elixir-version }}"
-          MIX_CACHE_KEY="${VERSION}-build-mix-deps"
+          MIX_BUILD_CACHE_KEY="mix-build-${VERSION}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "mix-cache-key=${MIX_CACHE_KEY}" >> $GITHUB_OUTPUT
+          echo "mix-build-cache-key=${MIX_BUILD_CACHE_KEY}" >> $GITHUB_OUTPUT
 
   yaml-lint:
     name: YAML Lint
@@ -57,6 +57,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: dev
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -68,10 +70,18 @@ jobs:
       - name: Cache Mix Dependencies
         uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -82,6 +92,8 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: test
     services:
       db:
         image: postgres:13.1
@@ -99,10 +111,18 @@ jobs:
       - name: Cache Mix Dependencies
         uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -127,6 +147,8 @@ jobs:
     name: Dialyzer
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: dev
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -138,21 +160,29 @@ jobs:
       - name: Cache Mix Dependencies
         uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
-      - name: Cache PLT
+      - name: Cache Mix Build
         uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.version }}-build-plt
-          plt-core-path: "_build/dev"
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Dialyzer PLT
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.version }}-dialyzer-plt
+          plt-core-path: "_build/${{ env.MIX_ENV }}"
         with:
           path: |
             ${{ env.plt-core-path }}/*.plt
             ${{ env.plt-core-path }}/*.plt.hash
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -163,6 +193,8 @@ jobs:
     name: Credo
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -174,10 +206,18 @@ jobs:
       - name: Cache Mix Dependencies
         uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
