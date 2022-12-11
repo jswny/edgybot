@@ -2,8 +2,8 @@ name: CI
 on: [push]
 
 env:
-  otp-version: "24.0.0"
-  elixir-version: "1.13.2"
+  otp-version: "25.0.0"
+  elixir-version: "1.14.2"
   python-version: "3.11"
   node-version: "14"
 
@@ -61,7 +61,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
@@ -92,7 +92,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
@@ -116,7 +116,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
@@ -131,7 +131,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
@@ -167,7 +167,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
