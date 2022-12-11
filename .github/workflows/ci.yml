@@ -20,8 +20,8 @@ jobs:
         run: |
           VERSION="${{ runner.os }}-otp-${{ env.otp-version }}-elixir-${{ env.elixir-version }}"
           MIX_CACHE_KEY="${VERSION}-build-mix-deps"
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=mix-cache-key::${MIX_CACHE_KEY}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "mix-cache-key=${MIX_CACHE_KEY}" >> $GITHUB_OUTPUT
 
   yaml-lint:
     name: YAML Lint
