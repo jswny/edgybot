@@ -2,10 +2,10 @@ name: CI
 on: [push]
 
 env:
-  otp-version: "24.0.0"
-  elixir-version: "1.13.2"
-  python-version: "3.8"
-  node-version: "14"
+  otp-version: "25.0.0"
+  elixir-version: "1.14.2"
+  python-version: "3.11"
+  node-version: "18.12.1"
 
 jobs:
   prepare-elixir:
@@ -13,24 +13,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.generate-exact-version.outputs.version }}
-      mix-cache-key: ${{ steps.generate-exact-version.outputs.mix-cache-key }}
+      mix-build-cache-key: ${{ steps.generate-exact-version.outputs.mix-build-cache-key }}
     steps:
       - name: Generate Exact Version
         id: generate-exact-version
         run: |
           VERSION="${{ runner.os }}-otp-${{ env.otp-version }}-elixir-${{ env.elixir-version }}"
-          MIX_CACHE_KEY="${VERSION}-build-mix-deps"
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=mix-cache-key::${MIX_CACHE_KEY}
+          MIX_BUILD_CACHE_KEY="mix-build-${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "mix-build-cache-key=${MIX_BUILD_CACHE_KEY}" >> $GITHUB_OUTPUT
 
   yaml-lint:
     name: YAML Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.python-version }}
       - name: Install YAML Lint
@@ -43,9 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node-version }}
       - name: Install Prettier
@@ -57,21 +57,31 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
       - name: Cache Mix Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -82,6 +92,8 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: test
     services:
       db:
         image: postgres:13.1
@@ -90,19 +102,27 @@ jobs:
           POSTGRES_PASSWORD: postgres
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
       - name: Cache Mix Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -114,9 +134,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
@@ -127,32 +147,42 @@ jobs:
     name: Dialyzer
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
       - name: Cache Mix Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
-      - name: Cache PLT
-        uses: actions/cache@v2
+      - name: Cache Mix Build
+        uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.version }}-build-plt
-          plt-core-path: "_build/dev"
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Dialyzer PLT
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.version }}-dialyzer-plt
+          plt-core-path: "_build/${{ env.MIX_ENV }}"
         with:
           path: |
             ${{ env.plt-core-path }}/*.plt
             ${{ env.plt-core-path }}/*.plt.hash
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -163,21 +193,31 @@ jobs:
     name: Credo
     runs-on: ubuntu-latest
     needs: prepare-elixir
+    env:
+      MIX_ENV: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1.7
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.otp-version }}
           elixir-version: ${{ env.elixir-version }}
       - name: Cache Mix Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
-          base-key: ${{ needs.prepare-elixir.outputs.mix-cache-key }}
+          base-key: mix-deps-${{ runner.os }}
         with:
           path: deps
-          key: ${{ env.base-key }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ env.base-key }}
+      - name: Cache Mix Build
+        uses: actions/cache@v3
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.mix-build-cache-key }}-mix-env-${{ env.MIX_ENV }}
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
       - name: Get Dependencies
         run: mix deps.get
@@ -189,9 +229,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Hadolint
-        uses: hadolint/hadolint-action@v1.6.0
+        uses: hadolint/hadolint-action@v3.0.0
         with:
           failure-threshold: style
 
@@ -203,10 +243,10 @@ jobs:
       container-registry: ghcr.io
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Image Metadata
         id: image-metadata
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.container-registry }}/${{ github.repository }}
           flavor: |
@@ -217,7 +257,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
       - name: Cache Image Layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           base-key: ${{ runner.os }}-build-docker-buildx
         with:
@@ -226,16 +266,16 @@ jobs:
           restore-keys: |
             ${{ env.base-key }}
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Setup Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.container-registry }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Push to GitHub Container Registry
         uses: docker/build-push-action@v2
         with:
