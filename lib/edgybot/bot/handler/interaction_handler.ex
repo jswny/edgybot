@@ -209,7 +209,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   end
 
   defp get_resolved_option_value(type, value, resolved_interaction_data)
-       when is_integer(type) and type in [6, 7, 8] and is_integer(value) and
+       when is_integer(type) and type in [6, 7, 8, 11] and is_integer(value) and
               valid_resolved_data(resolved_interaction_data) do
     get_resolved_data_for_type(type, value, resolved_interaction_data)
   end
@@ -247,12 +247,13 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   end
 
   defp get_resolved_data_for_type(option_type, option_value, resolved_interaction_data)
-       when is_integer(option_type) and option_type in [7, 8] and is_integer(option_value) and
+       when is_integer(option_type) and option_type in [7, 8, 11] and is_integer(option_value) and
               valid_resolved_data(resolved_interaction_data) do
     resolved_interaction_data_field =
       case option_type do
         7 -> :channels
         8 -> :roles
+        11 -> :attachments
       end
 
     resolved_interaction_data

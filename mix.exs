@@ -32,7 +32,7 @@ defmodule Edgybot.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:nostrum, "~> 0.6"},
+      {:nostrum, github: "Kraigie/nostrum", ref: "4b61499ec695f0a0196bbfcd239b872b47147004"},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.2"},
