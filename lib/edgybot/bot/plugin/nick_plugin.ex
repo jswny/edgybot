@@ -1,13 +1,12 @@
 defmodule Edgybot.Bot.Plugin.Nick do
   @moduledoc false
 
+  use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
   alias Nostrum.Struct.Interaction
 
   @special_space " "
-
-  @behaviour Edgybot.Bot.Plugin
 
   @impl true
   def get_plugin_definitions do

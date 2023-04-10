@@ -51,6 +51,9 @@ config app_name, Edgybot.Repo,
   hostname: get_env_var.("DATABASE_HOSTNAME", "localhost")
 
 if config_env() != :test do
+  config app_name,
+    openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
+
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none)
 end

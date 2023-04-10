@@ -1,10 +1,9 @@
 defmodule Edgybot.Bot.Plugin.SlowPlugin do
   @moduledoc false
 
+  use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
-
-  @behaviour Edgybot.Bot.Plugin
 
   @impl true
   def get_plugin_definitions do

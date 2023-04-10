@@ -5,6 +5,8 @@ defmodule Edgybot.Config do
 
   def memegen_url, do: fetch(:memegen_url)
 
+  def openai_api_key, do: fetch(:openai_api_key)
+
   defp fetch(key) when is_atom(key) do
     __MODULE__
     |> Application.get_application()

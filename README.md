@@ -4,8 +4,10 @@ Edgy Discord bot.
 
 ## Running
 
-Before running, make sure you have an environment variable `DISCORD_TOKEN` set to a valid bot token. In addition, you can set the following environment variables to configure the database connection to Postgres:
+Before running, make sure you have the following environment variables set:
 
+- `DISCORD_TOKEN`
+- `OPENAI_API_KEY` (for AI functionality)
 - `DATABASE_USERNAME` (default: `postgres`)
 - `DATABASE_PASSWORD` (default: `postgres`)
 - `DATABASE_HOSTNAME` (default: `localhost`)
@@ -19,9 +21,10 @@ mix run
 
 ### Docker
 
-You can run with Docker Compose, which will build the image locally, and use the environment variables from your current environment. You can alternatively setup a `.env` file which contains the appropriate environment variables and values which Compose will pick up automatically.
+You can run with Docker Compose, which will build the image locally (if you don't already have it cached), and use the environment variables from your current environment. You can alternatively setup a `.env` file which contains the appropriate environment variables and values which Compose will pick up automatically.
 
 ```shell
+docker-compose build # If you want to force a build
 docker-compose up
 ```
 

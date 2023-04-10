@@ -1,9 +1,8 @@
 defmodule Edgybot.Bot.Plugin.DevPlugin do
   @moduledoc false
 
+  use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
-
-  @behaviour Edgybot.Bot.Plugin
 
   @impl true
   def get_plugin_definitions do

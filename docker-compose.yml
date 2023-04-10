@@ -18,6 +18,7 @@ services:
     environment:
       - DATABASE_HOSTNAME=edgybot-db
       - DISCORD_TOKEN
+      - OPENAI_API_KEY
   bot:
     image: ghcr.io/jswny/edgybot:edge
     container_name: edgybot
@@ -26,6 +27,7 @@ services:
     environment:
       - DATABASE_HOSTNAME=edgybot-db
       - DISCORD_TOKEN
+      - OPENAI_API_KEY
       - LF_ENABLED
       - LF_API_KEY
       - LF_SOURCE_ID
