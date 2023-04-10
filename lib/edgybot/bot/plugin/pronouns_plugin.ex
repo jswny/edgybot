@@ -2,13 +2,13 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   @moduledoc false
 
   alias Base
+  use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
   alias Nostrum.Struct.Guild.Role
   alias Nostrum.Struct.{Emoji, Interaction, User}
   alias Nostrum.Struct.Message.Attachment
 
-  @behaviour Edgybot.Bot.Plugin
   @role_prefix "Pronouns: "
 
   @impl true
@@ -79,8 +79,8 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
       )
       when is_binary(pronoun1) and is_binary(pronoun2) and is_list(other_options) and
              is_integer(user_id) and is_integer(guild_id) do
-    image_option = find_option_value(other_options, "image", 11)
-    emoji_value = find_option_value(other_options, "emoji", 3)
+    image_option = find_option_value(other_options, "image")
+    emoji_value = find_option_value(other_options, "emoji")
 
     roles = Api.get_guild_roles!(guild_id)
 
@@ -154,13 +154,6 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   defp delete_roles(roles, guild_id) when is_list(roles) and is_integer(guild_id) do
     Enum.each(roles, fn role ->
       Api.delete_guild_role!(guild_id, role.id)
-    end)
-  end
-
-  defp find_option_value(options, name, type)
-       when is_list(options) and is_binary(name) and is_integer(type) do
-    Enum.find_value(options, fn {current_name, current_type, current_value} ->
-      if current_name == name && current_type == type, do: current_value, else: nil
     end)
   end
 

@@ -48,6 +48,13 @@ defmodule Edgybot.Bot.Plugin do
               map()
             ) :: interaction_response()
 
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour unquote(__MODULE__)
+      import unquote(__MODULE__)
+    end
+  end
+
   def get_definition_by_key(plugin_module, application_command_name, application_command_type)
       when is_atom(plugin_module) do
     plugin_module.get_plugin_definitions()
@@ -56,6 +63,12 @@ defmodule Edgybot.Bot.Plugin do
       matching_type? = definition.application_command.type == application_command_type
 
       matching_name? && matching_type?
+    end)
+  end
+
+  def find_option_value(options, name) when is_list(options) and is_binary(name) do
+    Enum.find_value(options, nil, fn {current_option_name, _type, value} ->
+      if current_option_name == name, do: value
     end)
   end
 end

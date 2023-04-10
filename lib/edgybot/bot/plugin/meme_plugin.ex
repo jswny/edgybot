@@ -1,10 +1,9 @@
 defmodule Edgybot.Bot.Plugin.MemePlugin do
   @moduledoc false
 
+  use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
-
-  @behaviour Edgybot.Bot.Plugin
 
   @impl true
   def get_plugin_definitions do
@@ -180,7 +179,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
         num_text_lines = template["lines"]
         text_lines = Enum.map(1..num_text_lines, fn n -> "text#{Integer.to_string(n)}" end)
 
-        style = get_style_option_value(other_options)
+        style = find_option_value(other_options, "style")
         example_meme_url = make_meme(id, text_lines, nil, style)
 
         styles = Map.get(template, "styles", [])
@@ -226,7 +225,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
       when is_binary(template_id) and is_list(other_options) do
     case get_template(template_id) do
       {:ok, template} ->
-        style = get_style_option_value(other_options)
+        style = find_option_value(other_options, "style")
 
         matching_template_style =
           template
@@ -271,12 +270,6 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     ]
 
     {:success, options}
-  end
-
-  defp get_style_option_value(options) when is_list(options) do
-    Enum.find_value(options, nil, fn {name, _type, value} ->
-      if name == "style", do: value
-    end)
   end
 
   defp search_templates(query, animated?) when is_binary(query) and is_boolean(animated?) do

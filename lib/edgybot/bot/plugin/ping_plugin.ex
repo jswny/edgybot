@@ -1,7 +1,7 @@
 defmodule Edgybot.Bot.Plugin.PingPlugin do
   @moduledoc false
 
-  @behaviour Edgybot.Bot.Plugin
+  use Edgybot.Bot.Plugin
 
   @impl true
   def get_plugin_definitions do
