@@ -61,24 +61,47 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       %{
         model: "gpt-3.5-turbo",
         user: Integer.to_string(user_id),
+        presence_penalty: 0.5,
+        frequency_penalty: 0.5,
         messages: messages
       }
       |> Jason.encode!()
 
-    {:ok, response} =
+    response_tuple =
       :post
       |> Finch.build(url, headers, body)
-      |> Finch.request(FinchPool)
+      |> Finch.request(FinchPool, receive_timeout: 120_000)
 
-    chat_response =
-      response
-      |> Map.fetch!(:body)
-      |> Jason.decode!()
-      |> Map.fetch!("choices")
-      |> Enum.at(0)
-      |> Map.fetch!("message")
-      |> Map.fetch!("content")
+    case response_tuple do
+      {:ok, response} ->
+        chat_response =
+          response
+          |> Map.fetch!(:body)
+          |> Jason.decode!()
+          |> Map.fetch!("choices")
+          |> Enum.at(0)
+          |> Map.fetch!("message")
+          |> Map.fetch!("content")
 
-    {:success, chat_response}
+        prompt_field = %{name: "Prompt", value: prompt}
+        behavior_field = %{name: "Behavior", value: behavior}
+
+        fields =
+          if behavior,
+            do: [prompt_field, behavior_field],
+            else: [prompt_field]
+
+        options = [
+          title: nil,
+          description: chat_response,
+          fields: fields
+        ]
+
+        {:success, options}
+
+      {:error, %Mint.TransportError{reason: :timeout}} ->
+        {:warning,
+         "Could not generate a response in time. Prompt was likely too complex or long to process."}
+    end
   end
 end
