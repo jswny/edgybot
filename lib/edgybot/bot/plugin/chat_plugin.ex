@@ -2,8 +2,15 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+  alias Edgybot.Bot.Designer
   alias Edgybot.Config
+
   alias Nostrum.Struct.{Interaction, User}
+
+  @model_choices [
+    %{name: "GPT-3.5", value: "gpt-3.5-turbo"},
+    %{name: "GPT-4", value: "gpt-4"}
+  ]
 
   @impl true
   def get_plugin_definitions do
@@ -25,6 +32,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               description: "Tell the AI how it should behave",
               type: 3,
               required: false
+            },
+            %{
+              name: "model",
+              description: "The model to use",
+              type: 3,
+              required: false,
+              choices: @model_choices
             }
           ]
         }
@@ -45,6 +59,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{api_key}"}]
 
     behavior = find_option_value(other_options, "behavior")
+    model = find_option_value(other_options, "model") || Enum.at(@model_choices, 0)
 
     messages = [
       %{role: "user", content: prompt}
@@ -83,13 +98,16 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           |> Map.fetch!("message")
           |> Map.fetch!("content")
 
-        prompt_field = %{name: "Prompt", value: prompt}
-        behavior_field = %{name: "Behavior", value: behavior}
+        prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
+        model_field = %{name: "Model", value: Designer.code_block(model)}
 
         fields =
-          if behavior,
-            do: [prompt_field, behavior_field],
-            else: [prompt_field]
+          if behavior do
+            behavior_field = %{name: "Behavior", value: Designer.code_block(behavior)}
+            [prompt_field, behavior_field, model_field]
+          else
+            [prompt_field, model_field]
+          end
 
         options = [
           title: nil,
