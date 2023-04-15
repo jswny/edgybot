@@ -5,8 +5,27 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
 
+  defmodule MemePluginCache do
+    use Agent
+
+    def start_link(templates) do
+      Agent.start_link(fn -> %{templates: templates} end, name: MemePluginCache)
+    end
+
+    def get_templates() do
+      Agent.get(MemePluginCache, &Map.get(&1, :templates))
+    end
+  end
+
   @impl true
   def get_plugin_definitions do
+    {:ok, templates} =
+      :get
+      |> Finch.build("#{Config.memegen_url()}/templates")
+      |> Finch.request(FinchPool)
+
+    MemePluginCache.start_link(templates)
+
     meme_text_options =
       Enum.map(1..10, fn n ->
         %{
