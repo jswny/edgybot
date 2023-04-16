@@ -8,8 +8,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Nostrum.Struct.{Interaction, User}
 
   @model_choices [
-    %{name: "GPT-3.5", value: "gpt-3.5-turbo"},
-    %{name: "GPT-4", value: "gpt-4"}
+    %{name: "GPT-3.5", value: "gpt-3.5-turbo"}
   ]
 
   @impl true
@@ -74,7 +73,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     body =
       %{
-        model: "gpt-3.5-turbo",
+        model: model,
         user: Integer.to_string(user_id),
         presence_penalty: 0.5,
         frequency_penalty: 0.5,
