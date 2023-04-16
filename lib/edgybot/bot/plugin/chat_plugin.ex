@@ -58,7 +58,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{api_key}"}]
 
     behavior = find_option_value(other_options, "behavior")
-    model = find_option_value(other_options, "model") || Enum.at(@model_choices, 0)
+    model = find_option_value(other_options, "model") || Enum.at(@model_choices, 0).value
 
     messages = [
       %{role: "user", content: prompt}
