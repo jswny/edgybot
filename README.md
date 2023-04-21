@@ -38,6 +38,9 @@ You can enable the [Logflare](https://logflare.app/) integration, which will shi
 
 ## OpenAI
 
-Various configuration is available to tweak how the bot interact with the OpenAI API.
+Various configuration is available to tweak how the bot interact with the OpenAI API. For key-value pair lists, these are defined as comma-separated lists of `<key>=<value>` pairs.
 
-- `OPENAI_CHAT_MODELS`: a comma-separated list of `<name>=<value>` pairs of chat models to make available to users (default: `GPT-3.5=gpt-3.5-turbo`). For each entry, `<name>` indicates the name to show users, while `<value>` indicates the value to be passed to the OpenAI API.
+- `OPENAI_TIMEOUT` HTTP request timeout to the OpenAI API (default: `840,000 ms`)
+- `OPENAI_CHAT_MODELS`: a list of key-value pairs of chat models to make available to users (default: `GPT-3.5=gpt-3.5-turbo`). For each entry, `<key>` indicates the name to show users, while `<value>` indicates the value to be passed to the OpenAI API.
+- `OPENAI_IMAGE_MODELS`: a list of key-value pairs of chat models to make available to users (default: `DALL-E-3=dall-e-3`). For each entry, `<key>` indicates the name to show users, while `<value>` indicates the value to be passed to the OpenAI API.
+- `OPENAI_IMAGE_SIZES`: a list of image sizes to make available to users (default: `1024x1024,512x512,256x256`)

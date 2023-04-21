@@ -6,11 +6,14 @@ defmodule Edgybot.Bot.Designer do
 
   @type options() :: [option]
 
+  @type image_option() :: binary() | {:file, binary()}
+
   @type option() ::
           {:title, Embed.title()}
           | {:description, Embed.description()}
           | {:fields, [field_options()]}
           | {:stacktrace, Exception.stacktrace()}
+          | {:image, image_option()}
 
   @type field_options() :: %{
           name: Field.name(),
@@ -125,7 +128,7 @@ defmodule Edgybot.Bot.Designer do
 
   defp embed_fields(%Embed{} = embed, [%{name: name, value: value} = field | rest])
        when is_binary(name) and is_binary(value) and is_list(rest) do
-    inline? = Map.get(field, :inline?, false)
+    inline? = Map.get(field, :inline, false)
 
     embed
     |> Embed.put_field(name, value, inline?)

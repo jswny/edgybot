@@ -28,7 +28,10 @@ services:
       - DATABASE_HOSTNAME=edgybot-db
       - DISCORD_TOKEN
       - OPENAI_API_KEY
+      - OPENAI_TIMEOUT
       - OPENAI_CHAT_MODELS
+      - OPENAI_IMAGE_MODELS
+      - OPENAI_IMAGE_SIZES
       - LF_ENABLED
       - LF_API_KEY
       - LF_SOURCE_ID
