@@ -30,10 +30,10 @@ defmodule Edgybot.MixProject do
     [
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:nostrum, github: "Kraigie/nostrum", ref: "4b61499ec695f0a0196bbfcd239b872b47147004"},
-      {:ecto_sql, "~> 3.0"},
+      {:nostrum, github: "Kraigie/nostrum", ref: "4fabfc5bf59878fdde118acd686f6a5e075b5f8e"},
+      {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.2"},
       {:finch, "~> 0.12"},
@@ -46,7 +46,7 @@ defmodule Edgybot.MixProject do
       run: "run --no-halt",
       test: ["ecto.create --quiet", "ecto.migrate", "test --no-start"],
       "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate"],
-      lint: ["dialyzer", "credo --strict"]
+      lint: ["format --check-formatted", "credo --strict", "dialyzer"]
     ]
   end
 end
