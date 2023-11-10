@@ -86,12 +86,10 @@ defmodule Edgybot.Bot.Plugin.Nick do
   defp parse_nickname(guild_id, user_id)
        when is_integer(guild_id) and is_integer(user_id) do
     {:ok, member} = Api.get_guild_member(guild_id, user_id)
+    {:ok, user} = Api.get_user(user_id)
 
     old_nick =
-      Map.get(member, :nick) ||
-        member
-        |> Map.fetch!(:user)
-        |> Map.fetch!(:username)
+      Map.get(member, :nick) || Map.fetch!(user, :username)
 
     old_nick
     |> String.split(@special_space, trim: true)

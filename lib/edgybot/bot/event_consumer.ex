@@ -8,10 +8,6 @@ defmodule Edgybot.Bot.EventConsumer do
   alias Edgybot.Config
   alias Edgybot.Bot.Handler.{ErrorHandler, EventHandler, ResponseHandler}
 
-  def start_link do
-    Consumer.start_link(__MODULE__, max_restarts: 0)
-  end
-
   @impl true
   def handle_event({event, payload, _ws_state}) do
     censor_error = Config.runtime_env() == :prod

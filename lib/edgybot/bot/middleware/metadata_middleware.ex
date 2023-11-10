@@ -15,7 +15,7 @@ defmodule Edgybot.Bot.Middleware.MetadataMiddleware do
   end
 
   defp create_metadata(%Interaction{} = interaction) do
-    with user_id <- interaction.member.user.id,
+    with user_id <- interaction.member.user_id,
          guild_id <- interaction.guild_id,
          channel_id <- interaction.channel_id,
          {:ok, user} <- Meta.create_user(%{id: user_id}),

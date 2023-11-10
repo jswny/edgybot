@@ -2,8 +2,8 @@ name: CI
 on: [push]
 
 env:
-  otp-version: "25.0.0"
-  elixir-version: "1.14.2"
+  otp-version: "26.0.0"
+  elixir-version: "1.15.7"
   python-version: "3.11"
   node-version: "18.12.1"
 
