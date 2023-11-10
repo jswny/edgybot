@@ -16,13 +16,7 @@ RUN mix local.hex --force \
   && mix compile \
   && mix release --path rel
 
-FROM alpine:3.12 AS runner
-
-RUN apk update \
-  && apk add --no-cache \
-  libstdc++ \
-  libgcc \
-  ncurses-libs
+FROM elixir:1.15.7-alpine AS runner
 
 WORKDIR /edgybot
 
