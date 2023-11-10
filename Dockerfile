@@ -1,4 +1,4 @@
-FROM elixir:1.13.1-alpine AS builder
+FROM elixir:1.15.7-alpine AS builder
 
 ARG MIX_ENV="prod"
 
