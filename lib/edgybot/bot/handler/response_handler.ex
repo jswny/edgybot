@@ -24,6 +24,12 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   def handle_response(:noop, _source), do: :noop
 
+  def handle_response({:message, message}, %Interaction{} = interaction)
+      when is_binary(message) do
+    response_data = %{content: message}
+    send_interaction_response(interaction, response_data)
+  end
+
   def handle_response({type, message}, %Interaction{} = interaction)
       when is_atom(type) and type in [:success, :warning, :error] and is_binary(message) do
     options = [description: message]
