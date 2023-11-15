@@ -35,3 +35,9 @@ You can enable the [Logflare](https://logflare.app/) integration, which will shi
 - `LF_ENABLED` (default: `false`)
 - `LF_API_KEY` (your Logflare ingest API key)
 - `LF_SOURCE_ID`
+
+## OpenAI
+
+Various configuration is available to tweak how the bot interact with the OpenAI API.
+
+- `OPENAI_CHAT_MODELS`: a comma-separated list of `<name>=<value>` pairs of chat models to make available to users (default: `GPT-3.5=gpt-3.5-turbo`). For each entry, `<name>` indicates the name to show users, while `<value>` indicates the value to be passed to the OpenAI API.
