@@ -7,12 +7,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   alias Nostrum.Struct.{Interaction, User}
 
-  @model_choices [
-    %{name: "GPT-3.5", value: "gpt-3.5-turbo"}
-  ]
-
   @impl true
   def get_plugin_definitions do
+    model_choices = Config.openai_chat_models()
+
     [
       %{
         application_command: %{
@@ -37,7 +35,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               description: "The model to use",
               type: 3,
               required: false,
-              choices: @model_choices
+              choices: model_choices
             }
           ]
         }
@@ -58,7 +56,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{api_key}"}]
 
     behavior = find_option_value(other_options, "behavior")
-    model = find_option_value(other_options, "model") || Enum.at(@model_choices, 0).value
+
+    available_models = Config.openai_chat_models()
+
+    model =
+      find_option_value(other_options, "model") || Enum.at(available_models, 0).value
 
     messages = [
       %{role: "user", content: prompt}
