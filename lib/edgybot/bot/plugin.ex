@@ -37,6 +37,7 @@ defmodule Edgybot.Bot.Plugin do
           | {:success, Designer.options()}
           | {:warning, Designer.options()}
           | {:error, Designer.options()}
+          | {:message, interaction_response_message()}
 
   @callback get_plugin_definitions() :: nonempty_list(plugin_definition())
 
