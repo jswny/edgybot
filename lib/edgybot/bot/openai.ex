@@ -15,6 +15,8 @@ defmodule Edgybot.Bot.OpenAI do
     body =
       default_body
       |> Map.merge(body)
+      |> Enum.filter(fn {_, value} -> value != nil end)
+      |> Enum.into(%{})
       |> Jason.encode!()
 
     timeout = Config.openai_timeout()
