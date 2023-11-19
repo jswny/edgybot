@@ -126,6 +126,10 @@ defmodule Edgybot.Bot.Designer do
 
   defp embed_description(%Embed{} = embed, nil), do: embed
 
+  defp embed_fields(%Embed{} = embed, [%{name: name, value: nil} | rest])
+       when is_binary(name) and is_list(rest),
+       do: embed_fields(embed, rest)
+
   defp embed_fields(%Embed{} = embed, [%{name: name, value: value} = field | rest])
        when is_binary(name) and is_binary(value) and is_list(rest) do
     inline? = Map.get(field, :inline, false)
