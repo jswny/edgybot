@@ -2,7 +2,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
-  alias Edgybot.Bot.Designer
+  alias Edgybot.Bot.{Designer, OpenAI}
   alias Edgybot.Config
 
   alias Nostrum.Struct.{Interaction, User}
@@ -51,16 +51,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         %Interaction{user: %User{id: user_id}},
         _middleware_data
       ) do
-    api_key = Config.openai_api_key()
     url = "https://api.openai.com/v1/chat/completions"
-    headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{api_key}"}]
-
-    behavior = find_option_value(other_options, "behavior")
-
     available_models = Config.openai_chat_models()
 
     model =
       find_option_value(other_options, "model") || Enum.at(available_models, 0).value
+
+    behavior = find_option_value(other_options, "behavior")
 
     messages = [
       %{role: "user", content: prompt}
@@ -76,24 +73,15 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     body =
       %{
         model: model,
-        user: Integer.to_string(user_id),
         presence_penalty: 0.5,
         frequency_penalty: 0.5,
         messages: messages
       }
-      |> Jason.encode!()
 
-    response_tuple =
-      :post
-      |> Finch.build(url, headers, body)
-      |> Finch.request(FinchPool, receive_timeout: 120_000)
-
-    case response_tuple do
+    case OpenAI.call_and_handle_errors(url, body, user_id) do
       {:ok, response} ->
         chat_response =
           response
-          |> Map.fetch!(:body)
-          |> Jason.decode!()
           |> Map.fetch!("choices")
           |> Enum.at(0)
           |> Map.fetch!("message")
@@ -118,9 +106,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
         {:success, options}
 
-      {:error, %Mint.TransportError{reason: :timeout}} ->
-        {:warning,
-         "Could not generate a response in time. Prompt was likely too complex or long to process."}
+      {:error, message} ->
+        {:warning, message}
     end
   end
 end

@@ -1,8 +1,8 @@
 defmodule Edgybot.Bot.Handler.ResponseHandler do
   @moduledoc false
 
-  use Bitwise
-  alias Edgybot.Bot.Designer
+  import Bitwise
+  alias Edgybot.Bot.{Designer, Utils}
   alias Nostrum.Api
   alias Nostrum.Struct.Interaction
 
@@ -43,6 +43,8 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   defp handle_embed_response(type, options, %Interaction{} = interaction)
        when is_atom(type) and type in [:success, :warning, :error] and is_list(options) do
+    {response_data, options} = transform_image(%{}, options)
+
     embed =
       case type do
         :success -> Designer.success_embed(options)
@@ -50,8 +52,38 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
         :error -> Designer.error_embed(options)
       end
 
-    response_data = %{embeds: [embed]}
+    response_data =
+      Map.update(response_data, :embeds, [embed], fn embeds_list ->
+        [embed | embeds_list]
+      end)
+
     send_interaction_response(interaction, response_data)
+  end
+
+  defp transform_image(response_data, options) when is_map(response_data) and is_list(options) do
+    if Keyword.has_key?(options, :image) do
+      image = Keyword.get(options, :image)
+
+      case image do
+        {:file, image_data} ->
+          filename = "image-#{Utils.random_string(8)}.png"
+          file = %{body: image_data, name: filename}
+
+          new_response_data =
+            Map.update(response_data, :files, [file], fn files_list ->
+              [file | files_list]
+            end)
+
+          new_options = Keyword.put(options, :image, "attachment://#{filename}")
+
+          {new_response_data, new_options}
+
+        _ ->
+          {response_data, options}
+      end
+    else
+      {response_data, options}
+    end
   end
 
   defp send_interaction_response(%Interaction{} = interaction, data) when is_map(data) do

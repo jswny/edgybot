@@ -26,6 +26,23 @@ maybe_string_to_boolean = fn value ->
   end
 end
 
+get_list_env_var = fn var_name, default ->
+  get_env_var.(var_name, default)
+  |> String.split(",")
+  |> Enum.map(&String.trim/1)
+end
+
+get_key_value_env_var = fn var_name, default ->
+  get_env_var.(var_name, default)
+  |> String.split(",")
+  |> Enum.map(&String.trim/1)
+  |> Enum.map(fn kvp ->
+    [name, value] = String.split(kvp, "=")
+
+    %{name: name, value: value}
+  end)
+end
+
 logflare_enabled =
   "LF_ENABLED"
   |> get_env_var.(false)
@@ -40,20 +57,18 @@ if logflare_enabled do
     source_id: get_env_var.("LF_SOURCE_ID", nil)
 end
 
-openai_chat_models =
-  get_env_var.("OPENAI_CHAT_MODELS", "GPT-3.5=gpt-3.5-turbo")
-  |> String.split(",")
-  |> Enum.map(&String.trim/1)
-  |> Enum.map(fn model ->
-    [name, value] = String.split(model, "=")
-
-    %{name: name, value: value}
-  end)
+openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
+openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-3.5=gpt-3.5-turbo")
+openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=dall-e-3")
+openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
 config app_name,
   runtime_env: config_env(),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
-  openai_chat_models: openai_chat_models
+  openai_timeout: openai_timeout,
+  openai_chat_models: openai_chat_models,
+  openai_image_models: openai_image_models,
+  openai_image_sizes: openai_image_sizes
 
 config app_name, Edgybot.Repo,
   database: "edgybot_#{config_env()}",
