@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
   require Logger
   alias Edgybot.Bot.Registrar.PluginRegistrar
+  alias Edgybot.Config
   alias Nostrum.Api
   alias Nostrum.Struct.Guild
 
@@ -10,14 +11,34 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     guild_id = guild.id
     guild_name = get_guild_name(guild_id)
 
-    Logger.debug("Registering application commands for guild #{guild_name}...")
+    application_command_prefix = Config.application_command_prefix()
+
+    Logger.debug(
+      "Registering application commands #{if application_command_prefix, do: "with prefix #{application_command_prefix} "}for guild #{guild_name}..."
+    )
 
     PluginRegistrar.list_definitions()
     |> Enum.map(&Map.fetch!(&1, :application_command))
     |> apply_default_deny_permission()
+    |> apply_application_command_prefix(application_command_prefix)
     |> bulk_overwrite_guild_application_commands(guild_id)
 
     :noop
+  end
+
+  defp apply_application_command_prefix(application_command_definitions, nil)
+       when is_list(application_command_definitions),
+       do: application_command_definitions
+
+  defp apply_application_command_prefix(
+         application_command_definitions,
+         application_command_prefix
+       )
+       when is_list(application_command_definitions) and is_binary(application_command_prefix) do
+    Enum.map(application_command_definitions, fn application_command_definition ->
+      name = application_command_definition.name
+      Map.put(application_command_definition, :name, "#{application_command_prefix}#{name}")
+    end)
   end
 
   defp apply_default_deny_permission(application_command_definitions)

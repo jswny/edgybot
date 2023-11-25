@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   @moduledoc false
 
   require Logger
+  alias Edgybot.Config
   alias Edgybot.Bot.Handler.{MiddlewareHandler, ResponseHandler}
   alias Edgybot.Bot.Plugin
   alias Edgybot.Bot.Registrar.PluginRegistrar
@@ -23,8 +24,31 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
         %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction
       )
       when is_binary(interaction_name) and is_integer(interaction_type) do
-    Logger.debug("Handling interaction #{interaction_name} (type: #{interaction_type})...")
+    application_command_prefix = Config.application_command_prefix()
 
+    interaction_name =
+      if application_command_prefix,
+        do: String.replace_prefix(interaction_name, "#{application_command_prefix}", ""),
+        else: interaction_name
+
+    log_prefix = "Handling interaction #{interaction_name}"
+
+    interaction = put_in(interaction.data.name, interaction_name)
+
+    log_prefix =
+      if application_command_prefix,
+        do: "#{log_prefix} with prefix #{application_command_prefix}",
+        else: log_prefix
+
+    Logger.debug("#{log_prefix} (type: #{interaction_type})...")
+
+    handle_interaction_transformed(interaction)
+  end
+
+  def handle_interaction_transformed(
+        %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction
+      )
+      when is_binary(interaction_name) and is_integer(interaction_type) do
     matching_plugin_module = PluginRegistrar.get_module({interaction_name, interaction_type})
 
     case matching_plugin_module do

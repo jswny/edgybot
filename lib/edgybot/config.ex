@@ -3,6 +3,8 @@ defmodule Edgybot.Config do
 
   def runtime_env, do: fetch(:runtime_env)
 
+  def application_command_prefix, do: fetch(:application_command_prefix)
+
   def memegen_url, do: fetch(:memegen_url)
 
   def openai_api_key, do: fetch(:openai_api_key)

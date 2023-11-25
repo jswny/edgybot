@@ -64,6 +64,7 @@ openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,
 
 config app_name,
   runtime_env: config_env(),
+  application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   openai_timeout: openai_timeout,
   openai_chat_models: openai_chat_models,
