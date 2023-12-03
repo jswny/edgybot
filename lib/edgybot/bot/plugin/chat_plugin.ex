@@ -26,7 +26,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             },
             %{
               name: "model",
-              description: "The model to use. Default #{Enum.at(model_choices, 0).name}}",
+              description: "The model to use. Default: #{Enum.at(model_choices, 0).name}}",
               type: 3,
               required: false,
               choices: model_choices
