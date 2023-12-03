@@ -7,6 +7,12 @@ defmodule Edgybot.Config do
 
   def memegen_url, do: fetch(:memegen_url)
 
+  def archive_hosts_preserve_query do
+    fetch(:archive_hosts_preserve_query)
+    |> Enum.map(fn host -> [host, "www." <> host] end)
+    |> List.flatten()
+  end
+
   def openai_api_key, do: fetch(:openai_api_key)
 
   def openai_timeout, do: fetch(:openai_timeout)
