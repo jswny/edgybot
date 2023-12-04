@@ -52,6 +52,8 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
         :error -> Designer.error_embed(options)
       end
 
+    String.slice(embed.description, 0..4094)
+
     response_data =
       Map.update(response_data, :embeds, [embed], fn embeds_list ->
         [embed | embeds_list]
