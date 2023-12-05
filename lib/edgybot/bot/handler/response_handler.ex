@@ -4,7 +4,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   import Bitwise
   alias Edgybot.Bot.{Designer, Utils}
   alias Nostrum.Api
-  alias Nostrum.Struct.Interaction
+  alias Nostrum.Struct.{Embed, Interaction}
 
   @interaction_deferred_channel_message_with_source 5
 
@@ -51,13 +51,37 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
         :warning -> Designer.warning_embed(options)
         :error -> Designer.error_embed(options)
       end
+      |> maybe_truncate_embed()
 
     response_data =
       Map.update(response_data, :embeds, [embed], fn embeds_list ->
         [embed | embeds_list]
+        |> Enum.map(&maybe_truncate_embed/1)
       end)
 
     send_interaction_response(interaction, response_data)
+  end
+
+  defp maybe_truncate_embed(%Embed{} = embed) do
+    description = embed.description
+    max_length = 4096
+
+    description =
+      if String.length(description) > max_length do
+        truncated_indicator = "<truncated>"
+        truncate_length = max_length - String.length(truncated_indicator) - 1
+
+        truncated_description =
+          description
+          |> String.slice(0..truncate_length)
+          |> Kernel.<>(truncated_indicator)
+
+        truncated_description
+      else
+        description
+      end
+
+    Map.put(embed, :description, description)
   end
 
   defp transform_image(response_data, options) when is_map(response_data) and is_list(options) do
