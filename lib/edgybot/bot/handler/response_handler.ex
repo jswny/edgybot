@@ -62,6 +62,8 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
     send_interaction_response(interaction, response_data)
   end
 
+  defp maybe_truncate_embed(%Embed{description: nil} = embed), do: embed
+
   defp maybe_truncate_embed(%Embed{} = embed) do
     description = embed.description
     max_length = 4096
