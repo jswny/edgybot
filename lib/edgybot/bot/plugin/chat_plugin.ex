@@ -5,6 +5,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.Bot.{Designer, OpenAI}
   alias Edgybot.Config
 
+  alias Nostrum.Api
+  alias Nostrum.Struct.Guild.Member
   alias Nostrum.Struct.{Interaction, User}
 
   @impl true
@@ -25,8 +27,16 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               required: true
             },
             %{
+              name: "context",
+              description: "Number of previous chat messages to include as context",
+              type: 4,
+              required: false,
+              min_value: 1,
+              max_value: 100
+            },
+            %{
               name: "model",
-              description: "The model to use. Default: #{Enum.at(model_choices, 0).name}}",
+              description: "The model to use. Default: #{Enum.at(model_choices, 0).name}",
               type: 3,
               required: false,
               choices: model_choices
@@ -71,6 +81,12 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               max_value: 1.0
             }
           ]
+        },
+        metadata: %{
+          name: "chat",
+          data: %{
+            ephemeral: true
+          }
         }
       }
     ]
@@ -81,11 +97,18 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         ["chat"],
         1,
         [{"prompt", 3, prompt} | other_options],
-        %Interaction{user: %User{id: user_id}},
+        %Interaction{
+          user: %User{id: caller_user_id, username: caller_username},
+          member: %Member{nick: caller_nick},
+          guild_id: guild_id,
+          channel_id: channel_id
+        },
         _middleware_data
       ) do
     url = "https://api.openai.com/v1/chat/completions"
     available_models = Config.openai_chat_models()
+
+    num_context_messages = find_option_value(other_options, "context")
 
     model =
       find_option_value(other_options, "model") || Enum.at(available_models, 0).value
@@ -96,13 +119,31 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     temperature = find_option_value(other_options, "temperature")
     top_p = find_option_value(other_options, "top-p")
 
-    messages = [
-      %{role: "user", content: prompt}
-    ]
+    context_messages =
+      if num_context_messages do
+        get_context_messages(guild_id, channel_id, num_context_messages)
+      else
+        []
+      end
+
+    messages =
+      context_messages ++
+        [
+          %{
+            role: "user",
+            name: OpenAI.sanitize_chat_message_name(caller_nick, caller_username),
+            content: prompt
+          }
+        ]
+
+    enriched_behavior =
+      if num_context_messages,
+        do: "#{Config.openai_chat_system_message_context()} #{behavior}",
+        else: behavior
 
     messages =
       if behavior do
-        [%{role: "system", content: behavior} | messages]
+        [%{role: "system", content: enriched_behavior} | messages]
       else
         messages
       end
@@ -117,7 +158,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         top_p: top_p
       }
 
-    case OpenAI.call_and_handle_errors(url, body, user_id) do
+    case OpenAI.call_and_handle_errors(url, body, caller_user_id) do
       {:ok, response} ->
         chat_response =
           response
@@ -129,6 +170,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         fields =
           generate_fields(
             prompt,
+            num_context_messages,
             model,
             behavior,
             presence_penalty,
@@ -150,8 +192,45 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
+  defp get_context_messages(guild_id, channel_id, num_messages)
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages),
+       do: get_context_messages(guild_id, channel_id, num_messages, {})
+
+  defp get_context_messages(guild_id, channel_id, num_messages, locator)
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
+              is_tuple(locator) do
+    all_messages =
+      channel_id
+      |> Api.get_channel_messages!(num_messages, locator)
+
+    filtered_messages =
+      all_messages
+      |> Enum.filter(fn message -> message.author.bot != true end)
+      |> Enum.map(fn message ->
+        member = Api.get_guild_member!(guild_id, message.author.id)
+
+        sanitized_nick = OpenAI.sanitize_chat_message_name(member.nick, message.author.username)
+
+        %{role: "user", name: sanitized_nick, content: message.content}
+      end)
+
+    num_filtered_messages = Enum.count(filtered_messages)
+
+    if num_filtered_messages < num_messages do
+      new_num_messages = num_messages - num_filtered_messages
+
+      earliest_message_id = List.last(all_messages).id
+
+      get_context_messages(guild_id, channel_id, new_num_messages, {:before, earliest_message_id}) ++
+        filtered_messages
+    else
+      filtered_messages
+    end
+  end
+
   defp generate_fields(
          prompt,
+         num_context_messages,
          model,
          behavior,
          presence_penalty,
@@ -159,13 +238,20 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          temperature,
          top_p
        )
-       when is_binary(prompt) and is_binary(model)
+       when is_binary(prompt) and is_binary(model) and is_integer(num_context_messages)
        when is_binary(behavior) or is_nil(behavior)
        when is_float(presence_penalty) or is_nil(presence_penalty)
        when is_float(frequency_penalty) or is_nil(frequency_penalty)
        when is_float(temperature) or is_nil(temperature)
        when is_float(top_p) or is_nil(top_p) do
     prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
+
+    context_field = %{
+      name: "Context Size",
+      value: num_context_messages && Designer.code_inline("#{num_context_messages}"),
+      inline: true
+    }
+
     model_field = %{name: "Model", value: Designer.code_inline(model), inline: true}
 
     behavior_field = %{
@@ -200,6 +286,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     [
       prompt_field,
+      context_field,
       model_field,
       behavior_field,
       presence_penalty_field,
