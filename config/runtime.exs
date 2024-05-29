@@ -58,7 +58,7 @@ if logflare_enabled do
 end
 
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
-openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-3.5=gpt-3.5-turbo")
+openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o=gpt-4o")
 openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=dall-e-3")
 openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
@@ -72,11 +72,17 @@ config app_name,
   openai_image_models: openai_image_models,
   openai_image_sizes: openai_image_sizes
 
+database_url =
+  get_env_var.(
+    "DATABASE_URL",
+    "ecto://postgres:postgres@localhost/edgybot_#{config_env()}"
+  )
+
+maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
 config app_name, Edgybot.Repo,
-  database: "edgybot_#{config_env()}",
-  username: get_env_var.("DATABASE_USERNAME", "postgres"),
-  password: get_env_var.("DATABASE_PASSWORD", "postgres"),
-  hostname: get_env_var.("DATABASE_HOSTNAME", "localhost")
+  url: database_url,
+  socket_options: maybe_ipv6
 
 if config_env() != :test do
   config app_name,

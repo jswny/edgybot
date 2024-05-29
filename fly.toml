@@ -1,0 +1,13 @@
+app = 'edgybot'
+primary_region = 'ewr'
+kill_signal = 'SIGTERM'
+kill_timeout = '5s'
+
+[deploy]
+release_command = "eval 'Edgybot.Release.migrate'"
+
+[env]
+ECTO_IPV6 = 'true'
+
+[http_service]
+auto_stop_machines = false
