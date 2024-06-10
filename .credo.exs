@@ -2,9 +2,14 @@
   configs: [
     %{
       name: "default",
-      checks: [
-        {Credo.Check.Refactor.CyclomaticComplexity, max_complexity: 12}
-      ]
+      checks: %{
+        disabled: [
+          {Credo.Check.Readability.ModuleDoc, []}
+        ],
+        extra: [
+          {Credo.Check.Refactor.CyclomaticComplexity, max_complexity: 12}
+        ]
+      }
     }
   ]
 }

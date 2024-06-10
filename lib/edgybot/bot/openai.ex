@@ -24,7 +24,7 @@ defmodule Edgybot.Bot.OpenAI do
     response_tuple =
       :post
       |> Finch.build(url, headers, body)
-      |> Finch.request(FinchPool, receive_timeout: timeout)
+      |> Finch.request(Edgybot.Finch, receive_timeout: timeout)
 
     case response_tuple do
       {:ok, response} ->

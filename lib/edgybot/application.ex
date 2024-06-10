@@ -12,7 +12,16 @@ defmodule Edgybot.Application do
     children = [
       Bot.Supervisor,
       Edgybot.Repo,
-      {Finch, name: FinchPool}
+      {Finch, name: Edgybot.Finch},
+
+      # Phoenix
+      EdgybotWeb.Telemetry,
+      {DNSCluster, query: Application.get_env(:edgybot, :dns_cluster_query) || :ignore},
+      {Phoenix.PubSub, name: Edgybot.PubSub},
+      # Start a worker by calling: Edgybot.Worker.start_link(arg)
+      # {Edgybot.Worker, arg},
+      # Start to serve requests, typically the last entry
+      EdgybotWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

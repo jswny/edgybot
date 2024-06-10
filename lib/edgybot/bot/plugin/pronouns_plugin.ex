@@ -217,7 +217,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
     {:ok, response} =
       :post
       |> Finch.build(image_url, [])
-      |> Finch.request(FinchPool)
+      |> Finch.request(Edgybot.Finch)
 
     content_type =
       Enum.find_value(response.headers, fn {name, value} ->
