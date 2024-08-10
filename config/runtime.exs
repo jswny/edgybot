@@ -62,6 +62,12 @@ openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o=gpt-4o
 openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=dall-e-3")
 openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
+openai_chat_system_message_context =
+  get_env_var.(
+    "OPENAI_CHAT_SYSTEM_MESSAGE_CONTEXT",
+    "Reference the provided conversation. When possible, refer to people in the conversation by their names. If no conversation is provided, respond to the prompt without any context. If the conversation is not relevant, ignore it."
+  )
+
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
@@ -70,7 +76,8 @@ config app_name,
   openai_timeout: openai_timeout,
   openai_chat_models: openai_chat_models,
   openai_image_models: openai_image_models,
-  openai_image_sizes: openai_image_sizes
+  openai_image_sizes: openai_image_sizes,
+  openai_chat_system_message_context: openai_chat_system_message_context
 
 database_url =
   get_env_var.(

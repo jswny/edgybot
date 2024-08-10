@@ -27,6 +27,8 @@ defmodule Edgybot.Config do
     |> Enum.map(fn size -> %{name: size, value: size} end)
   end
 
+  def openai_chat_system_message_context, do: fetch(:openai_chat_system_message_context)
+
   defp fetch(key) when is_atom(key) do
     __MODULE__
     |> Application.get_application()
