@@ -81,12 +81,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               max_value: 1.0
             }
           ]
-        },
-        metadata: %{
-          name: "chat",
-          data: %{
-            ephemeral: true
-          }
         }
       }
     ]
