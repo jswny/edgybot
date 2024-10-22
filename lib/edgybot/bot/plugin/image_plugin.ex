@@ -3,7 +3,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
 
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
-  alias Edgybot.Bot.OpenAI
+  alias Edgybot.OpenAI
   alias Edgybot.Config
 
   alias Nostrum.Struct.{Interaction, User}

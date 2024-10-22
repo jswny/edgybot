@@ -98,3 +98,13 @@ if config_env() != :test do
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none)
 end
+
+config app_name, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [
+    discord_scrape_messages: 10,
+    openai_files: 10,
+    openai_moderate: 10,
+    openai_fine_tune: 10
+  ],
+  repo: Edgybot.Repo

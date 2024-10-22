@@ -38,7 +38,9 @@ defmodule Edgybot.MixProject do
       {:jason, "~> 1.2"},
       {:finch, "~> 0.12"},
       {:logflare_logger_backend, "~> 0.11.0"},
-      {:cachex, "~> 3.6"}
+      {:cachex, "~> 3.6"},
+      {:oban, "~> 2.17"},
+      {:tesla, "~> 1.12"}
     ]
   end
 

@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.OpenAI do
+defmodule Edgybot.OpenAI do
   @moduledoc false
 
   alias Edgybot.Config

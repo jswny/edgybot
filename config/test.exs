@@ -5,3 +5,5 @@ config :edgybot, Edgybot.Repo,
   show_sensitive_data_on_connection_error: true
 
 config :logger, level: :info
+
+config Edgybot, Oban, testing: :inline

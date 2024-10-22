@@ -2,8 +2,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
-  alias Edgybot.Bot.{Designer, OpenAI}
-  alias Edgybot.Config
+  alias Edgybot.Bot.Designer
+  alias Edgybot.{Config, OpenAI}
 
   alias Nostrum.Api
   alias Nostrum.Struct.Guild.Member

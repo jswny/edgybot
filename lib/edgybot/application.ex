@@ -13,8 +13,11 @@ defmodule Edgybot.Application do
       Bot.Supervisor,
       Edgybot.Repo,
       {Finch, name: FinchPool},
-      {Cachex, :processed_string_cache}
+      {Cachex, :processed_string_cache},
+      {Oban, Application.fetch_env!(:edgybot, Oban)}
     ]
+
+    :ok = Oban.Telemetry.attach_default_logger(level: :debug)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
