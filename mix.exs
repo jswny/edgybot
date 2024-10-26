@@ -35,9 +35,9 @@ defmodule Edgybot.MixProject do
       {:nostrum, github: "Kraigie/nostrum", ref: "1628880a3e6e45cacc53d2383eb110ff023050e1"},
       {:ecto_sql, "~> 3.12"},
       {:postgrex, "~> 0.19.2"},
-      {:jason, "~> 1.2"},
-      {:finch, "~> 0.12"},
-      {:cachex, "~> 3.6"}
+      {:jason, "~> 1.4"},
+      {:finch, "~> 0.19.0"},
+      {:cachex, "~> 4.0"}
     ]
   end
 
