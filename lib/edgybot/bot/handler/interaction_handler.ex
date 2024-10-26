@@ -14,7 +14,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     Interaction
   }
 
-  @default_metadata [:metadata]
+  @default_metadata []
 
   defguardp valid_resolved_data(resolved_data)
             when is_struct(resolved_data, ApplicationCommandInteractionDataResolved) or
