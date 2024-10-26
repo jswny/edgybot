@@ -1,8 +1,7 @@
 defmodule Edgybot.Bot.Designer do
   @moduledoc false
 
-  alias Nostrum.Struct.{Embed, Embed.Field, User}
-  alias Nostrum.Struct.Guild.Role
+  alias Nostrum.Struct.{Embed, Embed.Field}
 
   @type options() :: [option]
 
@@ -53,33 +52,6 @@ defmodule Edgybot.Bot.Designer do
 
   def code_inline(content, escape? \\ true) when is_binary(content) and is_boolean(escape?),
     do: render_code("``", content, escape?)
-
-  def role_mention(role_id) when is_integer(role_id) do
-    Role.mention(%Role{
-      id: role_id,
-      color: 0,
-      hoist: false,
-      managed: false,
-      mentionable: false,
-      name: "",
-      permissions: 0,
-      position: 0
-    })
-  end
-
-  def user_mention(user_id) when is_integer(user_id) do
-    User.mention(%User{
-      avatar: nil,
-      bot: nil,
-      discriminator: "",
-      email: nil,
-      id: user_id,
-      mfa_enabled: nil,
-      public_flags: %Nostrum.Struct.User.Flags{},
-      username: "",
-      verified: nil
-    })
-  end
 
   defp render_code(encloser, content, escape?)
        when is_binary(encloser) and is_binary(content) and is_boolean(escape?) do
