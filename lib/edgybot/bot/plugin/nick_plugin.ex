@@ -4,7 +4,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
-  alias Nostrum.Struct.Interaction
+  alias Nostrum.Struct.{Interaction, User}
 
   @special_space " "
 
@@ -67,7 +67,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
     split_old_nick = parse_nickname(guild_id, user_id)
 
     if Enum.empty?(split_old_nick) do
-      {:warning, "Could not parse the base nickname for #{Designer.user_mention(user_id)}!"}
+      {:warning, "Could not parse the base nickname for #{%User{id: user_id}}!"}
     else
       base_nick = Enum.fetch!(split_old_nick, 0)
 
@@ -118,13 +118,12 @@ defmodule Edgybot.Bot.Plugin.Nick do
   defp nickname_set_success_response(user_id, new_nickname, :set = action)
        when is_integer(user_id) and is_binary(new_nickname) and is_atom(action) do
     {:success,
-     "Successfully #{Atom.to_string(action)} the nickname of #{Designer.user_mention(user_id)} to #{Designer.code_inline(new_nickname)}"}
+     "Successfully #{Atom.to_string(action)} the nickname of #{%User{id: user_id}} to #{Designer.code_inline(new_nickname)}"}
   end
 
   defp nickname_set_success_response(user_id, new_nickname, :cleared = action)
        when is_integer(user_id) and is_binary(new_nickname) and is_atom(action) do
-    {:success,
-     "Successfully #{Atom.to_string(action)} the nickname of #{Designer.user_mention(user_id)}"}
+    {:success, "Successfully #{Atom.to_string(action)} the nickname of #{%User{id: user_id}}"}
   end
 
   defp handle_max_length_error(user_id, new_nickname, error_message)
@@ -140,7 +139,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
       |> Enum.fetch!(1)
 
     {:warning,
-     "New nickname #{Designer.code_inline(new_nickname)} was too long to set for #{Designer.user_mention(user_id)}! New length was #{Designer.code_inline(new_length)}. Maximum length is #{Designer.code_inline(max_length)}."}
+     "New nickname #{Designer.code_inline(new_nickname)} was too long to set for #{%User{id: user_id}}! New length was #{Designer.code_inline(new_length)}. Maximum length is #{Designer.code_inline(max_length)}."}
   end
 
   defp convert_codepoint(104), do: ?ℎ
