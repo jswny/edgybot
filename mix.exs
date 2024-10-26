@@ -31,14 +31,13 @@ defmodule Edgybot.MixProject do
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:nostrum, github: "Kraigie/nostrum", ref: "1628880a3e6e45cacc53d2383eb110ff023050e1"},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
-      {:jason, "~> 1.2"},
-      {:finch, "~> 0.12"},
-      {:logflare_logger_backend, "~> 0.11.0"},
-      {:cachex, "~> 3.6"}
+      {:ecto_sql, "~> 3.12"},
+      {:postgrex, "~> 0.19.2"},
+      {:jason, "~> 1.4"},
+      {:finch, "~> 0.19.0"},
+      {:cachex, "~> 4.0"}
     ]
   end
 
