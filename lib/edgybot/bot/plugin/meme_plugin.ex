@@ -276,11 +276,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     encoded_query = URI.encode(query)
 
     {:ok, response} =
-      :get
-      |> Finch.build(
-        "#{Config.memegen_url()}/templates?filter=#{encoded_query}&animated=#{animated?}"
-      )
-      |> Finch.request(FinchPool)
+      Req.get("#{Config.memegen_url()}/templates?filter=#{encoded_query}&animated=#{animated?}")
 
     Jason.decode!(response.body)
   end
@@ -288,10 +284,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   defp get_template(id) when is_binary(id) do
     encoded_id = URI.encode(id)
 
-    result =
-      :get
-      |> Finch.build("#{Config.memegen_url()}/templates/#{encoded_id}")
-      |> Finch.request(FinchPool)
+    result = Req.get("#{Config.memegen_url()}/templates/#{encoded_id}")
 
     case result do
       {:ok, %{status: 404}} ->
@@ -342,9 +335,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     encoded_body = Jason.encode!(body)
 
     {:ok, response} =
-      :post
-      |> Finch.build("#{Config.memegen_url()}/templates/#{encoded_id}", [], encoded_body)
-      |> Finch.request(FinchPool)
+      Req.post("#{Config.memegen_url()}/templates/#{encoded_id}", json: encoded_body)
 
     {_header, meme_url} =
       Enum.find(response.headers, nil, fn {header, _value} -> header == "location" end)
@@ -362,10 +353,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
 
     encoded_body = Jason.encode!(body)
 
-    {:ok, response} =
-      :post
-      |> Finch.build("#{Config.memegen_url()}/templates/custom", [], encoded_body)
-      |> Finch.request(FinchPool)
+    {:ok, response} = Req.post("#{Config.memegen_url()}/templates/custom", json: encoded_body)
 
     {_header, meme_url} =
       Enum.find(response.headers, nil, fn {header, _value} -> header == "location" end)

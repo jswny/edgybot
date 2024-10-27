@@ -214,10 +214,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp generate_role_options_with_image_url(pronouns, image_url)
        when is_binary(pronouns) and is_binary(image_url) do
-    {:ok, response} =
-      :post
-      |> Finch.build(image_url, [])
-      |> Finch.request(FinchPool)
+    {:ok, response} = Req.post(image_url)
 
     content_type =
       Enum.find_value(response.headers, fn {name, value} ->

@@ -36,7 +36,7 @@ defmodule Edgybot.MixProject do
       {:ecto_sql, "~> 3.12"},
       {:postgrex, "~> 0.19.2"},
       {:jason, "~> 1.4"},
-      {:finch, "~> 0.19.0"},
+      {:req, "~> 0.5.0"},
       {:cachex, "~> 4.0"}
     ]
   end
