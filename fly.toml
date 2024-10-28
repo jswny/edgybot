@@ -10,4 +10,4 @@ release_command = "eval 'Edgybot.Release.migrate'"
 ECTO_IPV6 = 'true'
 
 [http_service]
-auto_stop_machines = false
+auto_stop_machines = 'off'
