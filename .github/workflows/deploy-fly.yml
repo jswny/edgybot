@@ -1,0 +1,22 @@
+on:
+  workflow_call:
+    inputs:
+      group:
+        required: true
+        type: string
+
+jobs:
+  deploy-fly:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ inputs.group }}
+      cancel-in-progress: true
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: Setup Fly
+        uses: superfly/flyctl-actions/setup-flyctl@v1
+      - name: Deploy
+        run: flyctl deploy --remote-only --app ${{ vars.FLY_APP_NAME }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
