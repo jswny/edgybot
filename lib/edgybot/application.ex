@@ -12,7 +12,6 @@ defmodule Edgybot.Application do
     children = [
       Bot.Supervisor,
       Edgybot.Repo,
-      {Finch, name: FinchPool},
       {Cachex, :processed_string_cache}
     ]
 

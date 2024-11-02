@@ -3,8 +3,8 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
 
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
-  alias Edgybot.Bot.OpenAI
   alias Edgybot.Config
+  alias Edgybot.OpenAI
 
   alias Nostrum.Struct.{Interaction, User}
 
@@ -92,7 +92,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
 
     url = "https://api.openai.com/v1/images/generations"
 
-    case OpenAI.call_and_handle_errors(url, body, user_id) do
+    case OpenAI.post_and_handle_errors(url, body, user_id) do
       {:ok, response} ->
         image_response =
           response

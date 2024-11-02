@@ -13,6 +13,8 @@ defmodule Edgybot.Config do
     |> List.flatten()
   end
 
+  def openai_base_url, do: fetch(:openai_base_url)
+
   def openai_api_key, do: fetch(:openai_api_key)
 
   def openai_timeout, do: fetch(:openai_timeout)
