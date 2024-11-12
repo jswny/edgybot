@@ -3,7 +3,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
-  alias Edgybot.{Config, OpenAI}
+  alias Edgybot.Config
+  alias Edgybot.External.{Discord, OpenAI}
 
   alias Nostrum.Api
   alias Nostrum.Struct.Guild.Member
@@ -131,7 +132,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         [
           %{
             role: "user",
-            name: OpenAI.sanitize_chat_message_name(caller_nick, caller_username),
+            name: Discord.sanitize_chat_message_name(caller_nick, caller_username),
             content: prompt
           }
         ]
@@ -221,7 +222,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       |> Enum.map(fn message ->
         member = Api.get_guild_member!(guild_id, message.author.id)
 
-        sanitized_nick = OpenAI.sanitize_chat_message_name(member.nick, message.author.username)
+        sanitized_nick = Discord.sanitize_chat_message_name(member.nick, message.author.username)
 
         %{role: "user", name: sanitized_nick, content: message.content}
       end)
