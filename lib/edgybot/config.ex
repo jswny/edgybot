@@ -25,6 +25,8 @@ defmodule Edgybot.Config do
 
   def openai_image_models, do: fetch(:openai_image_models)
 
+  def openai_embedding_model, do: fetch(:openai_embedding_model)
+
   def openai_image_sizes do
     :openai_image_sizes
     |> fetch()
@@ -34,6 +36,19 @@ defmodule Edgybot.Config do
   def openai_chat_system_prompt_context, do: fetch(:openai_chat_system_prompt_context)
 
   def openai_chat_system_prompt_base, do: fetch(:openai_chat_system_prompt_base)
+
+  def index_discord_message_batch_size, do: fetch(:index_discord_message_batch_size)
+
+  def qdrant_api_url, do: fetch(:qdrant_api_url)
+
+  def qdrant_api_key, do: fetch(:qdrant_api_key)
+
+  def qdrant_timeout, do: fetch(:qdrant_timeout)
+
+  def qdrant_collection_discord_messages, do: fetch(:qdrant_collection_discord_messages)
+
+  def qdrant_collection_discord_messages_vector_size,
+    do: fetch(:qdrant_collection_discord_messages_vector_size)
 
   defp fetch(key) when is_atom(key) do
     __MODULE__

@@ -90,17 +90,24 @@ openai_chat_system_prompt_base =
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
-  chat_plugin_max_context_size:
-    String.to_integer(get_env_var.("CHAT_PLUGIN_MAX_CONTEXT_SIZE", "100")),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   archive_hosts_preserve_query: get_list_env_var.("ARCHIVE_HOSTS_PRESERVE_QUERY", ""),
   openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
   openai_timeout: openai_timeout,
   openai_chat_models: openai_chat_models,
   openai_image_models: openai_image_models,
+  openai_embedding_model: get_env_var.("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
   openai_image_sizes: openai_image_sizes,
   openai_chat_system_prompt_base: openai_chat_system_prompt_base,
-  openai_chat_system_prompt_context: openai_chat_system_prompt_context
+  openai_chat_system_prompt_context: openai_chat_system_prompt_context,
+  index_discord_message_batch_size: 10,
+  qdrant_api_url: get_env_var.("QDRANT_API_URL", "http://localhost:6333"),
+  qdrant_api_key: get_env_var.("QDRANT_API_KEY", nil),
+  qdrant_timeout: String.to_integer(get_env_var.("QDRANT_TIMEOUT", "840000")),
+  qdrant_collection_discord_messages:
+    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
+  qdrant_collection_discord_messages_vector_size:
+    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536)
 
 database_url =
   get_env_var.(
@@ -113,6 +120,14 @@ maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: [
 config app_name, Edgybot.Repo,
   url: database_url,
   socket_options: maybe_ipv6
+
+config :edgybot, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [
+    default: 10,
+    index_discord_channel: 10
+  ],
+  repo: Edgybot.Repo
 
 if config_env() != :test do
   config app_name,
