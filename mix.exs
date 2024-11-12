@@ -37,7 +37,8 @@ defmodule Edgybot.MixProject do
       {:postgrex, "~> 0.19.2"},
       {:jason, "~> 1.4"},
       {:req, "~> 0.5.0"},
-      {:cachex, "~> 4.0"}
+      {:cachex, "~> 4.0"},
+      {:oban, "~> 2.18"}
     ]
   end
 
