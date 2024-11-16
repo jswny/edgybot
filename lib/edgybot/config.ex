@@ -5,6 +5,8 @@ defmodule Edgybot.Config do
 
   def application_command_prefix, do: fetch(:application_command_prefix)
 
+  def chat_plugin_max_context_size, do: fetch(:chat_plugin_max_context_size)
+
   def memegen_url, do: fetch(:memegen_url)
 
   def archive_hosts_preserve_query do

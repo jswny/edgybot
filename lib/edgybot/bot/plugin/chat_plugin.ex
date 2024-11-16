@@ -9,9 +9,12 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Nostrum.Struct.Guild.Member
   alias Nostrum.Struct.{Interaction, User}
 
+  @context_chunk_size 100
+
   @impl true
   def get_plugin_definitions do
     model_choices = Config.openai_chat_models()
+    max_context_size = Config.chat_plugin_max_context_size()
 
     [
       %{
@@ -32,7 +35,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               type: 4,
               required: false,
               min_value: 1,
-              max_value: 100
+              max_value: max_context_size
             },
             %{
               name: "model",
@@ -115,7 +118,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     context_messages =
       if num_context_messages do
-        get_context_messages(guild_id, channel_id, num_context_messages)
+        guild_id
+        |> get_context_messages(channel_id, num_context_messages)
+        |> Enum.reverse()
+        |> List.flatten()
       else
         []
       end
@@ -188,14 +194,25 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp get_context_messages(guild_id, channel_id, num_messages)
        when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages),
-       do: get_context_messages(guild_id, channel_id, num_messages, {})
+       do: get_context_messages(guild_id, channel_id, num_messages, {}, [])
 
-  defp get_context_messages(guild_id, channel_id, num_messages, locator)
+  defp get_context_messages(guild_id, channel_id, 0, _locator, acc)
+       when is_integer(guild_id) and is_integer(channel_id),
+       do: Enum.reverse(acc) |> List.flatten()
+
+  defp get_context_messages(guild_id, channel_id, num_messages, _locator, acc)
        when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
-              is_tuple(locator) do
+              num_messages < 0 do
+    flattened = acc |> Enum.reverse() |> List.flatten()
+    Enum.take(flattened, length(flattened) - -num_messages)
+  end
+
+  defp get_context_messages(guild_id, channel_id, num_messages, locator, acc)
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
+              is_list(acc) do
     all_messages =
       channel_id
-      |> Api.get_channel_messages!(num_messages, locator)
+      |> Api.get_channel_messages!(@context_chunk_size, locator)
 
     filtered_messages =
       all_messages
@@ -208,18 +225,18 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         %{role: "user", name: sanitized_nick, content: message.content}
       end)
 
+    earliest_message_id = List.last(all_messages).id
     num_filtered_messages = Enum.count(filtered_messages)
 
-    if num_filtered_messages < num_messages do
-      new_num_messages = num_messages - num_filtered_messages
-
-      earliest_message_id = List.last(all_messages).id
-
-      get_context_messages(guild_id, channel_id, new_num_messages, {:before, earliest_message_id}) ++
-        filtered_messages
-    else
-      filtered_messages
-    end
+    get_context_messages(
+      guild_id,
+      channel_id,
+      num_messages - num_filtered_messages,
+      {:before, earliest_message_id},
+      [
+        filtered_messages | acc
+      ]
+    )
   end
 
   defp generate_fields(
