@@ -58,14 +58,33 @@ if logflare_enabled do
 end
 
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
-openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o=gpt-4o")
+openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o Mini=gpt-4o-mini")
 openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=dall-e-3")
 openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
-openai_chat_system_message_context =
+openai_chat_system_prompt_context_default = """
+Reference the provided conversation.
+When possible, refer to people in the conversation by their names.
+If no conversation is provided, respond to the prompt without any context.
+If the conversation is not relevant, ignore it.
+"""
+
+openai_chat_system_prompt_context =
   get_env_var.(
-    "OPENAI_CHAT_SYSTEM_MESSAGE_CONTEXT",
-    "Reference the provided conversation. When possible, refer to people in the conversation by their names. If no conversation is provided, respond to the prompt without any context. If the conversation is not relevant, ignore it."
+    "OPENAI_CHAT_SYSTEM_PROMPT_CONTEXT",
+    openai_chat_system_prompt_context_default
+  )
+
+openai_chat_system_prompt_base_default = """
+Be sarcastic and witty.
+Answer concisely.
+Provide definitive answers and draw conclusions wherever possible.
+"""
+
+openai_chat_system_prompt_base =
+  get_env_var.(
+    "OPENAI_CHAT_SYSTEM_PROMPT_BASE",
+    openai_chat_system_prompt_base_default
   )
 
 config app_name,
@@ -80,7 +99,8 @@ config app_name,
   openai_chat_models: openai_chat_models,
   openai_image_models: openai_image_models,
   openai_image_sizes: openai_image_sizes,
-  openai_chat_system_message_context: openai_chat_system_message_context
+  openai_chat_system_prompt_base: openai_chat_system_prompt_base,
+  openai_chat_system_prompt_context: openai_chat_system_prompt_context
 
 database_url =
   get_env_var.(
