@@ -71,6 +71,8 @@ openai_chat_system_message_context =
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
+  chat_plugin_max_context_size:
+    String.to_integer(get_env_var.("CHAT_PLUGIN_MAX_CONTEXT_SIZE", "100")),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   archive_hosts_preserve_query: get_list_env_var.("ARCHIVE_HOSTS_PRESERVE_QUERY", ""),
   openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
