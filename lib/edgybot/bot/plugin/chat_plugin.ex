@@ -138,8 +138,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     enriched_behavior =
       if num_context_messages,
-        do: "#{Config.openai_chat_system_message_context()} #{behavior}",
-        else: behavior
+        do:
+          "#{Config.openai_chat_system_prompt_base()}\n#{Config.openai_chat_system_prompt_context()}\n#{behavior}",
+        else: "#{Config.openai_chat_system_prompt_base()}\n#{behavior}"
 
     messages =
       if behavior do
