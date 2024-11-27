@@ -275,10 +275,10 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   defp search_templates(query, animated?) when is_binary(query) and is_boolean(animated?) do
     encoded_query = URI.encode(query)
 
-    {:ok, response} =
+    {:ok, %{body: body}} =
       Req.get("#{Config.memegen_url()}/templates?filter=#{encoded_query}&animated=#{animated?}")
 
-    Jason.decode!(response.body)
+    body
   end
 
   defp get_template(id) when is_binary(id) do
@@ -291,8 +291,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
         {:error, :invalid_template_id}
 
       {:ok, response} ->
-        decoded_response = Jason.decode!(response.body)
-        {:ok, decoded_response}
+        {:ok, response.body}
 
       error ->
         error
@@ -332,13 +331,13 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
         end
       end
 
-    encoded_body = Jason.encode!(body)
-
     {:ok, response} =
-      Req.post("#{Config.memegen_url()}/templates/#{encoded_id}", json: encoded_body)
+      Req.post("#{Config.memegen_url()}/templates/#{encoded_id}", json: body, redirect: false)
 
-    {_header, meme_url} =
-      Enum.find(response.headers, nil, fn {header, _value} -> header == "location" end)
+    meme_url =
+      response.headers
+      |> Map.fetch!("location")
+      |> Enum.at(0)
 
     meme_url
   end
@@ -351,12 +350,13 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
       "redirect" => true
     }
 
-    encoded_body = Jason.encode!(body)
+    {:ok, response} =
+      Req.post("#{Config.memegen_url()}/templates/custom", json: body, redirect: false)
 
-    {:ok, response} = Req.post("#{Config.memegen_url()}/templates/custom", json: encoded_body)
-
-    {_header, meme_url} =
-      Enum.find(response.headers, nil, fn {header, _value} -> header == "location" end)
+    meme_url =
+      response.headers
+      |> Map.fetch!("location")
+      |> Enum.at(0)
 
     meme_url
   end
