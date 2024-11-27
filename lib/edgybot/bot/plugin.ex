@@ -68,8 +68,14 @@ defmodule Edgybot.Bot.Plugin do
   end
 
   def find_option_value(options, name) when is_list(options) and is_binary(name) do
-    Enum.find_value(options, nil, fn {current_option_name, _type, value} ->
-      if current_option_name == name, do: value
-    end)
+    result =
+      Enum.find(options, nil, fn {current_option_name, _type, _value} ->
+        current_option_name == name
+      end)
+
+    case result do
+      nil -> nil
+      {_, _, value} -> value
+    end
   end
 end

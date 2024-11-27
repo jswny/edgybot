@@ -5,6 +5,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Edgybot.Config
   alias Nostrum.Api
+  alias Nostrum.Constants.ApplicationCommandOptionType
   alias Nostrum.Struct.Guild
 
   def handle_guild_available(%Guild{} = guild) do
@@ -20,10 +21,43 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     PluginRegistrar.list_definitions()
     |> Enum.map(&Map.fetch!(&1, :application_command))
     |> apply_default_deny_permission()
+    |> apply_global_options()
     |> apply_application_command_prefix(application_command_prefix)
     |> bulk_overwrite_guild_application_commands(guild_id)
 
     :noop
+  end
+
+  defp apply_global_options(application_command_definitions)
+       when is_list(application_command_definitions) do
+    Enum.map(application_command_definitions, fn application_command_definition ->
+      hide_option = %{
+        name: "hide",
+        description: "Hides the response so only you can see it",
+        type: 5,
+        required: false
+      }
+
+      add_options(application_command_definition, [hide_option])
+    end)
+  end
+
+  defp add_options(%{options: options} = node, new_options)
+       when is_list(options) and is_list(new_options) do
+    if Enum.any?(options, fn %{type: type} ->
+         type in [
+           ApplicationCommandOptionType.sub_command(),
+           ApplicationCommandOptionType.sub_command_group()
+         ]
+       end) do
+      %{node | options: Enum.map(options, &add_options(&1, new_options))}
+    else
+      %{node | options: options ++ new_options}
+    end
+  end
+
+  defp add_options(%{type: 1} = node, new_options) when is_list(new_options) do
+    Map.put(node, :options, new_options)
   end
 
   defp apply_application_command_prefix(application_command_definitions, nil)

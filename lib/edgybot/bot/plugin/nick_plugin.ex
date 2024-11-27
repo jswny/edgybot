@@ -39,25 +39,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
   def handle_interaction(
         ["nick"],
         1,
-        [{"user", 6, %{id: user_id}}],
-        %Interaction{
-          guild_id: guild_id
-        },
-        _middleware_data
-      )
-      when is_integer(user_id) and is_integer(guild_id) do
-    split_old_nick = parse_nickname(guild_id, user_id)
-
-    base_nick = Enum.fetch!(split_old_nick, 0)
-
-    set_nickname_and_handle_response(guild_id, user_id, base_nick, :cleared)
-  end
-
-  @impl true
-  def handle_interaction(
-        ["nick"],
-        1,
-        [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix}],
+        [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix} | _other_options],
         %Interaction{
           guild_id: guild_id
         },
@@ -81,6 +63,24 @@ defmodule Edgybot.Bot.Plugin.Nick do
 
       set_nickname_and_handle_response(guild_id, user_id, new_nick, :set)
     end
+  end
+
+  @impl true
+  def handle_interaction(
+        ["nick"],
+        1,
+        [{"user", 6, %{id: user_id}} | _other_options],
+        %Interaction{
+          guild_id: guild_id
+        },
+        _middleware_data
+      )
+      when is_integer(user_id) and is_integer(guild_id) do
+    split_old_nick = parse_nickname(guild_id, user_id)
+
+    base_nick = Enum.fetch!(split_old_nick, 0)
+
+    set_nickname_and_handle_response(guild_id, user_id, base_nick, :cleared)
   end
 
   defp parse_nickname(guild_id, user_id)

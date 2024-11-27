@@ -38,7 +38,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
   end
 
   @impl true
-  def handle_interaction(["dev", "error"], 1, [], _interaction, _middleware_data) do
+  def handle_interaction(["dev", "error"], 1, _options, _interaction, _middleware_data) do
     raise("fake error")
   end
 
@@ -46,7 +46,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
   def handle_interaction(
         ["dev", "eval"],
         1,
-        [{"code", 3, code_string}],
+        [{"code", 3, code_string} | _other_options],
         _interaction,
         _middleware_data
       )
