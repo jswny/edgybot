@@ -68,7 +68,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
 
         middleware_data =
           interaction
-          |> defer_interaction_response(application_command_metadata)
+          |> defer_interaction_response(application_command_metadata, options)
           |> process_middleware_for_interaction(matching_plugin_module)
 
         matching_plugin_module.handle_interaction(
@@ -155,8 +155,18 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     )
   end
 
-  defp defer_interaction_response(%Interaction{} = interaction, application_command_metadata) do
-    ephemeral? = Map.get(application_command_metadata, :ephemeral, false)
+  defp defer_interaction_response(
+         %Interaction{} = interaction,
+         application_command_metadata,
+         parsed_options
+       ) do
+    default_ephemeral? = Map.get(application_command_metadata, :ephemeral, false)
+    ephemeral_option = Plugin.find_option_value(parsed_options, "hide")
+
+    ephemeral? =
+      if ephemeral_option != nil,
+        do: ephemeral_option,
+        else: default_ephemeral?
 
     ResponseHandler.defer_interaction_response(interaction, ephemeral?)
   end

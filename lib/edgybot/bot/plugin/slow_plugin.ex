@@ -42,7 +42,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
   def handle_interaction(
         ["slow", "enable"],
         1,
-        [{"delay", 4, delay}],
+        [{"delay", 4, delay} | _other_options],
         %{channel_id: channel_id},
         _middleware_data
       ) do
@@ -61,7 +61,13 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
   end
 
   @impl true
-  def handle_interaction(["slow", "disable"], 1, [], %{channel_id: channel_id}, _middleware_data) do
+  def handle_interaction(
+        ["slow", "disable"],
+        1,
+        _options,
+        %{channel_id: channel_id},
+        _middleware_data
+      ) do
     Api.modify_channel!(channel_id, %{rate_limit_per_user: 0})
     {:success, "Successfully disabled slowmode!"}
   end

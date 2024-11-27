@@ -23,7 +23,7 @@ defmodule Edgybot.Bot.Plugin.PingPlugin do
   end
 
   @impl true
-  def handle_interaction(["ping"], 1, [], _interaction, _middleware_data) do
+  def handle_interaction(["ping"], 1, _options, _interaction, _middleware_data) do
     {:success, "Pong!"}
   end
 end

@@ -31,7 +31,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   def handle_interaction(
         ["topic"],
         1,
-        [{"content", 3, content}],
+        [{"content", 3, content} | _other_options],
         %Interaction{channel_id: channel_id},
         _middleware_data
       )
