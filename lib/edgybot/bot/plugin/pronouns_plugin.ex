@@ -99,7 +99,9 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
     case existing_pronoun_role do
       nil ->
-        role_options = generate_role_options(full_pronouns, image_url, emoji_value, true)
+        role_options =
+          generate_role_options(full_pronouns, image_url, emoji_value, true)
+
         new_role = Api.create_guild_role(guild_id, role_options)
 
         response =
@@ -214,14 +216,14 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp generate_role_options_with_image_url(pronouns, image_url)
        when is_binary(pronouns) and is_binary(image_url) do
-    {:ok, response} = Req.post(image_url)
+    {:ok, %{status: 200, headers: headers, body: body}} = Req.get(image_url)
 
     content_type =
-      Enum.find_value(response.headers, fn {name, value} ->
-        if name == "content-type", do: value, else: nil
-      end)
+      headers
+      |> Map.fetch!("content-type")
+      |> Enum.at(0)
 
-    image_data = "data:#{content_type};base64,#{Base.encode64(response.body)}"
+    image_data = "data:#{content_type};base64,#{Base.encode64(body)}"
 
     %{name: "#{generate_full_role_name(pronouns)}", icon: image_data, unicode_emoji: nil}
   end
