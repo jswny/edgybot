@@ -58,13 +58,17 @@ if logflare_enabled do
 end
 
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
-openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o Mini=gpt-4o-mini")
+
+openai_chat_models =
+  get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o Mini=gpt-4o-mini")
 
 openai_chat_system_prompt_context_default = """
+You are chatting in an existing conversation which may or may not be relevant.
 Reference the provided conversation.
-When possible, refer to people in the conversation by their names.
+If the conversation is not relevant, ignore it and just respond to the user prompt.
 If no conversation is provided, respond to the prompt without any context.
-If the conversation is not relevant, ignore it.
+When possible, refer to people in the conversation by their names.
+Do not mention specifically that you are referring to prior conversations or request more context from the user.
 """
 
 openai_chat_system_prompt_context =
@@ -74,9 +78,10 @@ openai_chat_system_prompt_context =
   )
 
 openai_chat_system_prompt_base_default = """
-Be sarcastic and witty.
-Answer concisely.
+You are a witty assistant chatting with users within a closed group of friends in a Discord server.
+Answer concisely and respond authoritatively.
 Provide definitive answers and draw conclusions wherever possible.
+Provide direct, confident answers.
 """
 
 openai_chat_system_prompt_base =
@@ -169,8 +174,12 @@ fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_e
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
-  chat_plugin_max_context_size:
-    String.to_integer(get_env_var.("CHAT_PLUGIN_MAX_CONTEXT_SIZE", "100")),
+  chat_plugin_recent_context_max_size:
+    String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
+  chat_plugin_universal_context_max_size:
+    String.to_integer(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MAX_SIZE", "100")),
+  chat_plugin_universal_context_min_score:
+    String.to_float(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MIN_SCORE", "0.3")),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   archive_hosts_preserve_query: get_list_env_var.("ARCHIVE_HOSTS_PRESERVE_QUERY", ""),
   openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
@@ -228,5 +237,10 @@ if config_env() != :test do
 
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none),
-    ffmpeg: false
+    ffmpeg: false,
+    request_guild_members: true,
+    gateway_intents: [
+      :guilds,
+      :guild_members
+    ]
 end
