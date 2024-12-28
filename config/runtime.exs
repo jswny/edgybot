@@ -63,10 +63,12 @@ openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=da
 openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
 openai_chat_system_prompt_context_default = """
+You are a witty assistant.
+You are chatting with users within a closed group of friends within an existing conversation which may or may not be relevant.
 Reference the provided conversation.
-When possible, refer to people in the conversation by their names.
-If no conversation is provided, respond to the prompt without any context.
 If the conversation is not relevant, ignore it.
+If no conversation is provided, respond to the prompt without any context.
+When possible, refer to people in the conversation by their names.
 """
 
 openai_chat_system_prompt_context =
@@ -76,7 +78,6 @@ openai_chat_system_prompt_context =
   )
 
 openai_chat_system_prompt_base_default = """
-Be sarcastic and witty.
 Answer concisely.
 Provide definitive answers and draw conclusions wherever possible.
 """
@@ -90,6 +91,12 @@ openai_chat_system_prompt_base =
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
+  chat_plugin_recent_context_max_size:
+    String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
+  chat_plugin_universal_context_max_size:
+    String.to_integer(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MAX_SIZE", "100")),
+  chat_plugin_universal_context_min_score:
+    String.to_float(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MIN_SCORE", "0.3")),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   archive_hosts_preserve_query: get_list_env_var.("ARCHIVE_HOSTS_PRESERVE_QUERY", ""),
   openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
@@ -135,5 +142,10 @@ if config_env() != :test do
 
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none),
-    ffmpeg: false
+    ffmpeg: false,
+    request_guild_members: true,
+    gateway_intents: [
+      :guilds,
+      :guild_members
+    ]
 end
