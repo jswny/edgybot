@@ -10,7 +10,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
       %{
         application_command: %{
           name: "dev",
-          description: "Developer options",
+          description: "Developer commands",
           type: 1,
           options: [
             %{
