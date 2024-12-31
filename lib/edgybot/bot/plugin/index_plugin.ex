@@ -5,7 +5,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Qdrant
-  alias Edgybot.Workers.DiscordChannelIndexWorker
+  alias Edgybot.Workers.DiscordChannelBatchingWorker
 
   @impl true
   def get_plugin_definitions do
@@ -84,8 +84,8 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         },
         _middleware_data
       ) do
-    %{guild_id: guild_id, channel_id: channel_id, message_id: last_message_id}
-    |> DiscordChannelIndexWorker.new()
+    %{guild_id: guild_id, channel_id: channel_id, latest_message_id: last_message_id}
+    |> DiscordChannelBatchingWorker.new()
     |> Oban.insert()
 
     {:success, "Started indexing the current channel"}
@@ -179,8 +179,17 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
     formatted_results = format_search_results(response)
     description = "**Query** #{Designer.code_block(query)}" <> "\n" <> formatted_results
 
+    time_formatted =
+      response
+      |> Map.fetch!("time")
+      |> Float.to_string()
+      |> Designer.code_inline()
+
+    time_field = %{name: "Response Time", value: time_formatted}
+
     options = [
       title: "Search Results",
+      fields: [time_field],
       description: description
     ]
 
@@ -210,7 +219,9 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         |> DateTime.to_string()
         |> Designer.code_inline()
 
-      "- Timestamp: #{timestamp_value}, ID: #{id_value}, score: #{score_value}, user: #{user_id_value}, channel: #{channel_id_value} #{Designer.code_block(content)}"
+      content_value = Designer.code_block(content)
+
+      "- Timestamp: #{timestamp_value}, ID: #{id_value}, score: #{score_value}, user: #{user_id_value}, channel: #{channel_id_value}\n#{content_value}"
     end)
   end
 end

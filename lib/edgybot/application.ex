@@ -8,13 +8,18 @@ defmodule Edgybot.Application do
   alias Edgybot.Bot
   alias Edgybot.ObanJobManager
   alias Edgybot.Reporting.ErrorReporter
+  import Cachex.Spec
 
   @impl true
   def start(_type, _args) do
     children = [
       Bot.Supervisor,
       Edgybot.Repo,
-      {Cachex, :processed_string_cache},
+      Supervisor.child_spec(
+        {Cachex,
+         name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},
+        id: :processed_string_cache
+      ),
       {Oban, Application.fetch_env!(:edgybot, Oban)},
       ObanJobManager
     ]

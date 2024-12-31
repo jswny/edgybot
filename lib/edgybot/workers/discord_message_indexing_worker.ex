@@ -1,12 +1,12 @@
-defmodule Edgybot.Workers.DiscordChannelIndexWorker do
+defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
   alias Edgybot.Config
   alias Edgybot.External.{Discord, OpenAI, Qdrant}
+  alias Nostrum.Struct.Message
 
-  alias Nostrum.Api
   require Logger
 
   use Oban.Worker,
-    queue: :index_discord_channel,
+    queue: :discord_message_batch_index,
     tags: ["discord"]
 
   @impl Oban.Worker
@@ -14,37 +14,23 @@ defmodule Edgybot.Workers.DiscordChannelIndexWorker do
         args: %{
           "guild_id" => guild_id,
           "channel_id" => channel_id,
-          "message_id" => message_id
+          "messages" => messages
         }
       }) do
+    latest_message_id = List.first(messages)["id"]
+
     Logger.debug(
-      "Indexing from message #{message_id} in channel #{channel_id} in guild #{guild_id}"
+      "Batch indexing messages in channel #{channel_id} in guild #{guild_id} from message: #{latest_message_id}"
     )
 
-    batch_size = Config.index_discord_message_batch_size()
     embedding_model = Config.openai_embedding_model()
     points_collection = Config.qdrant_collection_discord_messages()
 
-    {:ok, messages} = Api.get_channel_messages(channel_id, batch_size, {:before, message_id})
-
     messages
+    |> Enum.map(fn message -> Message.to_struct(message) end)
     |> Enum.filter(&Discord.valid_text_message?/1)
     |> Enum.map(&build_point_input(&1, guild_id))
-    |> Enum.chunk_every(batch_size)
-    |> Enum.each(&embed_and_save_point_input_batch(&1, points_collection, embedding_model))
-
-    last_message = List.last(messages) || %{id: message_id}
-    last_message_id = Map.get(last_message, :id)
-
-    if last_message_id == message_id do
-      Logger.debug(
-        "Finished indexing channel #{channel_id} in guild #{guild_id}, last message: #{message_id}"
-      )
-    else
-      %{guild_id: guild_id, channel_id: channel_id, message_id: last_message_id}
-      |> new()
-      |> Oban.insert()
-    end
+    |> embed_and_save_point_input_batch(points_collection, embedding_model)
 
     :ok
   end

@@ -37,7 +37,10 @@ defmodule Edgybot.Config do
 
   def openai_chat_system_prompt_base, do: fetch(:openai_chat_system_prompt_base)
 
-  def index_discord_message_batch_size, do: fetch(:index_discord_message_batch_size)
+  def discord_channel_message_batch_size, do: fetch(:discord_channel_message_batch_size)
+
+  def discord_channel_message_batch_size_index,
+    do: fetch(:discord_channel_message_batch_size_index)
 
   def qdrant_api_url, do: fetch(:qdrant_api_url)
 
