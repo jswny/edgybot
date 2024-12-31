@@ -102,7 +102,8 @@ config app_name,
   openai_image_sizes: openai_image_sizes,
   openai_chat_system_prompt_base: openai_chat_system_prompt_base,
   openai_chat_system_prompt_context: openai_chat_system_prompt_context,
-  index_discord_message_batch_size: 10,
+  discord_channel_message_batch_size: 100,
+  discord_channel_message_batch_size_index: 10,
   qdrant_api_url: get_env_var.("QDRANT_API_URL", "http://localhost:6333"),
   qdrant_api_key: get_env_var.("QDRANT_API_KEY", nil),
   qdrant_timeout: String.to_integer(get_env_var.("QDRANT_TIMEOUT", "840000")),
@@ -127,7 +128,8 @@ config :edgybot, Oban,
   engine: Oban.Engines.Basic,
   queues: [
     default: 10,
-    index_discord_channel: 10
+    discord_channel_batch: 10,
+    discord_message_batch_index: 10
   ],
   repo: Edgybot.Repo
 
