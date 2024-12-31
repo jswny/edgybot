@@ -6,7 +6,6 @@ defmodule Edgybot.Application do
   use Application
   require Logger
   alias Edgybot.Bot
-  alias Edgybot.ObanJobManager
   alias Edgybot.Reporting.ErrorReporter
   import Cachex.Spec
 
@@ -20,8 +19,7 @@ defmodule Edgybot.Application do
          name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},
         id: :processed_string_cache
       ),
-      {Oban, Application.fetch_env!(:edgybot, Oban)},
-      ObanJobManager
+      {Oban, Application.fetch_env!(:edgybot, Oban)}
     ]
 
     :ok = Oban.Telemetry.attach_default_logger(level: :debug, encode: false)

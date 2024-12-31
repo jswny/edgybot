@@ -7,7 +7,8 @@ defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
 
   use Oban.Worker,
     queue: :discord_message_batch_index,
-    tags: ["discord"]
+    tags: ["discord", "ai"],
+    unique: [keys: [:guild_id, :channel_id, :batch_size, :latest_message_id]]
 
   @impl Oban.Worker
   def perform(%Oban.Job{

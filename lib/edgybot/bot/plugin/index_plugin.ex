@@ -84,7 +84,14 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         },
         _middleware_data
       ) do
-    %{guild_id: guild_id, channel_id: channel_id, latest_message_id: last_message_id}
+    batch_size = Config.discord_channel_message_batch_size()
+
+    %{
+      guild_id: guild_id,
+      channel_id: channel_id,
+      batch_size: batch_size,
+      latest_message_id: last_message_id
+    }
     |> DiscordChannelBatchingWorker.new()
     |> Oban.insert()
 
