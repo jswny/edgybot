@@ -4,19 +4,12 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
-  alias Edgybot.External.OpenAI
-
-  alias Nostrum.Struct.{Interaction, User}
-
-  @style_choices [
-    %{name: "Vivid", value: "vivid"},
-    %{name: "Natural", value: "natural"}
-  ]
+  alias Edgybot.External.Fal
 
   @impl true
   def get_plugin_definitions do
-    model_choices = Config.openai_image_models()
-    size_choices = Config.openai_image_sizes()
+    model_choices = Config.fal_image_models()
+    size_choices = Config.fal_image_sizes()
 
     [
       %{
@@ -44,20 +37,18 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
                   choices: model_choices
                 },
                 %{
-                  name: "style",
-                  description:
-                    "The style of the image to generate. Default: #{Enum.at(@style_choices, 0).name}",
-                  type: 3,
-                  required: false,
-                  choices: @style_choices
-                },
-                %{
                   name: "size",
                   description:
                     "The size of the image to generate. Default: #{Enum.at(size_choices, 0).name}",
                   type: 3,
                   required: false,
                   choices: size_choices
+                },
+                %{
+                  name: "seed",
+                  description: "The seed to use for image generation.",
+                  type: 3,
+                  required: false
                 }
               ]
             }
@@ -72,52 +63,88 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         ["image", "gen"],
         1,
         [{"prompt", 3, prompt} | other_options],
-        %Interaction{user: %User{id: user_id}},
+        _interaction,
         _middleware_data
       ) do
-    available_models = Config.openai_image_models()
-    available_sizes = Config.openai_image_sizes()
+    available_models = Config.fal_image_models()
+    available_sizes = Config.fal_image_sizes()
     model = find_option_value(other_options, "model") || Enum.at(available_models, 0).value
     size = find_option_value(other_options, "size") || Enum.at(available_sizes, 0).value
-    style = find_option_value(other_options, "style") || Enum.at(@style_choices, 0).value
+    seed = find_option_value(other_options, "seed")
 
     body =
       %{
-        size: size,
-        style: style,
-        prompt: prompt,
-        model: model,
-        response_format: "b64_json"
+        image_size: size,
+        prompt: prompt
       }
 
-    url = "https://api.openai.com/v1/images/generations"
+    body =
+      if seed do
+        Map.put(body, :seed, seed)
+      else
+        body
+      end
 
-    case OpenAI.post_and_handle_errors(url, body, user_id) do
-      {:ok, response} ->
-        image_response =
-          response
-          |> Map.fetch!("data")
-          |> Enum.at(0)
-          |> Map.fetch!("b64_json")
-          |> Base.decode64!()
+    url = model
+
+    create_opts = [method: :post, url: url, json: body]
+
+    case Fal.call_and_handle_errors(create_opts) do
+      {:ok, %{status: 200, body: %{"status_url" => status_url}}} ->
+        status_opts =
+          [
+            base_url: nil,
+            method: :get,
+            url: status_url
+          ]
+          |> Fal.add_status_retry()
+
+        case Fal.call_and_handle_errors(status_opts) do
+          {:ok, %{status: 200, body: %{"response_url" => response_url}}} ->
+            get_image(response_url, prompt, size, model)
+
+          {:error, error} ->
+            {:warning, error}
+        end
+
+      {:error, error} ->
+        {:warning, error}
+    end
+  end
+
+  defp get_image(response_url, prompt, size, model) do
+    get_opts = [method: :get, base_url: nil, url: response_url]
+
+    case Fal.call_and_handle_errors(get_opts) do
+      {:ok,
+       %{
+         status: 200,
+         body: %{"images" => images, "seed" => seed}
+       }} ->
+        image = Enum.at(images, 0)["url"]
 
         prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
         size_field = %{name: "Size", value: Designer.code_inline(size), inline: true}
-        style_field = %{name: "Style", value: Designer.code_inline(style), inline: true}
         model_field = %{name: "Model", value: Designer.code_inline(model), inline: true}
 
-        fields = [prompt_field, size_field, style_field, model_field]
+        seed_field = %{
+          name: "Seed",
+          value: seed |> Integer.to_string() |> Designer.code_inline(),
+          inline: true
+        }
+
+        fields = [prompt_field, size_field, model_field, seed_field]
 
         options = [
           title: nil,
-          image: {:file, image_response},
+          image: image,
           fields: fields
         ]
 
         {:success, options}
 
-      {:error, message} ->
-        {:warning, message}
+      {:error, error} ->
+        {:warning, error}
     end
   end
 end

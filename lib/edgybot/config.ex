@@ -53,6 +53,18 @@ defmodule Edgybot.Config do
   def qdrant_collection_discord_messages_vector_size,
     do: fetch(:qdrant_collection_discord_messages_vector_size)
 
+  def fal_api_url, do: fetch(:fal_api_url)
+
+  def fal_api_key, do: fetch(:fal_api_key)
+
+  def fal_timeout, do: fetch(:fal_timeout)
+
+  def fal_status_retry_count, do: fetch(:fal_status_retry_count)
+
+  def fal_image_models, do: fetch(:fal_image_models)
+
+  def fal_image_sizes, do: fetch(:fal_image_sizes)
+
   defp fetch(key) when is_atom(key) do
     __MODULE__
     |> Application.get_application()
