@@ -87,6 +87,14 @@ openai_chat_system_prompt_base =
     openai_chat_system_prompt_base_default
   )
 
+fal_image_models = get_key_value_env_var.("FAL_IMAGE_MODELS", "FLUX Schnell=flux/schnell")
+
+fal_image_sizes =
+  get_key_value_env_var.(
+    "FAL_IMAGE_SIZES",
+    "Square=square,Square HD=square_hd,Portrait 4:3=portrait_4_3,Portrait 16:9=portrait_16_9,Landscape 4:3=landscape_4_3,Landscape 16:9=landscape_16_9"
+  )
+
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
@@ -110,7 +118,13 @@ config app_name,
   qdrant_collection_discord_messages:
     get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
   qdrant_collection_discord_messages_vector_size:
-    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536)
+    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536),
+  fal_api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
+  fal_api_key: get_env_var.("FAL_KEY", nil),
+  fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
+  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "1200")),
+  fal_image_models: fal_image_models,
+  fal_image_sizes: fal_image_sizes
 
 database_url =
   get_env_var.(
