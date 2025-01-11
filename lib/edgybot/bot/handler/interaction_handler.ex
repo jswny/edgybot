@@ -118,7 +118,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     if name == interaction_name_head do
       merge_metadata_heirarchy(metadata_tree_node, current_metadata)
     else
-      nil
+      %{}
     end
   end
 

@@ -6,7 +6,7 @@ defmodule Edgybot.External.Fal do
 
     case call(opts) do
       {:ok, %{body: %{"detail" => error}}} ->
-        {:error, error}
+        {:error, inspect(error)}
 
       {:error, message} ->
         {:error, message}
@@ -23,7 +23,7 @@ defmodule Edgybot.External.Fal do
     |> Keyword.put_new(:retry, &status_retry_fun/2)
     |> Keyword.put_new(:retry_log_level, :debug)
     |> Keyword.put_new(:max_retries, retry_count)
-    |> Keyword.put_new(:retry_delay, 50)
+    |> Keyword.put_new(:retry_delay, 250)
   end
 
   defp status_retry_fun(_request, response) do
