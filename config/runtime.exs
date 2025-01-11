@@ -59,8 +59,6 @@ end
 
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
 openai_chat_models = get_key_value_env_var.("OPENAI_CHAT_MODELS", "GPT-4o Mini=gpt-4o-mini")
-openai_image_models = get_key_value_env_var.("OPENAI_IMAGE_MODELS", "DALL-E-3=dall-e-3")
-openai_image_sizes = get_list_env_var.("OPENAI_IMAGE_SIZES", "1024x1024,512x512,256x256")
 
 openai_chat_system_prompt_context_default = """
 Reference the provided conversation.
@@ -87,13 +85,55 @@ openai_chat_system_prompt_base =
     openai_chat_system_prompt_base_default
   )
 
-fal_image_models = get_key_value_env_var.("FAL_IMAGE_MODELS", "FLUX Schnell=flux/schnell")
+fal_image_models_default = """
+{
+  "models": [
+    {
+      "name": "FLUX Schnell",
+      "value": "flux/schnell"
+    },
+    {
+      "name": "FLUX Dev",
+      "value": "flux/dev"
+    },
+    {
+      "name": "FLUX Pro v1.1",
+      "value": "flux-pro/v1.1",
+      "premium": true
+    },
+    {
+      "name": "FLUX Pro v1.1 Ultra",
+      "value": "flux-pro/v1.1-ultra",
+      "premium": true
+    },
+    {
+      "name": "Stable Diffusion XL Fast Lightning",
+      "value": "fast-lightning-sdxl"
+    },
+    {
+      "name": "Stable Diffusion v3.5 Medium",
+      "value": "stable-diffusion-v35-medium"
+    },
+    {
+      "name": "Stable Diffusion v3.5 Large",
+      "value": "stable-diffusion-v35-large",
+      "premium": true
+    },
+    {
+      "name": "Ideogram v2",
+      "value": "ideogram/v2",
+      "premium": true
+    },
+    {
+      "name": "Recraft v3",
+      "value": "recraft-v3",
+      "premium": true
+    }
+  ]
+}
+"""
 
-fal_image_sizes =
-  get_key_value_env_var.(
-    "FAL_IMAGE_SIZES",
-    "Square=square,Square HD=square_hd,Portrait 4:3=portrait_4_3,Portrait 16:9=portrait_16_9,Landscape 4:3=landscape_4_3,Landscape 16:9=landscape_16_9"
-  )
+fal_image_models = get_env_var.("FAL_IMAGE_MODELS", fal_image_models_default)
 
 config app_name,
   runtime_env: config_env(),
@@ -105,9 +145,7 @@ config app_name,
   openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
   openai_timeout: openai_timeout,
   openai_chat_models: openai_chat_models,
-  openai_image_models: openai_image_models,
   openai_embedding_model: get_env_var.("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
-  openai_image_sizes: openai_image_sizes,
   openai_chat_system_prompt_base: openai_chat_system_prompt_base,
   openai_chat_system_prompt_context: openai_chat_system_prompt_context,
   discord_channel_message_batch_size: 100,
@@ -122,9 +160,10 @@ config app_name,
   fal_api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
   fal_api_key: get_env_var.("FAL_KEY", nil),
   fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
-  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "1200")),
+  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "240")),
   fal_image_models: fal_image_models,
-  fal_image_sizes: fal_image_sizes
+  fal_image_models_safety_checker_disable:
+    get_list_env_var.("FAL_IMAGE_MODELS_SAFETY_CHECKER_DISABLE", "stable-diffusion, sdxl")
 
 database_url =
   get_env_var.(

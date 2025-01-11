@@ -23,15 +23,7 @@ defmodule Edgybot.Config do
 
   def openai_chat_models, do: fetch(:openai_chat_models)
 
-  def openai_image_models, do: fetch(:openai_image_models)
-
   def openai_embedding_model, do: fetch(:openai_embedding_model)
-
-  def openai_image_sizes do
-    :openai_image_sizes
-    |> fetch()
-    |> Enum.map(fn size -> %{name: size, value: size} end)
-  end
 
   def openai_chat_system_prompt_context, do: fetch(:openai_chat_system_prompt_context)
 
@@ -61,9 +53,14 @@ defmodule Edgybot.Config do
 
   def fal_status_retry_count, do: fetch(:fal_status_retry_count)
 
-  def fal_image_models, do: fetch(:fal_image_models)
+  def fal_image_models do
+    :fal_image_models
+    |> fetch()
+    |> Jason.decode!()
+    |> Map.fetch!("models")
+  end
 
-  def fal_image_sizes, do: fetch(:fal_image_sizes)
+  def fal_image_models_safety_checker_disable, do: fetch(:fal_image_models_safety_checker_disable)
 
   defp fetch(key) when is_atom(key) do
     __MODULE__
