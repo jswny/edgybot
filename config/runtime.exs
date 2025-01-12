@@ -216,6 +216,10 @@ config :edgybot, Oban,
     discord_channel_batch: 10,
     discord_message_batch_index: 10
   ],
+  plugins: [
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},
+    Oban.Plugins.Pruner
+  ],
   repo: Edgybot.Repo
 
 if config_env() != :test do
