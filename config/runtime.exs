@@ -85,7 +85,7 @@ openai_chat_system_prompt_base =
     openai_chat_system_prompt_base_default
   )
 
-fal_image_models_default = """
+fal_image_models_generate_default = """
 {
   "models": [
     {
@@ -133,7 +133,38 @@ fal_image_models_default = """
 }
 """
 
-fal_image_models = get_env_var.("FAL_IMAGE_MODELS", fal_image_models_default)
+fal_image_models_generate =
+  get_env_var.("FAL_IMAGE_MODELS_GENERATE", fal_image_models_generate_default)
+
+fal_image_models_edit_default = """
+{
+  "models": [
+    {
+      "name": "FLUX Dev",
+      "value": "flux/dev/image-to-image"
+    },
+    {
+      "name": "Ideogram v2 Turbo",
+      "value": "ideogram/v2/turbo/remix"
+    },
+    {
+      "name": "Ideogram v2",
+      "value": "ideogram/v2/remix",
+      "premium": true
+    },
+    {
+      "name": "Stable Diffusion XL Fast Lightning",
+      "value": "fast-lightning-sdxl/image-to-image"
+    },
+    {
+      "name": "Stable Diffusion v3 Medium",
+      "value": "stable-diffusion-v3-medium/image-to-image"
+    }
+  ]
+}
+"""
+
+fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
 
 config app_name,
   runtime_env: config_env(),
@@ -161,7 +192,8 @@ config app_name,
   fal_api_key: get_env_var.("FAL_KEY", nil),
   fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
   fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "240")),
-  fal_image_models: fal_image_models,
+  fal_image_models_generate: fal_image_models_generate,
+  fal_image_models_edit: fal_image_models_edit,
   fal_image_models_safety_checker_disable:
     get_list_env_var.("FAL_IMAGE_MODELS_SAFETY_CHECKER_DISABLE", "stable-diffusion, sdxl")
 
