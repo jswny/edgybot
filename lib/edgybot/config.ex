@@ -53,8 +53,15 @@ defmodule Edgybot.Config do
 
   def fal_status_retry_count, do: fetch(:fal_status_retry_count)
 
-  def fal_image_models do
-    :fal_image_models
+  def fal_image_models_generate do
+    :fal_image_models_generate
+    |> fetch()
+    |> Jason.decode!()
+    |> Map.fetch!("models")
+  end
+
+  def fal_image_models_edit do
+    :fal_image_models_edit
     |> fetch()
     |> Jason.decode!()
     |> Map.fetch!("models")

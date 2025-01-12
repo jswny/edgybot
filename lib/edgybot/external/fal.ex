@@ -1,7 +1,49 @@
 defmodule Edgybot.External.Fal do
   alias Edgybot.Config
 
-  def call_and_handle_errors(opts) do
+  def create_and_wait_for_image(model, body) do
+    create_opts = [method: :post, url: model, json: body]
+
+    case call_and_handle_errors(create_opts) do
+      {:ok, %{status: 200, body: %{"status_url" => status_url}}} ->
+        status_opts =
+          [
+            base_url: nil,
+            method: :get,
+            url: status_url
+          ]
+          |> add_status_retry()
+
+        case call_and_handle_errors(status_opts) do
+          {:ok, %{status: 200, body: %{"response_url" => response_url}}} ->
+            get_image(response_url)
+
+          {:error, error} ->
+            {:error, error}
+        end
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp get_image(response_url) do
+    get_opts = [method: :get, base_url: nil, url: response_url]
+
+    case call_and_handle_errors(get_opts) do
+      {:ok,
+       %{
+         status: 200,
+         body: %{"images" => [_image | _]} = body
+       }} ->
+        {:ok, body}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp call_and_handle_errors(opts) do
     opts = Keyword.put_new(opts, :retry, :transient)
 
     case call(opts) do
@@ -16,7 +58,7 @@ defmodule Edgybot.External.Fal do
     end
   end
 
-  def add_status_retry(opts) do
+  defp add_status_retry(opts) do
     retry_count = Config.fal_status_retry_count()
 
     opts
