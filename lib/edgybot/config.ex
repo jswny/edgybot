@@ -5,7 +5,11 @@ defmodule Edgybot.Config do
 
   def application_command_prefix, do: fetch(:application_command_prefix)
 
-  def chat_plugin_max_context_size, do: fetch(:chat_plugin_max_context_size)
+  def chat_plugin_recent_context_max_size, do: fetch(:chat_plugin_recent_context_max_size)
+
+  def chat_plugin_universal_context_max_size, do: fetch(:chat_plugin_universal_context_max_size)
+
+  def chat_plugin_universal_context_min_score, do: fetch(:chat_plugin_universal_context_min_score)
 
   def memegen_url, do: fetch(:memegen_url)
 

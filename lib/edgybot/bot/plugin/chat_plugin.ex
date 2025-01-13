@@ -4,9 +4,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   use Edgybot.Bot.Plugin
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
-  alias Edgybot.External.{Discord, OpenAI}
+  alias Edgybot.External.{Discord, OpenAI, Qdrant}
 
   alias Nostrum.Api
+  alias Nostrum.Cache.MemberCache
   alias Nostrum.Struct.Guild.Member
   alias Nostrum.Struct.{Interaction, User}
 
@@ -15,7 +16,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   @impl true
   def get_plugin_definitions do
     model_choices = Config.openai_chat_models()
-    max_context_size = Config.chat_plugin_max_context_size()
+    max_context_size = Config.chat_plugin_recent_context_max_size()
 
     [
       %{
@@ -52,37 +53,12 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               required: false
             },
             %{
-              name: "presence-penalty",
-              description: "Penalize or incentivize the AI to talk about new topics",
-              type: 10,
-              required: false,
-              min_value: -2.0,
-              max_value: 2.0
-            },
-            %{
-              name: "frequency-penalty",
-              description: "Penalize or incentivize the AI to repeat itself",
-              type: 10,
-              required: false,
-              min_value: -2.0,
-              max_value: 2.0
-            },
-            %{
               name: "temperature",
               description: "How deterministic the AI's response should be",
               type: 10,
               required: false,
               min_value: 0,
               max_value: 2.0
-            },
-            %{
-              name: "top-p",
-              description:
-                "Another method of specifying how deterministic the AI's response should be",
-              type: 10,
-              required: false,
-              min_value: 0,
-              max_value: 1.0
             }
           ]
         }
@@ -106,26 +82,44 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     url = "https://api.openai.com/v1/chat/completions"
     available_models = Config.openai_chat_models()
 
-    num_context_messages = find_option_value(other_options, "context")
+    num_recent_context_messages = find_option_value(other_options, "context")
 
     model =
       find_option_value(other_options, "model") || Enum.at(available_models, 0).value
 
     behavior = find_option_value(other_options, "behavior")
-    presence_penalty = find_option_value(other_options, "presence-penalty")
-    frequency_penalty = find_option_value(other_options, "frequency-penalty")
     temperature = find_option_value(other_options, "temperature")
-    top_p = find_option_value(other_options, "top-p")
 
-    context_messages =
-      if num_context_messages do
+    universal_context_min_score = Config.chat_plugin_universal_context_min_score()
+    universal_context_limit = Config.chat_plugin_universal_context_max_size()
+    collection = Config.qdrant_collection_discord_messages()
+
+    universal_context_messages =
+      case Qdrant.embed_and_find_closest(
+             collection,
+             prompt,
+             universal_context_limit,
+             score_threshold: universal_context_min_score
+           ) do
+        {:ok, %{"result" => result_batch}} ->
+          enrich_universal_context_batch(result_batch, guild_id)
+
+        {:error, _} ->
+          []
+      end
+
+    recent_context_messages =
+      if num_recent_context_messages do
         guild_id
-        |> get_context_messages(channel_id, num_context_messages)
+        |> get_recent_context_messages(channel_id, num_recent_context_messages)
         |> Enum.reverse()
         |> List.flatten()
       else
         []
       end
+
+    context_messages =
+      List.flatten([universal_context_messages | recent_context_messages])
 
     messages =
       context_messages ++
@@ -138,26 +132,18 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         ]
 
     enriched_behavior =
-      if num_context_messages,
+      if length(context_messages) > 0,
         do:
           "#{Config.openai_chat_system_prompt_base()}\n#{Config.openai_chat_system_prompt_context()}\n#{behavior}",
         else: "#{Config.openai_chat_system_prompt_base()}\n#{behavior}"
 
-    messages =
-      if behavior do
-        [%{role: "system", content: enriched_behavior} | messages]
-      else
-        messages
-      end
+    messages = [%{role: "system", content: enriched_behavior} | messages]
 
     body =
       %{
         model: model,
         messages: messages,
-        presence_penalty: presence_penalty,
-        frequency_penalty: frequency_penalty,
-        temperature: temperature,
-        top_p: top_p
+        temperature: temperature
       }
 
     case OpenAI.post_and_handle_errors(url, body, caller_user_id) do
@@ -172,13 +158,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         fields =
           generate_fields(
             prompt,
-            num_context_messages,
+            num_recent_context_messages,
             model,
             behavior,
-            presence_penalty,
-            frequency_penalty,
-            temperature,
-            top_p
+            temperature
           )
 
         options = [
@@ -194,22 +177,41 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
-  defp get_context_messages(guild_id, channel_id, num_messages)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages),
-       do: get_context_messages(guild_id, channel_id, num_messages, {}, [])
+  defp enrich_universal_context_batch([], _guild_id), do: []
 
-  defp get_context_messages(guild_id, channel_id, 0, _locator, acc)
+  defp enrich_universal_context_batch(batch, guild_id) do
+    Enum.map(batch, fn %{
+                         "payload" => %{
+                           "user_id" => user_id,
+                           "content" => content
+                         }
+                       } ->
+      {%{nick: nick}, %{username: username}} = MemberCache.get_with_user(guild_id, user_id)
+
+      %{
+        role: "user",
+        name: Discord.sanitize_chat_message_name(nick, username),
+        content: content
+      }
+    end)
+  end
+
+  defp get_recent_context_messages(guild_id, channel_id, num_messages)
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages),
+       do: get_recent_context_messages(guild_id, channel_id, num_messages, {}, [])
+
+  defp get_recent_context_messages(guild_id, channel_id, 0, _locator, acc)
        when is_integer(guild_id) and is_integer(channel_id),
        do: Enum.reverse(acc) |> List.flatten()
 
-  defp get_context_messages(guild_id, channel_id, num_messages, _locator, acc)
+  defp get_recent_context_messages(guild_id, channel_id, num_messages, _locator, acc)
        when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
               num_messages < 0 do
     flattened = acc |> Enum.reverse() |> List.flatten()
     Enum.take(flattened, length(flattened) - -num_messages)
   end
 
-  defp get_context_messages(guild_id, channel_id, num_messages, locator, acc)
+  defp get_recent_context_messages(guild_id, channel_id, num_messages, locator, acc)
        when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
               is_list(acc) do
     all_messages =
@@ -230,7 +232,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     earliest_message_id = List.last(all_messages).id
     num_filtered_messages = Enum.count(filtered_messages)
 
-    get_context_messages(
+    get_recent_context_messages(
       guild_id,
       channel_id,
       num_messages - num_filtered_messages,
@@ -246,17 +248,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          num_context_messages,
          model,
          behavior,
-         presence_penalty,
-         frequency_penalty,
-         temperature,
-         top_p
+         temperature
        )
        when is_binary(prompt) and is_binary(model) and is_integer(num_context_messages)
        when is_binary(behavior) or is_nil(behavior)
-       when is_float(presence_penalty) or is_nil(presence_penalty)
-       when is_float(frequency_penalty) or is_nil(frequency_penalty)
-       when is_float(temperature) or is_nil(temperature)
-       when is_float(top_p) or is_nil(top_p) do
+       when is_float(temperature) or is_nil(temperature) do
     prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
 
     context_field = %{
@@ -273,27 +269,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       inline: true
     }
 
-    presence_penalty_field = %{
-      name: "Presence Penalty",
-      value: presence_penalty && Designer.code_inline("#{presence_penalty}"),
-      inline: true
-    }
-
-    frequency_penalty_field = %{
-      name: "Frequency Penalty",
-      value: frequency_penalty && Designer.code_inline("#{frequency_penalty}"),
-      inline: true
-    }
-
     temperature_field = %{
       name: "Temperature",
       value: temperature && Designer.code_inline("#{temperature}"),
-      inline: true
-    }
-
-    top_p_field = %{
-      name: "Top-P",
-      value: top_p && Designer.code_inline("#{top_p}"),
       inline: true
     }
 
@@ -302,10 +280,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       context_field,
       model_field,
       behavior_field,
-      presence_penalty_field,
-      frequency_penalty_field,
-      temperature_field,
-      top_p_field
+      temperature_field
     ]
   end
 end
