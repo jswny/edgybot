@@ -172,6 +172,16 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     ]
   end
 
+  defp generate_system_messages(nil, _conversation_messages_length) do
+    add_system_message_if_not_exists(
+      [
+        %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default}
+      ],
+      :context,
+      Config.openai_chat_system_prompt_context()
+    )
+  end
+
   defp generate_system_messages(behavior, _conversation_messages_length) do
     add_system_message_if_not_exists(
       [
@@ -193,8 +203,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          caller_user_id,
          metadata
        ) do
-    messages =
-      Enum.concat([system_messages, conversation_messages, [prompt_message]])
+    messages = Enum.concat([system_messages, conversation_messages, [prompt_message]])
+
+    File.write!("output.json", Jason.encode!(messages))
 
     tool_definitions = Map.values(tools)
 
@@ -459,7 +470,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     filtered_messages =
       all_messages
-      |> Enum.filter(fn message -> message.author.bot != true end)
+      |> Enum.filter(&message_valid?/1)
       |> Enum.map(fn message ->
         member = Api.get_guild_member!(guild_id, message.author.id)
 
@@ -480,6 +491,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         filtered_messages | acc
       ]
     )
+  end
+
+  defp message_valid?(message) do
+    message.author.bot != true && message.content != nil && message.content != ""
   end
 
   defp generate_fields(prompt, num_context_messages, model, behavior, temperature)
