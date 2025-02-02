@@ -5,7 +5,7 @@ defmodule Edgybot.MixProject do
     [
       app: :edgybot,
       version: "0.1.0",
-      elixir: "~> 1.11",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -20,7 +20,7 @@ defmodule Edgybot.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :runtime_tools],
       mod: {Edgybot.Application, []}
     ]
   end
@@ -39,16 +39,41 @@ defmodule Edgybot.MixProject do
       {:req, "~> 0.5.0"},
       {:cachex, "~> 4.0"},
       {:oban, "~> 2.18"},
-      {:styler, "~> 1.3", only: [:dev, :test], runtime: false}
+      {:styler, "~> 1.3", only: [:dev, :test], runtime: false},
+      {:phoenix, "~> 1.7.19"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_html, "~> 4.1"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix_live_view, "~> 1.0.0"},
+      {:floki, ">= 0.30.0", only: :test},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:heroicons,
+       github: "tailwindlabs/heroicons", tag: "v2.1.1", sparse: "optimized", app: false, compile: false, depth: 1},
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.0"},
+      {:gettext, "~> 0.26"},
+      {:dns_cluster, "~> 0.1.1"},
+      {:bandit, "~> 1.5"}
     ]
   end
 
   defp aliases do
     [
-      run: "run --no-halt",
-      test: ["ecto.create --quiet", "ecto.migrate", "test --no-start"],
-      "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate"],
-      lint: ["format --check-formatted", "credo --strict", "dialyzer"]
+      lint: ["format --check-formatted", "credo --strict", "dialyzer"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --no-start"],
+      # test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.build": ["tailwind edgybot", "esbuild edgybot"],
+      "assets.deploy": [
+        "tailwind edgybot --minify",
+        "esbuild edgybot --minify",
+        "phx.digest"
+      ]
     ]
   end
 end
