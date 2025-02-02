@@ -20,7 +20,8 @@ config :edgybot, EdgybotWeb.Endpoint,
 
 config :edgybot,
   ecto_repos: [Edgybot.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  web_admin_auth_enabled: true
 
 # Configure esbuild (the version is required)
 config :esbuild,

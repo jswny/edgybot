@@ -49,7 +49,7 @@ config :edgybot, EdgybotWeb.Endpoint,
 #
 #     mix phx.gen.cert
 #
-config :edgybot, dev_routes: true
+config :edgybot, dev_routes: true, web_admin_auth_enabled: false
 
 # Do not include metadata nor timestamps in development logs
 # Run `mix help phx.gen.cert` for more information.
