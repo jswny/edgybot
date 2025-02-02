@@ -2,20 +2,23 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   @moduledoc false
 
   import Bitwise
-  alias Edgybot.Bot.{Designer, Utils}
+
+  alias Edgybot.Bot.Designer
+  alias Edgybot.Bot.Utils
   alias Nostrum.Api
-  alias Nostrum.Struct.{Embed, Interaction}
+  alias Nostrum.Struct.Embed
+  alias Nostrum.Struct.Interaction
 
   @interaction_deferred_channel_message_with_source 5
 
-  def defer_interaction_response(%Interaction{} = interaction, ephemeral?)
-      when is_boolean(ephemeral?) do
+  def defer_interaction_response(%Interaction{} = interaction, ephemeral?) when is_boolean(ephemeral?) do
     response = Map.put(Map.new(), :type, @interaction_deferred_channel_message_with_source)
 
     response =
-      case ephemeral? do
-        true -> Map.put(response, :data, %{flags: 1 <<< 6})
-        false -> response
+      if ephemeral? do
+        Map.put(response, :data, %{flags: 1 <<< 6})
+      else
+        response
       end
 
     {:ok} = Api.create_interaction_response(interaction, response)
@@ -24,8 +27,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   def handle_response(:noop, _source), do: :noop
 
-  def handle_response({:message, message}, %Interaction{} = interaction)
-      when is_binary(message) do
+  def handle_response({:message, message}, %Interaction{} = interaction) when is_binary(message) do
     response_data = %{content: message}
     send_interaction_response(interaction, response_data)
   end
@@ -45,18 +47,18 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
        when is_atom(type) and type in [:success, :warning, :error] and is_list(options) do
     {response_data, options} = transform_image(%{}, options)
 
-    embed =
+    case_result =
       case type do
         :success -> Designer.success_embed(options)
         :warning -> Designer.warning_embed(options)
         :error -> Designer.error_embed(options)
       end
-      |> maybe_truncate_embed()
+
+    embed = maybe_truncate_embed(case_result)
 
     response_data =
       Map.update(response_data, :embeds, [embed], fn embeds_list ->
-        [embed | embeds_list]
-        |> Enum.map(&maybe_truncate_embed/1)
+        Enum.map([embed | embeds_list], &maybe_truncate_embed/1)
       end)
 
     send_interaction_response(interaction, response_data)

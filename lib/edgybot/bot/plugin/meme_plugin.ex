@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
 
@@ -77,13 +78,8 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
               description: "Make a meme",
               type: 1,
               options:
-                [
-                  %{
-                    name: "id",
-                    description: "The ID of the meme template to use",
-                    type: 3,
-                    required: true
-                  },
+                List.flatten([
+                  %{name: "id", description: "The ID of the meme template to use", type: 3, required: true},
                   meme_text_options,
                   meme_overlay_options,
                   %{
@@ -92,8 +88,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
                     type: 3,
                     required: false
                   }
-                ]
-                |> List.flatten()
+                ])
             },
             %{
               name: "custom",
@@ -133,13 +128,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["meme", "search"],
-        1,
-        [{"query", 3, query} | other_options],
-        _interaction,
-        _middleware_data
-      )
+  def handle_interaction(["meme", "search"], 1, [{"query", 3, query} | other_options], _interaction, _middleware_data)
       when is_binary(query) and is_list(other_options) do
     animated? =
       Enum.any?(other_options, fn {name, _type, value} -> name == "animated" && value == true end)
@@ -164,13 +153,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["meme", "template"],
-        1,
-        [{"id", 3, id} | other_options],
-        _interaction,
-        _middleware_data
-      )
+  def handle_interaction(["meme", "template"], 1, [{"id", 3, id} | other_options], _interaction, _middleware_data)
       when is_binary(id) and is_list(other_options) do
     case get_template(id) do
       {:ok, template} ->
@@ -215,13 +198,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["meme", "make"],
-        1,
-        [{"id", 3, template_id} | other_options],
-        _interaction,
-        _middleware_data
-      )
+  def handle_interaction(["meme", "make"], 1, [{"id", 3, template_id} | other_options], _interaction, _middleware_data)
       when is_binary(template_id) and is_list(other_options) do
     case get_template(template_id) do
       {:ok, template} ->
@@ -310,8 +287,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   defp make_meme(template_id, text_lines, overlays, style)
-       when is_binary(template_id) and is_list(text_lines) and
-              (is_list(overlays) or is_nil(overlays)) and
+       when is_binary(template_id) and is_list(text_lines) and (is_list(overlays) or is_nil(overlays)) and
               (is_binary(style) or is_nil(style)) do
     encoded_id = URI.encode(template_id)
 
@@ -321,14 +297,14 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     }
 
     body =
-      if style != nil do
-        Map.put(body, "style", style)
-      else
-        if overlays != nil do
-          Map.put(body, "style", overlays)
-        else
+      if style == nil do
+        if overlays == nil do
           body
+        else
+          Map.put(body, "style", overlays)
         end
+      else
+        Map.put(body, "style", style)
       end
 
     {:ok, response} =
@@ -342,8 +318,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     meme_url
   end
 
-  defp make_custom_meme(image_url, text_lines)
-       when is_binary(image_url) and is_list(text_lines) do
+  defp make_custom_meme(image_url, text_lines) when is_binary(image_url) and is_list(text_lines) do
     body = %{
       "background" => image_url,
       "text" => text_lines,

@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Fal
@@ -37,13 +38,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["image-p", "gen"],
-        1,
-        [{"prompt", 3, prompt} | other_options],
-        _interaction,
-        _middleware_data
-      ) do
+  def handle_interaction(["image-p", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
     available_models = Config.fal_image_models_generate()
 
     default_model =
@@ -56,13 +51,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["image", "gen"],
-        1,
-        [{"prompt", 3, prompt} | other_options],
-        _interaction,
-        _middleware_data
-      ) do
+  def handle_interaction(["image", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
     available_models = Config.fal_image_models_generate()
     default_model = Enum.at(available_models, 0)["value"]
 
@@ -102,12 +91,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     handle_image_edit(prompt, image_attachment, other_options, default_model)
   end
 
-  defp handle_image_edit(
-         prompt,
-         image_attachment,
-         other_options,
-         default_model
-       ) do
+  defp handle_image_edit(prompt, image_attachment, other_options, default_model) do
     model = find_option_value(other_options, "model") || default_model
     seed = find_option_value(other_options, "seed")
 
@@ -135,11 +119,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     end
   end
 
-  defp handle_image_gen(
-         prompt,
-         other_options,
-         default_model
-       ) do
+  defp handle_image_gen(prompt, other_options, default_model) do
     model = find_option_value(other_options, "model") || default_model
     seed = find_option_value(other_options, "seed")
 
@@ -218,12 +198,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     {regular_model_choices, premium_model_choices}
   end
 
-  defp generate_application_command(
-         name,
-         description_prefix,
-         generate_model_choices,
-         edit_model_choices
-       ) do
+  defp generate_application_command(name, description_prefix, generate_model_choices, edit_model_choices) do
     prompt_option = %{
       name: "prompt",
       description: "The prompt for the AI to respond to",

@@ -4,6 +4,7 @@ defmodule Edgybot.Release do
   """
 
   alias Edgybot.External.Qdrant
+
   require Logger
 
   @app :edgybot

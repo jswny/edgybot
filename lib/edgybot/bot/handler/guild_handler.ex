@@ -1,12 +1,13 @@
 defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
-  require Logger
   alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Edgybot.Config
   alias Nostrum.Api
   alias Nostrum.Constants.ApplicationCommandOptionType
   alias Nostrum.Struct.Guild
+
+  require Logger
 
   def handle_guild_available(%Guild{} = guild) do
     guild_id = guild.id
@@ -28,8 +29,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     :noop
   end
 
-  defp apply_global_options(application_command_definitions)
-       when is_list(application_command_definitions) do
+  defp apply_global_options(application_command_definitions) when is_list(application_command_definitions) do
     Enum.map(application_command_definitions, fn application_command_definition ->
       hide_option = %{
         name: "hide",
@@ -42,8 +42,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     end)
   end
 
-  defp add_options(%{options: options} = node, new_options)
-       when is_list(options) and is_list(new_options) do
+  defp add_options(%{options: options} = node, new_options) when is_list(options) and is_list(new_options) do
     if Enum.any?(options, fn %{type: type} ->
          type in [
            ApplicationCommandOptionType.sub_command(),
@@ -64,10 +63,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
        when is_list(application_command_definitions),
        do: application_command_definitions
 
-  defp apply_application_command_prefix(
-         application_command_definitions,
-         application_command_prefix
-       )
+  defp apply_application_command_prefix(application_command_definitions, application_command_prefix)
        when is_list(application_command_definitions) and is_binary(application_command_prefix) do
     Enum.map(application_command_definitions, fn application_command_definition ->
       name = application_command_definition.name
@@ -75,8 +71,7 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     end)
   end
 
-  defp apply_default_deny_permission(application_command_definitions)
-       when is_list(application_command_definitions) do
+  defp apply_default_deny_permission(application_command_definitions) when is_list(application_command_definitions) do
     Enum.map(application_command_definitions, fn application_command_definition ->
       if Map.get(application_command_definition, :default_permission) == nil do
         Map.put(application_command_definition, :default_permission, false)

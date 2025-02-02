@@ -38,7 +38,8 @@ defmodule Edgybot.MixProject do
       {:jason, "~> 1.4"},
       {:req, "~> 0.5.0"},
       {:cachex, "~> 4.0"},
-      {:oban, "~> 2.18"}
+      {:oban, "~> 2.18"},
+      {:styler, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
   end
 

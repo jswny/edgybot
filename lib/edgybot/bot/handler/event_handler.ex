@@ -1,7 +1,8 @@
 defmodule Edgybot.Bot.Handler.EventHandler do
   @moduledoc false
 
-  alias Edgybot.Bot.Handler.{GuildHandler, InteractionHandler}
+  alias Edgybot.Bot.Handler.GuildHandler
+  alias Edgybot.Bot.Handler.InteractionHandler
 
   def handle_event(event, payload) when is_atom(event) do
     case event do

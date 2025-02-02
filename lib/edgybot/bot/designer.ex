@@ -1,7 +1,8 @@
 defmodule Edgybot.Bot.Designer do
   @moduledoc false
 
-  alias Nostrum.Struct.{Embed, Embed.Field}
+  alias Nostrum.Struct.Embed
+  alias Nostrum.Struct.Embed.Field
 
   @type options() :: [option]
 
@@ -53,8 +54,7 @@ defmodule Edgybot.Bot.Designer do
   def code_inline(content, escape? \\ true) when is_binary(content) and is_boolean(escape?),
     do: render_code("``", content, escape?)
 
-  defp render_code(encloser, content, escape?)
-       when is_binary(encloser) and is_binary(content) and is_boolean(escape?) do
+  defp render_code(encloser, content, escape?) when is_binary(encloser) and is_binary(content) and is_boolean(escape?) do
     content =
       if escape? do
         String.replace(content, "`", "`#{@zero_width_space}")
@@ -70,13 +70,12 @@ defmodule Edgybot.Bot.Designer do
     merged_options =
       options
       |> Enum.into(default_options)
-      |> Enum.map(fn {option, value} ->
+      |> Map.new(fn {option, value} ->
         case value do
           :none -> {option, nil}
           _ -> {option, value}
         end
       end)
-      |> Enum.into(Map.new())
 
     %Embed{}
     |> Embed.put_color(color)
@@ -88,8 +87,7 @@ defmodule Edgybot.Bot.Designer do
     |> embed_url(Map.get(merged_options, :url))
   end
 
-  defp embed_title(%Embed{} = embed, title) when is_binary(title),
-    do: Embed.put_title(embed, title)
+  defp embed_title(%Embed{} = embed, title) when is_binary(title), do: Embed.put_title(embed, title)
 
   defp embed_title(%Embed{} = embed, nil), do: embed
 
@@ -98,9 +96,8 @@ defmodule Edgybot.Bot.Designer do
 
   defp embed_description(%Embed{} = embed, nil), do: embed
 
-  defp embed_fields(%Embed{} = embed, [%{name: name, value: nil} | rest])
-       when is_binary(name) and is_list(rest),
-       do: embed_fields(embed, rest)
+  defp embed_fields(%Embed{} = embed, [%{name: name, value: nil} | rest]) when is_binary(name) and is_list(rest),
+    do: embed_fields(embed, rest)
 
   defp embed_fields(%Embed{} = embed, [%{name: name, value: value} = field | rest])
        when is_binary(name) and is_binary(value) and is_list(rest) do
@@ -122,13 +119,11 @@ defmodule Edgybot.Bot.Designer do
 
   defp embed_stacktrace(%Embed{} = embed, nil), do: embed
 
-  defp embed_image(%Embed{} = embed, image_url) when is_binary(image_url),
-    do: Embed.put_image(embed, image_url)
+  defp embed_image(%Embed{} = embed, image_url) when is_binary(image_url), do: Embed.put_image(embed, image_url)
 
   defp embed_image(%Embed{} = embed, nil), do: embed
 
-  defp embed_url(%Embed{} = embed, url) when is_binary(url),
-    do: Embed.put_url(embed, url)
+  defp embed_url(%Embed{} = embed, url) when is_binary(url), do: Embed.put_url(embed, url)
 
   defp embed_url(%Embed{} = embed, nil), do: embed
 end

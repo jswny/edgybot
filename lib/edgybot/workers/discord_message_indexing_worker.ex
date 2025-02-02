@@ -1,23 +1,20 @@
 defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
-  alias Edgybot.Config
-  alias Edgybot.External.{Discord, OpenAI, Qdrant}
-  alias Nostrum.Struct.Message
-
-  require Logger
-
+  @moduledoc false
   use Oban.Worker,
     queue: :discord_message_batch_index,
     tags: ["discord", "ai"],
     unique: [keys: [:guild_id, :channel_id, :batch_size, :latest_message_id]]
 
+  alias Edgybot.Config
+  alias Edgybot.External.Discord
+  alias Edgybot.External.OpenAI
+  alias Edgybot.External.Qdrant
+  alias Nostrum.Struct.Message
+
+  require Logger
+
   @impl Oban.Worker
-  def perform(%Oban.Job{
-        args: %{
-          "guild_id" => guild_id,
-          "channel_id" => channel_id,
-          "messages" => messages
-        }
-      }) do
+  def perform(%Oban.Job{args: %{"guild_id" => guild_id, "channel_id" => channel_id, "messages" => messages}}) do
     latest_message_id = List.first(messages)["id"]
 
     Logger.debug(
@@ -37,13 +34,7 @@ defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
   end
 
   defp build_point_input(
-         %{
-           id: id,
-           channel_id: channel_id,
-           author: %{id: user_id},
-           timestamp: timestamp,
-           content: content
-         },
+         %{id: id, channel_id: channel_id, author: %{id: user_id}, timestamp: timestamp, content: content},
          guild_id
        )
        when is_integer(guild_id) do
@@ -62,8 +53,7 @@ defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
   end
 
   defp embed_and_save_point_input_batch(point_input_batch, points_collection, embedding_model)
-       when is_list(point_input_batch) and is_binary(points_collection) and
-              is_binary(embedding_model) do
+       when is_list(point_input_batch) and is_binary(points_collection) and is_binary(embedding_model) do
     embedding_inputs =
       Enum.map(point_input_batch, fn %{payload: %{content: embedding_input}} ->
         embedding_input

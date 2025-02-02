@@ -1,27 +1,21 @@
 defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
-  alias Edgybot.Config
-  alias Edgybot.Workers.DiscordMessageIndexingWorker
-
-  alias Nostrum.Api
-  require Logger
-
+  @moduledoc false
   use Oban.Worker,
     queue: :discord_channel_batch,
     tags: ["discord"],
     unique: [keys: [:guild_id, :channel_id, :batch_size, :latest_message_id]]
 
+  alias Edgybot.Config
+  alias Edgybot.Workers.DiscordMessageIndexingWorker
+  alias Nostrum.Api
+
+  require Logger
+
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args:
-          %{
-            "guild_id" => guild_id,
-            "channel_id" => channel_id,
-            "latest_message_id" => latest_message_id
-          } = args
+        args: %{"guild_id" => guild_id, "channel_id" => channel_id, "latest_message_id" => latest_message_id} = args
       }) do
-    Logger.debug(
-      "Batching messages in channel #{channel_id} in guild #{guild_id} from message: #{latest_message_id}"
-    )
+    Logger.debug("Batching messages in channel #{channel_id} in guild #{guild_id} from message: #{latest_message_id}")
 
     batch_size = Config.discord_channel_message_batch_size()
 
@@ -45,9 +39,7 @@ defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
     earliest_message_id = Map.get(earliest_message, :id)
 
     if earliest_message_id == latest_message_id do
-      Logger.debug(
-        "Finished batching channel #{channel_id} in guild #{guild_id}, last message: #{earliest_message_id}"
-      )
+      Logger.debug("Finished batching channel #{channel_id} in guild #{guild_id}, last message: #{earliest_message_id}")
     else
       %{
         guild_id: guild_id,

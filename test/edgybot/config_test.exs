@@ -2,6 +2,7 @@ defmodule Edgybot.RegistrarTest do
   @moduledoc false
 
   use ExUnit.Case
+
   alias Edgybot.Config
 
   describe "runtime_env" do

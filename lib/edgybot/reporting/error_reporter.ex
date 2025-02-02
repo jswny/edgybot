@@ -1,4 +1,5 @@
 defmodule Edgybot.Reporting.ErrorReporter do
+  @moduledoc false
   require Logger
 
   def handle_event(_, _, meta, _) do

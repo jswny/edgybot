@@ -1,4 +1,5 @@
 defmodule Edgybot.External.Fal do
+  @moduledoc false
   alias Edgybot.Config
 
   def create_and_wait_for_image(model, body) do
@@ -6,13 +7,7 @@ defmodule Edgybot.External.Fal do
 
     case call_and_handle_errors(create_opts) do
       {:ok, %{status: 200, body: %{"status_url" => status_url}}} ->
-        status_opts =
-          [
-            base_url: nil,
-            method: :get,
-            url: status_url
-          ]
-          |> add_status_retry()
+        status_opts = add_status_retry(base_url: nil, method: :get, url: status_url)
 
         case call_and_handle_errors(status_opts) do
           {:ok, %{status: 200, body: %{"response_url" => response_url}}} ->
@@ -96,7 +91,8 @@ defmodule Edgybot.External.Fal do
     api_key = Config.fal_api_key()
     timeout = Config.fal_timeout()
 
-    Req.new(base_url: base_url, receive_timeout: timeout)
+    [base_url: base_url, receive_timeout: timeout]
+    |> Req.new()
     |> Req.Request.put_header("Authorization", "Key #{api_key}")
   end
 end

@@ -14,7 +14,8 @@ defmodule Edgybot.Config do
   def memegen_url, do: fetch(:memegen_url)
 
   def archive_hosts_preserve_query do
-    fetch(:archive_hosts_preserve_query)
+    :archive_hosts_preserve_query
+    |> fetch()
     |> Enum.map(fn host -> [host, "www." <> host] end)
     |> List.flatten()
   end
@@ -35,8 +36,7 @@ defmodule Edgybot.Config do
 
   def discord_channel_message_batch_size, do: fetch(:discord_channel_message_batch_size)
 
-  def discord_channel_message_batch_size_index,
-    do: fetch(:discord_channel_message_batch_size_index)
+  def discord_channel_message_batch_size_index, do: fetch(:discord_channel_message_batch_size_index)
 
   def qdrant_api_url, do: fetch(:qdrant_api_url)
 
@@ -46,8 +46,7 @@ defmodule Edgybot.Config do
 
   def qdrant_collection_discord_messages, do: fetch(:qdrant_collection_discord_messages)
 
-  def qdrant_collection_discord_messages_vector_size,
-    do: fetch(:qdrant_collection_discord_messages_vector_size)
+  def qdrant_collection_discord_messages_vector_size, do: fetch(:qdrant_collection_discord_messages_vector_size)
 
   def fal_api_url, do: fetch(:fal_api_url)
 

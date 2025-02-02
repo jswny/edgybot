@@ -4,10 +4,13 @@ defmodule Edgybot.Application do
   @moduledoc false
 
   use Application
-  require Logger
+
+  import Cachex.Spec
+
   alias Edgybot.Bot
   alias Edgybot.Reporting.ErrorReporter
-  import Cachex.Spec
+
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -15,8 +18,7 @@ defmodule Edgybot.Application do
       Bot.Supervisor,
       Edgybot.Repo,
       Supervisor.child_spec(
-        {Cachex,
-         name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},
+        {Cachex, name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},
         id: :processed_string_cache
       ),
       {Oban, Application.fetch_env!(:edgybot, Oban)}

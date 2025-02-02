@@ -6,12 +6,12 @@ get_env_var = fn var_name, default ->
   value = System.get_env(var_name)
 
   if value == nil || value == "" do
-    if default != :none do
-      default
-    else
+    if default == :none do
       raise """
       Environment variable #{var_name} is missing!
       """
+    else
+      default
     end
   else
     value
@@ -27,13 +27,15 @@ maybe_string_to_boolean = fn value ->
 end
 
 get_list_env_var = fn var_name, default ->
-  get_env_var.(var_name, default)
+  var_name
+  |> get_env_var.(default)
   |> String.split(",")
   |> Enum.map(&String.trim/1)
 end
 
 get_key_value_env_var = fn var_name, default ->
-  get_env_var.(var_name, default)
+  var_name
+  |> get_env_var.(default)
   |> String.split(",")
   |> Enum.map(&String.trim/1)
   |> Enum.map(fn kvp ->
@@ -49,12 +51,12 @@ logflare_enabled =
   |> maybe_string_to_boolean.()
 
 if logflare_enabled do
-  config :logger,
-    backends: [:console, LogflareLogger.HttpBackend]
-
   config :logflare_logger_backend,
     api_key: get_env_var.("LF_API_KEY", nil),
     source_id: get_env_var.("LF_SOURCE_ID", nil)
+
+  config :logger,
+    backends: [:console, LogflareLogger.HttpBackend]
 end
 
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
@@ -171,11 +173,35 @@ fal_image_models_edit_default = """
 
 fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
 
+database_url =
+  get_env_var.(
+    "DATABASE_URL",
+    "ecto://postgres:postgres@localhost/edgybot_#{config_env()}"
+  )
+
+maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
+config :edgybot, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [
+    default: 10,
+    discord_channel_batch: 10,
+    discord_message_batch_index: 10
+  ],
+  plugins: [
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},
+    Oban.Plugins.Pruner
+  ],
+  repo: Edgybot.Repo
+
+config app_name, Edgybot.Repo,
+  url: database_url,
+  socket_options: maybe_ipv6
+
 config app_name,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
-  chat_plugin_recent_context_max_size:
-    String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
+  chat_plugin_recent_context_max_size: String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
   chat_plugin_universal_context_max_size:
     String.to_integer(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MAX_SIZE", "100")),
   chat_plugin_universal_context_min_score:
@@ -193,10 +219,8 @@ config app_name,
   qdrant_api_url: get_env_var.("QDRANT_API_URL", "http://localhost:6333"),
   qdrant_api_key: get_env_var.("QDRANT_API_KEY", nil),
   qdrant_timeout: String.to_integer(get_env_var.("QDRANT_TIMEOUT", "840000")),
-  qdrant_collection_discord_messages:
-    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
-  qdrant_collection_discord_messages_vector_size:
-    get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536),
+  qdrant_collection_discord_messages: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
+  qdrant_collection_discord_messages_vector_size: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536),
   fal_api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
   fal_api_key: get_env_var.("FAL_KEY", nil),
   fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
@@ -206,35 +230,7 @@ config app_name,
   fal_image_models_safety_checker_disable:
     get_list_env_var.("FAL_IMAGE_MODELS_SAFETY_CHECKER_DISABLE", "stable-diffusion, sdxl")
 
-database_url =
-  get_env_var.(
-    "DATABASE_URL",
-    "ecto://postgres:postgres@localhost/edgybot_#{config_env()}"
-  )
-
-maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
-
-config app_name, Edgybot.Repo,
-  url: database_url,
-  socket_options: maybe_ipv6
-
-config :edgybot, Oban,
-  engine: Oban.Engines.Basic,
-  queues: [
-    default: 10,
-    discord_channel_batch: 10,
-    discord_message_batch_index: 10
-  ],
-  plugins: [
-    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},
-    Oban.Plugins.Pruner
-  ],
-  repo: Edgybot.Repo
-
 if config_env() != :test do
-  config app_name,
-    openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
-
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none),
     ffmpeg: false,
@@ -243,4 +239,7 @@ if config_env() != :test do
       :guilds,
       :guild_members
     ]
+
+  config app_name,
+    openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
 end
