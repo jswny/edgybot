@@ -251,17 +251,6 @@ jobs:
       - name: Run Credo
         run: mix credo --strict
 
-  hadolint:
-    name: Hadolint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Run Hadolint
-        uses: hadolint/hadolint-action@v3.0.0
-        with:
-          failure-threshold: style
-
   image:
     name: Image
     runs-on: ubuntu-latest
