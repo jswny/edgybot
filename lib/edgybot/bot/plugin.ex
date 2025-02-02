@@ -3,7 +3,8 @@ defmodule Edgybot.Bot.Plugin do
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Bot.Middleware
-  alias Nostrum.Struct.{ApplicationCommand, Interaction}
+  alias Nostrum.Struct.ApplicationCommand
+  alias Nostrum.Struct.Interaction
 
   @type metadata_data() :: %{
           optional(:ephemeral) => boolean()
@@ -25,8 +26,7 @@ defmodule Edgybot.Bot.Plugin do
   @type interaction_option_value :: binary()
 
   @type interaction_option ::
-          {ApplicationCommand.command_name(), ApplicationCommand.command_option_type(),
-           interaction_option_value()}
+          {ApplicationCommand.command_name(), ApplicationCommand.command_option_type(), interaction_option_value()}
 
   @type interaction_response_message :: binary()
 
@@ -52,14 +52,14 @@ defmodule Edgybot.Bot.Plugin do
   defmacro __using__(_opts) do
     quote do
       @behaviour unquote(__MODULE__)
+
       import unquote(__MODULE__)
     end
   end
 
   def get_definition_by_key(plugin_module, application_command_name, application_command_type)
       when is_atom(plugin_module) do
-    plugin_module.get_plugin_definitions()
-    |> Enum.find(nil, fn definition ->
+    Enum.find(plugin_module.get_plugin_definitions(), nil, fn definition ->
       matching_name? = definition.application_command.name == application_command_name
       matching_type? = definition.application_command.type == application_command_type
 

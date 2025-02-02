@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Qdrant
@@ -77,11 +78,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "channel"],
         1,
         _options,
-        %{
-          guild_id: guild_id,
-          channel_id: channel_id,
-          channel: %{last_message_id: last_message_id}
-        },
+        %{guild_id: guild_id, channel_id: channel_id, channel: %{last_message_id: last_message_id}},
         _middleware_data
       ) do
     batch_size = Config.discord_channel_message_batch_size()
@@ -103,10 +100,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "channel-rm"],
         1,
         _options,
-        %{
-          guild_id: guild_id,
-          channel_id: channel_id
-        },
+        %{guild_id: guild_id, channel_id: channel_id},
         _middleware_data
       ) do
     points_collection = Config.qdrant_collection_discord_messages()
@@ -131,9 +125,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "search"],
         1,
         [{"query", 3, query} | other_options],
-        %{
-          guild_id: guild_id
-        },
+        %{guild_id: guild_id},
         _middleware_data
       ) do
     limit = find_option_value(other_options, "limit") || 10
@@ -154,13 +146,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["index", "status"],
-        1,
-        _options,
-        _interaction,
-        _middleware_data
-      ) do
+  def handle_interaction(["index", "status"], 1, _options, _interaction, _middleware_data) do
     points_collection = Config.qdrant_collection_discord_messages()
 
     {:ok, %{body: %{"result" => response_body}}} =
@@ -216,13 +202,14 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
                                        "timestamp" => timestamp
                                      }
                                    } ->
-      id_value = id |> inspect |> Designer.code_inline()
-      score_value = score |> inspect |> Designer.code_inline()
-      user_id_value = user_id |> inspect |> Designer.code_inline()
-      channel_id_value = channel_id |> inspect |> Designer.code_inline()
+      id_value = id |> inspect() |> Designer.code_inline()
+      score_value = score |> inspect() |> Designer.code_inline()
+      user_id_value = user_id |> inspect() |> Designer.code_inline()
+      channel_id_value = channel_id |> inspect() |> Designer.code_inline()
 
       timestamp_value =
-        DateTime.from_unix!(timestamp, :millisecond)
+        timestamp
+        |> DateTime.from_unix!(:millisecond)
         |> DateTime.to_string()
         |> Designer.code_inline()
 

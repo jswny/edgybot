@@ -2,14 +2,17 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
-  alias Edgybot.External.{Discord, OpenAI, Qdrant}
-
+  alias Edgybot.External.Discord
+  alias Edgybot.External.OpenAI
+  alias Edgybot.External.Qdrant
   alias Nostrum.Api
   alias Nostrum.Cache.MemberCache
   alias Nostrum.Struct.Guild.Member
-  alias Nostrum.Struct.{Interaction, User}
+  alias Nostrum.Struct.Interaction
+  alias Nostrum.Struct.User
 
   @context_chunk_size 100
 
@@ -170,11 +173,14 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp generate_system_messages(behavior, _conversation_messages_length) do
-    [
-      %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default},
-      %{role: "system", content: behavior, type: :behavior}
-    ]
-    |> add_system_message_if_not_exists(:context, Config.openai_chat_system_prompt_context())
+    add_system_message_if_not_exists(
+      [
+        %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default},
+        %{role: "system", content: behavior, type: :behavior}
+      ],
+      :context,
+      Config.openai_chat_system_prompt_context()
+    )
   end
 
   defp generate_completion_with_tools(
@@ -231,8 +237,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp generate_completion_with_tools(
-         {:ok,
-          %{"choices" => [%{"finish_reason" => "stop", "message" => %{"content" => content}} | _]}},
+         {:ok, %{"choices" => [%{"finish_reason" => "stop", "message" => %{"content" => content}} | _]}},
          _url,
          _body,
          _system_messages,
@@ -249,14 +254,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          {:ok,
           %{
             "choices" => [
-              %{
-                "finish_reason" => "tool_calls",
-                "message" =>
-                  %{
-                    "tool_calls" => tool_calls
-                  } = message
-              }
-              | _other_choices
+              %{"finish_reason" => "tool_calls", "message" => %{"tool_calls" => tool_calls} = message} | _other_choices
             ]
           }},
          url,
@@ -317,13 +315,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          prompt_message,
          tools,
          [
-           %{
-             "id" => tool_call_id,
-             "function" => %{
-               "name" => "search_group_messages",
-               "arguments" => arguments
-             }
-           }
+           %{"id" => tool_call_id, "function" => %{"name" => "search_group_messages", "arguments" => arguments}}
            | remaining_tool_calls
          ],
          caller_user_id,
@@ -453,21 +445,17 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp get_recent_context_messages(guild_id, channel_id, 0, _locator, acc)
        when is_integer(guild_id) and is_integer(channel_id),
-       do: Enum.reverse(acc) |> List.flatten()
+       do: acc |> Enum.reverse() |> List.flatten()
 
   defp get_recent_context_messages(guild_id, channel_id, num_messages, _locator, acc)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
-              num_messages < 0 do
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and num_messages < 0 do
     flattened = acc |> Enum.reverse() |> List.flatten()
     Enum.take(flattened, length(flattened) - -num_messages)
   end
 
   defp get_recent_context_messages(guild_id, channel_id, num_messages, locator, acc)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and
-              is_list(acc) do
-    all_messages =
-      channel_id
-      |> Api.get_channel_messages!(@context_chunk_size, locator)
+       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and is_list(acc) do
+    all_messages = Api.get_channel_messages!(channel_id, @context_chunk_size, locator)
 
     filtered_messages =
       all_messages
@@ -494,13 +482,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     )
   end
 
-  defp generate_fields(
-         prompt,
-         num_context_messages,
-         model,
-         behavior,
-         temperature
-       )
+  defp generate_fields(prompt, num_context_messages, model, behavior, temperature)
        when is_binary(prompt) and is_binary(model) and is_integer(num_context_messages)
        when is_binary(behavior) or is_nil(behavior)
        when is_float(temperature) or is_nil(temperature) do
@@ -547,8 +529,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         properties: %{
           query: %{
             type: "string",
-            description:
-              "Query to search for related messages. Will be embedded before search is performed."
+            description: "Query to search for related messages. Will be embedded before search is performed."
           }
         },
         additionalProperties: false

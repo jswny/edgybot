@@ -1,18 +1,17 @@
 defmodule Edgybot.Bot.Handler.InteractionHandler do
   @moduledoc false
 
-  require Logger
-  alias Edgybot.Config
-  alias Edgybot.Bot.Handler.{MiddlewareHandler, ResponseHandler}
+  alias Edgybot.Bot.Handler.MiddlewareHandler
+  alias Edgybot.Bot.Handler.ResponseHandler
   alias Edgybot.Bot.Plugin
   alias Edgybot.Bot.Registrar.PluginRegistrar
+  alias Edgybot.Config
+  alias Nostrum.Struct.ApplicationCommandInteractionData
+  alias Nostrum.Struct.ApplicationCommandInteractionDataOption
+  alias Nostrum.Struct.ApplicationCommandInteractionDataResolved
+  alias Nostrum.Struct.Interaction
 
-  alias Nostrum.Struct.{
-    ApplicationCommandInteractionData,
-    ApplicationCommandInteractionDataOption,
-    ApplicationCommandInteractionDataResolved,
-    Interaction
-  }
+  require Logger
 
   @default_metadata []
 
@@ -20,9 +19,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
             when is_struct(resolved_data, ApplicationCommandInteractionDataResolved) or
                    is_nil(resolved_data)
 
-  def handle_interaction(
-        %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction
-      )
+  def handle_interaction(%Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction)
       when is_binary(interaction_name) and is_integer(interaction_type) do
     application_command_prefix = Config.application_command_prefix()
 
@@ -45,9 +42,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     handle_interaction_transformed(interaction)
   end
 
-  def handle_interaction_transformed(
-        %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction
-      )
+  def handle_interaction_transformed(%Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction)
       when is_binary(interaction_name) and is_integer(interaction_type) do
     matching_plugin_module = PluginRegistrar.get_module({interaction_name, interaction_type})
 
@@ -86,8 +81,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
          [interaction_name_head | interaction_name_rest],
          current_metadata
        )
-       when is_binary(name) and is_list(children) and is_binary(interaction_name_head) and
-              is_list(interaction_name_rest) and is_map(current_metadata) do
+       when is_binary(name) and is_list(children) and is_binary(interaction_name_head) and is_list(interaction_name_rest) and
+              is_map(current_metadata) do
     parent_current_metadata =
       merge_metadata_heirarchy(parent_meatadata_tree_node, current_metadata)
 
@@ -104,8 +99,6 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
         )
       end)
       |> Enum.find(%{}, &(!is_nil(&1)))
-    else
-      nil
     end
   end
 
@@ -122,9 +115,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     end
   end
 
-  defp build_application_command_metadata(%{}, _interaction_name_list, current_metadata)
-       when is_map(current_metadata),
-       do: current_metadata
+  defp build_application_command_metadata(%{}, _interaction_name_list, current_metadata) when is_map(current_metadata),
+    do: current_metadata
 
   defp build_application_command_metadata(metadata_tree, interaction_name_list)
        when is_map(metadata_tree) and is_list(interaction_name_list) do
@@ -142,8 +134,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
          plugin_module,
          interaction_name_list
        )
-       when is_binary(interaction_name) and is_integer(interaction_type) and
-              is_atom(plugin_module) and is_list(interaction_name_list) do
+       when is_binary(interaction_name) and is_integer(interaction_type) and is_atom(plugin_module) and
+              is_list(interaction_name_list) do
     application_command_metadata_tree =
       plugin_module
       |> Plugin.get_definition_by_key(interaction_name, interaction_type)
@@ -155,18 +147,14 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     )
   end
 
-  defp defer_interaction_response(
-         %Interaction{} = interaction,
-         application_command_metadata,
-         parsed_options
-       ) do
+  defp defer_interaction_response(%Interaction{} = interaction, application_command_metadata, parsed_options) do
     default_ephemeral? = Map.get(application_command_metadata, :ephemeral, false)
     ephemeral_option = Plugin.find_option_value(parsed_options, "hide")
 
     ephemeral? =
-      if ephemeral_option != nil,
-        do: ephemeral_option,
-        else: default_ephemeral?
+      if ephemeral_option == nil,
+        do: default_ephemeral?,
+        else: ephemeral_option
 
     ResponseHandler.defer_interaction_response(interaction, ephemeral?)
   end
@@ -175,8 +163,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
          %Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction,
          plugin_module
        )
-       when is_binary(interaction_name) and is_integer(interaction_type) and
-              is_atom(plugin_module) do
+       when is_binary(interaction_name) and is_integer(interaction_type) and is_atom(plugin_module) do
     middleware_list =
       plugin_module
       |> Plugin.get_definition_by_key(interaction_name, interaction_type)
@@ -187,48 +174,35 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     MiddlewareHandler.handle_middleware(middleware_list, interaction)
   end
 
-  defp parse_interaction(%Interaction{
-         data: %ApplicationCommandInteractionData{type: application_command_type} = data
-       })
+  defp parse_interaction(%Interaction{data: %ApplicationCommandInteractionData{type: application_command_type} = data})
        when is_integer(application_command_type) do
     resolved_data = Map.get(data, :resolved)
 
     {parsed_application_command_name_list, parsed_options} =
       parse_interaction_data(data, resolved_data)
 
-    {flatten_reverse(parsed_application_command_name_list), application_command_type,
-     flatten_reverse(parsed_options)}
+    {flatten_reverse(parsed_application_command_name_list), application_command_type, flatten_reverse(parsed_options)}
   end
 
-  defp parse_interaction_data(
-         %{name: application_command_name_part, options: options} = data_with_options,
-         resolved_data
-       )
+  defp parse_interaction_data(%{name: application_command_name_part, options: options} = data_with_options, resolved_data)
        when is_binary(application_command_name_part) and is_list(options) and
               (is_struct(data_with_options, ApplicationCommandInteractionData) or
                  is_struct(data_with_options, ApplicationCommandInteractionDataOption)) and
               valid_resolved_data(resolved_data) do
     Enum.reduce(options, {[application_command_name_part], []}, fn option,
-                                                                   {parsed_application_command_name_list,
-                                                                    parsed_options} ->
+                                                                   {parsed_application_command_name_list, parsed_options} ->
       {parsed_application_command_name_part, parsed_option} =
         parse_interaction_data(option, resolved_data)
 
-      {[parsed_application_command_name_part | parsed_application_command_name_list],
-       [parsed_option | parsed_options]}
+      {[parsed_application_command_name_part | parsed_application_command_name_list], [parsed_option | parsed_options]}
     end)
   end
 
   defp parse_interaction_data(
-         %ApplicationCommandInteractionDataOption{
-           name: option_name,
-           type: option_type,
-           value: option_value
-         },
+         %ApplicationCommandInteractionDataOption{name: option_name, type: option_type, value: option_value},
          resolved_data
        )
-       when is_binary(option_name) and is_integer(option_type) and
-              valid_resolved_data(resolved_data) do
+       when is_binary(option_name) and is_integer(option_type) and valid_resolved_data(resolved_data) do
     resolved_option_value = get_resolved_option_value(option_type, option_value, resolved_data)
     parsed_option = {option_name, option_type, resolved_option_value}
     {[], [parsed_option]}
@@ -249,8 +223,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   end
 
   defp get_resolved_option_value(type, value, resolved_interaction_data)
-       when is_integer(type) and type == 9 and is_integer(value) and
-              valid_resolved_data(resolved_interaction_data) do
+       when is_integer(type) and type == 9 and is_integer(value) and valid_resolved_data(resolved_interaction_data) do
     [6, 8]
     |> Enum.map(fn t ->
       try do

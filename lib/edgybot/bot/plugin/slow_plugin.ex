@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
 
@@ -55,19 +56,12 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
     else
       Api.modify_channel!(channel_id, %{rate_limit_per_user: delay})
 
-      {:success,
-       "Sucessfully enabled slow mode with a delay of #{Designer.code_inline(Integer.to_string(delay))}!"}
+      {:success, "Sucessfully enabled slow mode with a delay of #{Designer.code_inline(Integer.to_string(delay))}!"}
     end
   end
 
   @impl true
-  def handle_interaction(
-        ["slow", "disable"],
-        1,
-        _options,
-        %{channel_id: channel_id},
-        _middleware_data
-      ) do
+  def handle_interaction(["slow", "disable"], 1, _options, %{channel_id: channel_id}, _middleware_data) do
     Api.modify_channel!(channel_id, %{rate_limit_per_user: 0})
     {:success, "Successfully disabled slowmode!"}
   end

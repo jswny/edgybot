@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
 
   @impl true
@@ -43,13 +44,7 @@ defmodule Edgybot.Bot.Plugin.DevPlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["dev", "eval"],
-        1,
-        [{"code", 3, code_string} | _other_options],
-        _interaction,
-        _middleware_data
-      )
+  def handle_interaction(["dev", "eval"], 1, [{"code", 3, code_string} | _other_options], _interaction, _middleware_data)
       when is_binary(code_string) do
     {result, _binding} = Code.eval_string(code_string)
 

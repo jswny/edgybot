@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.Archive do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Config
 
   @impl true
@@ -21,8 +22,7 @@ defmodule Edgybot.Bot.Plugin.Archive do
             },
             %{
               name: "query-params",
-              description:
-                "Whether or not to preserve the query params of the link when archiving",
+              description: "Whether or not to preserve the query params of the link when archiving",
               type: 5,
               required: false
             }
@@ -33,28 +33,22 @@ defmodule Edgybot.Bot.Plugin.Archive do
   end
 
   @impl true
-  def handle_interaction(
-        ["archive"],
-        1,
-        [{"url", 3, url} | other_options],
-        _interaction,
-        _middleware_data
-      ) do
+  def handle_interaction(["archive"], 1, [{"url", 3, url} | other_options], _interaction, _middleware_data) do
     preserve_query_params? = find_option_value(other_options, "query-params")
 
     parsed_url = URI.parse(url)
 
     preserve_query_params_host? =
-      Config.archive_hosts_preserve_query()
-      |> Enum.any?(fn host -> host == parsed_url.host end)
+      Enum.any?(Config.archive_hosts_preserve_query(), fn host -> host == parsed_url.host end)
 
-    prepared_url =
+    if_result =
       if preserve_query_params? || preserve_query_params_host? do
         parsed_url
       else
         %{parsed_url | query: nil}
       end
-      |> URI.to_string()
+
+    prepared_url = URI.to_string(if_result)
 
     archived_url = "https://archive.today/latest/#{prepared_url}"
 

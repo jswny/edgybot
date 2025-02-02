@@ -1,17 +1,16 @@
 defmodule Edgybot.External.Qdrant do
+  @moduledoc false
   alias Edgybot.Config
   alias Edgybot.External.OpenAI
 
   require Logger
 
-  def call(method, endpoint)
-      when is_atom(method) and is_binary(endpoint) do
+  def call(method, endpoint) when is_atom(method) and is_binary(endpoint) do
     client = create_client()
     Req.request(client, method: method, url: endpoint)
   end
 
-  def call(method, endpoint, body)
-      when is_atom(method) and is_binary(endpoint) and is_map(body) do
+  def call(method, endpoint, body) when is_atom(method) and is_binary(endpoint) and is_map(body) do
     client = create_client()
     Req.request(client, method: method, url: endpoint, json: body)
   end

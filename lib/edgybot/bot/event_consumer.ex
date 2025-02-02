@@ -3,21 +3,23 @@ defmodule Edgybot.Bot.EventConsumer do
   Handles all bot events.
   """
 
-  require Logger
   use Nostrum.Consumer
+
+  alias Edgybot.Bot.Handler.ErrorHandler
+  alias Edgybot.Bot.Handler.EventHandler
+  alias Edgybot.Bot.Handler.ResponseHandler
   alias Edgybot.Config
-  alias Edgybot.Bot.Handler.{ErrorHandler, EventHandler, ResponseHandler}
+
+  require Logger
 
   @impl true
   def handle_event({event, payload, _ws_state}) do
     censor_error = Config.runtime_env() == :prod
 
-    ErrorHandler.handle_error(
-      fn ->
-        EventHandler.handle_event(event, payload)
-      end,
-      censor_error
-    )
+    fn ->
+      EventHandler.handle_event(event, payload)
+    end
+    |> ErrorHandler.handle_error(censor_error)
     |> ResponseHandler.handle_response(payload)
   end
 

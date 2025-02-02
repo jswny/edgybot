@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Handler.ErrorHandler do
   @moduledoc false
 
   alias Edgybot.Bot.Designer
+
   require Logger
 
   def handle_error(fun, censor) when is_function(fun) and is_boolean(censor) do

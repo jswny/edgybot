@@ -2,9 +2,11 @@ defmodule Edgybot.Bot.Plugin.Nick do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
-  alias Nostrum.Struct.{Interaction, User}
+  alias Nostrum.Struct.Interaction
+  alias Nostrum.Struct.User
 
   @special_space " "
 
@@ -40,9 +42,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}}, {"postfix", 3, postfix} | _other_options],
-        %Interaction{
-          guild_id: guild_id
-        },
+        %Interaction{guild_id: guild_id},
         _middleware_data
       )
       when is_integer(user_id) and is_binary(postfix) and is_integer(guild_id) do
@@ -70,9 +70,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
         ["nick"],
         1,
         [{"user", 6, %{id: user_id}} | _other_options],
-        %Interaction{
-          guild_id: guild_id
-        },
+        %Interaction{guild_id: guild_id},
         _middleware_data
       )
       when is_integer(user_id) and is_integer(guild_id) do
@@ -83,8 +81,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
     set_nickname_and_handle_response(guild_id, user_id, base_nick, :cleared)
   end
 
-  defp parse_nickname(guild_id, user_id)
-       when is_integer(guild_id) and is_integer(user_id) do
+  defp parse_nickname(guild_id, user_id) when is_integer(guild_id) and is_integer(user_id) do
     {:ok, member} = Api.get_guild_member(guild_id, user_id)
     {:ok, user} = Api.get_user(user_id)
 
@@ -98,8 +95,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
   end
 
   defp set_nickname_and_handle_response(guild_id, user_id, new_nickname, action)
-       when is_integer(guild_id) and is_integer(user_id) and is_binary(new_nickname) and
-              action in [:set, :cleared] do
+       when is_integer(guild_id) and is_integer(user_id) and is_binary(new_nickname) and action in [:set, :cleared] do
     result = Api.modify_guild_member(guild_id, user_id, nick: new_nickname)
 
     case result do
@@ -148,6 +144,5 @@ defmodule Edgybot.Bot.Plugin.Nick do
 
   defp convert_codepoint(codepoint) when codepoint in 97..122, do: codepoint - ?a + ?𝑎
 
-  defp convert_codepoint(codepoint) when is_integer(codepoint),
-    do: codepoint
+  defp convert_codepoint(codepoint) when is_integer(codepoint), do: codepoint
 end

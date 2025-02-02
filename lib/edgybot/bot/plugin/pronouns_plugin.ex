@@ -1,13 +1,15 @@
 defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   @moduledoc false
 
-  alias Base
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Emoji
   alias Nostrum.Struct.Guild.Role
-  alias Nostrum.Struct.{Emoji, Interaction, User}
+  alias Nostrum.Struct.Interaction
   alias Nostrum.Struct.Message.Attachment
+  alias Nostrum.Struct.User
 
   @role_prefix "Pronouns: "
 
@@ -77,8 +79,8 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         %Interaction{guild_id: guild_id, user: %User{id: user_id}},
         _middleware_data
       )
-      when is_binary(pronoun1) and is_binary(pronoun2) and is_list(other_options) and
-             is_integer(user_id) and is_integer(guild_id) do
+      when is_binary(pronoun1) and is_binary(pronoun2) and is_list(other_options) and is_integer(user_id) and
+             is_integer(guild_id) do
     image_option = find_option_value(other_options, "image")
     emoji_value = find_option_value(other_options, "emoji")
 
@@ -146,7 +148,8 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         _middleware_data
       )
       when is_integer(user_id) and is_integer(guild_id) do
-    Api.get_guild_roles!(guild_id)
+    guild_id
+    |> Api.get_guild_roles!()
     |> get_existing_pronoun_roles(guild_id, user_id)
     |> delete_roles(guild_id)
 
@@ -174,20 +177,15 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp get_image_url(%Emoji{} = custom_emoji, _image_option), do: Emoji.image_url(custom_emoji)
 
-  defp get_image_url(_custom_emoji, %Attachment{} = image_option),
-    do: Map.get(image_option, :url)
+  defp get_image_url(_custom_emoji, %Attachment{} = image_option), do: Map.get(image_option, :url)
 
   defp get_emoji_struct(nil), do: nil
 
   defp get_emoji_struct(content) when is_binary(content) do
-    custom_emoji_fields =
-      ~r/<a*:(?<name>.+):(?<id>\d+)>/
-      |> Regex.named_captures(content)
+    custom_emoji_fields = Regex.named_captures(~r/<a*:(?<name>.+):(?<id>\d+)>/, content)
 
     if custom_emoji_fields && custom_emoji_fields["id"] && custom_emoji_fields["name"] do
       %Emoji{name: custom_emoji_fields["name"], id: custom_emoji_fields["id"]}
-    else
-      nil
     end
   end
 
@@ -206,16 +204,13 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   defp generate_role_options(pronouns, nil, nil, true) when is_binary(pronouns),
     do: generate_role_options_with_emoji(pronouns, "🇵")
 
-  defp generate_role_options(pronouns, nil, emoji, _default)
-       when is_binary(pronouns) and is_binary(emoji),
-       do: generate_role_options_with_emoji(pronouns, emoji)
+  defp generate_role_options(pronouns, nil, emoji, _default) when is_binary(pronouns) and is_binary(emoji),
+    do: generate_role_options_with_emoji(pronouns, emoji)
 
-  defp generate_role_options(pronouns, image_url, _emoji, _default)
-       when is_binary(pronouns) and is_binary(image_url),
-       do: generate_role_options_with_image_url(pronouns, image_url)
+  defp generate_role_options(pronouns, image_url, _emoji, _default) when is_binary(pronouns) and is_binary(image_url),
+    do: generate_role_options_with_image_url(pronouns, image_url)
 
-  defp generate_role_options_with_image_url(pronouns, image_url)
-       when is_binary(pronouns) and is_binary(image_url) do
+  defp generate_role_options_with_image_url(pronouns, image_url) when is_binary(pronouns) and is_binary(image_url) do
     {:ok, %{status: 200, headers: headers, body: body}} = Req.get(image_url)
 
     content_type =
@@ -228,8 +223,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
     %{name: "#{generate_full_role_name(pronouns)}", icon: image_data, unicode_emoji: nil}
   end
 
-  defp generate_role_options_with_emoji(pronouns, emoji)
-       when is_binary(pronouns) and is_binary(emoji) do
+  defp generate_role_options_with_emoji(pronouns, emoji) when is_binary(pronouns) and is_binary(emoji) do
     %{name: "#{generate_full_role_name(pronouns)}", icon: nil, unicode_emoji: emoji}
   end
 
@@ -239,34 +233,17 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp handle_create_role_result(
          {:error,
-          %{
-            response: %{
-              code: 50_035,
-              errors: %{
-                name: %{
-                  _errors: [
-                    %{message: "Must be " <> max_role_name_length}
-                  ]
-                }
-              }
-            }
-          }},
+          %{response: %{code: 50_035, errors: %{name: %{_errors: [%{message: "Must be " <> max_role_name_length}]}}}}},
          _image,
          _emoji,
          _pronouns
        ) do
     max_role_name_length = String.replace_suffix(max_role_name_length, " or fewer in length.", "")
 
-    {:warning,
-     "Generated role name is too long; must be #{Designer.code_inline(max_role_name_length)} or less."}
+    {:warning, "Generated role name is too long; must be #{Designer.code_inline(max_role_name_length)} or less."}
   end
 
-  defp handle_create_role_result(
-         {:error, %{response: %{code: 10_014}}},
-         _image,
-         emoji,
-         _pronouns
-       )
+  defp handle_create_role_result({:error, %{response: %{code: 10_014}}}, _image, emoji, _pronouns)
        when is_binary(emoji) do
     {:warning, "The emoji #{Designer.code_inline(emoji)} is invalid."}
   end
@@ -276,9 +253,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
           %{
             response: %{
               code: 50_035,
-              errors: %{
-                icon: %{_errors: [%{message: "File cannot be larger than " <> max_image_size}]}
-              }
+              errors: %{icon: %{_errors: [%{message: "File cannot be larger than " <> max_image_size}]}}
             }
           }},
          image,
@@ -290,59 +265,27 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
     options = [
       title: "Warning",
-      description:
-        "The specified image was too large. The max image size is #{Designer.code_inline(max_image_size)}.",
+      description: "The specified image was too large. The max image size is #{Designer.code_inline(max_image_size)}.",
       image: image.url
     ]
 
     {:warning, options}
   end
 
-  defp handle_create_role_result(
-         {:error,
-          %{
-            response: %{
-              code: 50_035,
-              errors: %{
-                icon: _
-              }
-            }
-          }},
-         image,
-         _emoji,
-         _pronouns
-       )
+  defp handle_create_role_result({:error, %{response: %{code: 50_035, errors: %{icon: _}}}}, image, _emoji, _pronouns)
        when is_struct(image) do
     {:warning, "The file #{Designer.code_inline(image.filename)} is invalid."}
   end
 
-  defp handle_create_role_result(
-         {:error, :timeout},
-         image,
-         _emoji,
-         _pronouns
-       )
-       when is_struct(image) do
-    {:warning,
-     "Timed out while attempting to upload file #{Designer.code_inline(image.filename)}"}
+  defp handle_create_role_result({:error, :timeout}, image, _emoji, _pronouns) when is_struct(image) do
+    {:warning, "Timed out while attempting to upload file #{Designer.code_inline(image.filename)}"}
   end
 
-  defp handle_create_role_result(
-         {:ok, %Role{}},
-         _image,
-         _emoji,
-         pronouns
-       )
-       when is_binary(pronouns) do
+  defp handle_create_role_result({:ok, %Role{}}, _image, _emoji, pronouns) when is_binary(pronouns) do
     {:success, "Set pronouns to #{Designer.code_inline(pronouns)}"}
   end
 
-  defp setup_new_role(
-         {:ok, %Role{id: new_role_id}},
-         guild_id,
-         user_id,
-         highest_position_role_with_icon
-       )
+  defp setup_new_role({:ok, %Role{id: new_role_id}}, guild_id, user_id, highest_position_role_with_icon)
        when is_integer(guild_id) and is_integer(user_id) and is_integer(new_role_id) and
               is_struct(highest_position_role_with_icon) do
     {:ok} = Api.add_guild_member_role(guild_id, user_id, new_role_id)

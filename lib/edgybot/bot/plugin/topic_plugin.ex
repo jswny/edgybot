@@ -2,6 +2,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
+
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
   alias Nostrum.Struct.Interaction

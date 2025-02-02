@@ -7,21 +7,19 @@ defmodule Edgybot.External.OpenAI do
       when is_binary(endpoint) and is_map(body) and (is_integer(user_id) or is_nil(user_id)) do
     req = create_client()
 
-    default_body = if user_id != nil, do: %{user: Integer.to_string(user_id)}, else: %{}
+    default_body = if user_id == nil, do: %{}, else: %{user: Integer.to_string(user_id)}
 
     body =
       default_body
       |> Map.merge(body)
       |> Enum.filter(fn {_, value} -> value != nil end)
-      |> Enum.into(%{})
+      |> Map.new()
 
     response = Req.post(req, url: endpoint, json: body)
 
     case response do
       {:ok, response} ->
-        json_response =
-          response
-          |> Map.fetch!(:body)
+        json_response = Map.fetch!(response, :body)
 
         case json_response do
           %{"error" => %{"message" => message}} ->

@@ -5,8 +5,9 @@ defmodule Edgybot.Registrar do
     module_prefix = Keyword.fetch!(opts, :module_prefix)
 
     quote do
-      use Agent
       @behaviour unquote(__MODULE__)
+
+      use Agent
 
       def start_link(initial_value) do
         Agent.start_link(fn -> load_modules(unquote(module_prefix)) end, name: __MODULE__)
