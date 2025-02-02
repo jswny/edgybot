@@ -205,8 +205,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
        ) do
     messages = Enum.concat([system_messages, conversation_messages, [prompt_message]])
 
-    File.write!("output.json", Jason.encode!(messages))
-
     tool_definitions = Map.values(tools)
 
     updated_body = Map.put(body, :messages, messages)
