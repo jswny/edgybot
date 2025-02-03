@@ -57,7 +57,8 @@ defmodule Edgybot.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:ecto_psql_extras, "~> 0.8"},
-      {:oban_web, "~> 2.11"}
+      {:oban_web, "~> 2.11"},
+      {:error_tracker, "~> 0.5"}
     ]
   end
 

@@ -16,6 +16,8 @@ defmodule Edgybot.Bot.EventConsumer do
   def handle_event({event, payload, _ws_state}) do
     censor_error = Config.runtime_env() == :prod
 
+    generate_error_context(event, payload)
+
     fn ->
       EventHandler.handle_event(event, payload)
     end
@@ -26,5 +28,21 @@ defmodule Edgybot.Bot.EventConsumer do
   @impl true
   def handle_event(_event) do
     :noop
+  end
+
+  defp generate_error_context(event, payload) do
+    context = %{
+      event: event,
+      interaction_id: get_in(payload, [Access.key(:id, nil)]),
+      interaction_type: get_in(payload, [Access.key(:type, nil)]),
+      guild_id: get_in(payload, [Access.key(:guild_id, nil)]),
+      channel_id: get_in(payload, [Access.key(:channel_id, nil)]),
+      channel_name: get_in(payload, [Access.key(:channel, %{}), Access.key(:name, nil)]),
+      user_id: get_in(payload, [Access.key(:user, %{}), Access.key(:id, nil)]),
+      username: get_in(payload, [Access.key(:user, %{}), Access.key(:username, nil)]),
+      interaction_name: get_in(payload, [Access.key(:data, %{}), Access.key(:name, nil)])
+    }
+
+    ErrorTracker.set_context(context)
   end
 end

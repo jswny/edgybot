@@ -14,11 +14,13 @@ defmodule Edgybot.Bot.Handler.ErrorHandler do
 
       log_error(reason, stacktrace)
 
+      ErrorTracker.report(e, stacktrace)
+
       if censor do
         reason = "Internal error"
         {:error, reason}
       else
-        {:error, [description: Designer.code_inline(reason), stacktrace: __STACKTRACE__]}
+        {:error, [description: Designer.code_inline(reason), stacktrace: stacktrace]}
       end
   end
 
