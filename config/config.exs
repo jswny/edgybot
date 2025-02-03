@@ -23,6 +23,12 @@ config :edgybot,
   generators: [timestamp_type: :utc_datetime],
   web_admin_auth_enabled: true
 
+config :error_tracker,
+  repo: Edgybot.Repo,
+  otp_app: :edgybot,
+  enabled: true,
+  plugins: [ErrorTracker.Plugins.Pruner]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
