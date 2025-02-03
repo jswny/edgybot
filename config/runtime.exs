@@ -202,7 +202,8 @@ config :edgybot, Oban,
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},
     Oban.Plugins.Pruner
   ],
-  repo: Edgybot.Repo
+  repo: Edgybot.Repo,
+  notifier: Oban.Notifiers.PG
 
 config :edgybot,
   runtime_env: config_env(),
