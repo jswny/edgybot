@@ -205,6 +205,12 @@ config :edgybot, Oban,
   repo: Edgybot.Repo,
   notifier: Oban.Notifiers.PG
 
+config :edgybot, OpenRouter,
+  base_url: get_env_var.("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+  api_key: get_env_var.("OPENROUTER_API_KEY", nil),
+  timeout: String.to_integer(get_env_var.("OPENROUTER_TIMEOUT", "840000")),
+  default_model: get_env_var.("OPENROUTER_DEFAULT_MODEL", "openai/gpt-4o-mini")
+
 config :edgybot,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),

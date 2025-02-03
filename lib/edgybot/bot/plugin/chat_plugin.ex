@@ -6,7 +6,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Discord
-  alias Edgybot.External.OpenAI
+  alias Edgybot.External.OpenRouter, as: OpenRouterAPI
   alias Edgybot.External.Qdrant
   alias Nostrum.Api
   alias Nostrum.Cache.MemberCache
@@ -18,7 +18,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   @impl true
   def get_plugin_definitions do
-    model_choices = Config.openai_chat_models()
     max_context_size = Config.chat_plugin_recent_context_max_size()
 
     [
@@ -44,10 +43,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             },
             %{
               name: "model",
-              description: "The model to use. Default: #{Enum.at(model_choices, 0).name}",
+              description: "The model to use. See: https://openrouter.ai/models",
               type: 3,
-              required: false,
-              choices: model_choices
+              required: false
             },
             %{
               name: "behavior",
@@ -75,20 +73,20 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         1,
         [{"prompt", 3, prompt} | other_options],
         %Interaction{
-          user: %User{id: caller_user_id, username: caller_username},
+          user: %User{username: caller_username},
           member: %Member{nick: caller_nick},
           guild_id: guild_id,
           channel_id: channel_id
         },
         _middleware_data
       ) do
-    url = "https://api.openai.com/v1/chat/completions"
-    available_models = Config.openai_chat_models()
+    endpoint = "chat/completions"
+    default_model = Application.get_env(:edgybot, OpenRouter)[:default_model]
 
     num_recent_context_messages = find_option_value(other_options, "context")
 
     model =
-      find_option_value(other_options, "model") || Enum.at(available_models, 0).value
+      find_option_value(other_options, "model") || default_model
 
     behavior = find_option_value(other_options, "behavior")
     temperature = find_option_value(other_options, "temperature")
@@ -127,23 +125,23 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     completion_metadata = %{guild_id: guild_id, prompt: prompt}
 
     case generate_completion_with_tools(
-           url,
+           endpoint,
            body,
            system_messages,
            recent_context_messages,
            prompt_message,
            tools,
-           caller_user_id,
            completion_metadata
          ) do
-      {:ok, chat_response} ->
+      {:ok, chat_response, metadata} ->
         fields =
           generate_fields(
             prompt,
             num_recent_context_messages,
             model,
             behavior,
-            temperature
+            temperature,
+            Map.get(metadata, :supported_params)
           )
 
         options = [
@@ -193,41 +191,44 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     )
   end
 
-  defp generate_completion_with_tools(
-         url,
-         body,
-         system_messages,
-         conversation_messages,
-         prompt_message,
-         tools,
-         caller_user_id,
-         metadata
-       ) do
+  defp generate_completion_with_tools(url, body, system_messages, conversation_messages, prompt_message, tools, metadata) do
     messages = Enum.concat([system_messages, conversation_messages, [prompt_message]])
 
     tool_definitions = Map.values(tools)
 
+    supports_tools? = model_supports_parameters?(body.model, "tools")
+
     updated_body = Map.put(body, :messages, messages)
 
+    tools_param = :tools
+
     updated_body =
-      if length(tool_definitions) > 0 do
-        Map.put(updated_body, :tools, tool_definitions)
+      if supports_tools? && length(tool_definitions) > 0 do
+        Map.put(updated_body, tools_param, tool_definitions)
       else
         updated_body
       end
 
-    response = OpenAI.post_and_handle_errors(url, updated_body, caller_user_id)
+    updated_metadata =
+      Map.update(metadata, :supported_params, [tools_param], fn params ->
+        if supports_tools? && !Enum.member?(params, tools_param) do
+          [tools_param | params]
+        else
+          params
+        end
+      end)
+
+    response = OpenRouterAPI.post_and_handle_errors(url, updated_body)
 
     generate_completion_with_tools(
       response,
       url,
-      body,
+      updated_body,
       system_messages,
       conversation_messages,
       prompt_message,
       tools,
-      caller_user_id,
-      metadata
+      updated_metadata
     )
   end
 
@@ -239,40 +240,33 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          _conversation_messages,
          _prompt_message,
          _tools,
-         _caller_user_id,
          _metadata
        ) do
     result
   end
 
   defp generate_completion_with_tools(
-         {:ok, %{"choices" => [%{"finish_reason" => "stop", "message" => %{"content" => content}} | _]}},
+         {:ok, %{"error" => %{"code" => code, "message" => message}}},
          _url,
          _body,
          _system_messages,
          _conversation_messages,
          _prompt_message,
          _tools,
-         _caller_user_id,
          _metadata
        ) do
-    {:ok, content}
+    error_message = "Error code: #{code}, message: #{message}"
+    {:error, error_message}
   end
 
   defp generate_completion_with_tools(
-         {:ok,
-          %{
-            "choices" => [
-              %{"finish_reason" => "tool_calls", "message" => %{"tool_calls" => tool_calls} = message} | _other_choices
-            ]
-          }},
+         {:ok, %{"choices" => [%{"message" => %{"tool_calls" => tool_calls} = message} | _other_choices]}},
          url,
          body,
          system_messages,
          conversation_messages,
          prompt_message,
          tools,
-         caller_user_id,
          metadata
        ) do
     conversation_messages = conversation_messages ++ [message]
@@ -286,9 +280,22 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       prompt_message,
       tools,
       tool_calls,
-      caller_user_id,
       metadata
     )
+  end
+
+  defp generate_completion_with_tools(
+         {:ok, %{"model" => model, "choices" => [%{"message" => %{"content" => content}} | _other_choices]}},
+         _url,
+         _body,
+         _system_messages,
+         _conversation_messages,
+         _prompt_message,
+         _tools,
+         metadata
+       ) do
+    metadata = Map.put(metadata, :model, model)
+    {:ok, content, metadata}
   end
 
   defp generate_completion_with_tools(
@@ -300,7 +307,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          prompt_message,
          tools,
          [],
-         caller_user_id,
          metadata
        ) do
     generate_completion_with_tools(
@@ -310,7 +316,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       conversation_messages,
       prompt_message,
       tools,
-      caller_user_id,
       metadata
     )
   end
@@ -327,7 +332,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
            %{"id" => tool_call_id, "function" => %{"name" => "search_group_messages", "arguments" => arguments}}
            | remaining_tool_calls
          ],
-         caller_user_id,
          %{guild_id: guild_id} = metadata
        ) do
     %{"query" => query} = Jason.decode!(arguments)
@@ -390,7 +394,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           prompt_message,
           tools,
           remaining_tool_calls,
-          caller_user_id,
           metadata
         )
 
@@ -415,7 +418,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           prompt_message,
           tools,
           remaining_tool_calls,
-          caller_user_id,
           metadata
         )
     end
@@ -495,10 +497,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     message.author.bot != true && message.content != nil && message.content != ""
   end
 
-  defp generate_fields(prompt, num_context_messages, model, behavior, temperature)
+  defp generate_fields(prompt, num_context_messages, model, behavior, temperature, supported_params)
        when is_binary(prompt) and is_binary(model) and is_integer(num_context_messages)
        when is_binary(behavior) or is_nil(behavior)
-       when is_float(temperature) or is_nil(temperature) do
+       when is_float(temperature) or is_nil(temperature)
+       when is_list(supported_params) or is_nil(supported_params) do
     prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
 
     context_field = %{
@@ -521,12 +524,26 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       inline: true
     }
 
+    supported_params_value =
+      case supported_params do
+        nil -> nil
+        [] -> Designer.code_inline("None")
+        _ -> supported_params |> Enum.join(", ") |> Designer.code_inline()
+      end
+
+    supported_params_field = %{
+      name: "Supported Params",
+      value: supported_params_value,
+      inline: true
+    }
+
     [
       prompt_field,
       context_field,
       model_field,
       behavior_field,
-      temperature_field
+      temperature_field,
+      supported_params_field
     ]
   end
 
@@ -562,5 +579,21 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
       [message | system_messages]
     end
+  end
+
+  defp model_supports_parameters?(model, parameters) do
+    cache_result =
+      Cachex.fetch(:openrouter_models_cache, parameters, fn _key ->
+        {:ok, %{"data" => models}} = OpenRouterAPI.get("models", supported_parameters: parameters)
+        {:commit, models}
+      end)
+
+    model_definitions =
+      case cache_result do
+        {:ok, models} -> models
+        {:commit, models} -> models
+      end
+
+    Enum.any?(model_definitions, fn model_definition -> model_definition["id"] == model end)
   end
 end
