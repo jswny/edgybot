@@ -32,6 +32,7 @@ defmodule Edgybot.Application do
     ]
 
     :ok = Oban.Telemetry.attach_default_logger(level: :debug, encode: false)
+    :ok = Oban.Web.Telemetry.attach_default_logger(level: :info, encode: false)
 
     :telemetry.attach(
       "oban-errors",

@@ -1,6 +1,7 @@
 defmodule EdgybotWeb.Router do
   use EdgybotWeb, :router
 
+  import Oban.Web.Router
   import Phoenix.LiveDashboard.Router
 
   pipeline :browser do
@@ -29,6 +30,7 @@ defmodule EdgybotWeb.Router do
   scope "/" do
     pipe_through [:browser, :admins_only]
     live_dashboard "/dashboard", metrics: EdgybotWeb.Telemetry
+    oban_dashboard("/oban")
   end
 
   # Other scopes may use custom stacks.

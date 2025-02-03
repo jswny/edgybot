@@ -38,7 +38,7 @@ defmodule Edgybot.MixProject do
       {:jason, "~> 1.4"},
       {:req, "~> 0.5.0"},
       {:cachex, "~> 4.0"},
-      {:oban, "~> 2.18"},
+      {:oban, "~> 2.19"},
       {:styler, "~> 1.3", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.7.19"},
       {:phoenix_ecto, "~> 4.5"},
@@ -56,7 +56,8 @@ defmodule Edgybot.MixProject do
       {:gettext, "~> 0.26"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:ecto_psql_extras, "~> 0.8"}
+      {:ecto_psql_extras, "~> 0.8"},
+      {:oban_web, "~> 2.11"}
     ]
   end
 
