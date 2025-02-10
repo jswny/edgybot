@@ -324,98 +324,50 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          prompt_message,
          tools,
          [
-           %{"id" => tool_call_id, "function" => %{"name" => "search_group_messages", "arguments" => arguments}}
+           %{"id" => tool_call_id, "function" => %{"name" => tool_call_name, "arguments" => tool_call_arguments}}
            | remaining_tool_calls
          ],
-         %{guild_id: guild_id} = metadata
+         metadata
        ) do
-    %{"query" => query} = Jason.decode!(arguments)
+    tool_call_arguments = Jason.decode!(tool_call_arguments)
+    tool_call_result = call_tool_with_cache(tool_call_name, tool_call_arguments, metadata)
 
-    universal_context_min_score = Config.chat_plugin_universal_context_min_score()
-    universal_context_limit = Config.chat_plugin_universal_context_max_size()
-    collection = Config.qdrant_collection_discord_messages()
+    {system_messages, tool_call_content} =
+      case tool_call_result do
+        {:ok, tool_call_content} ->
+          system_messages =
+            add_system_message_if_not_exists(
+              system_messages,
+              :context,
+              Config.openai_chat_system_prompt_context()
+            )
 
-    universal_context_messages_result =
-      case Qdrant.embed_and_find_closest(
-             collection,
-             query,
-             universal_context_limit,
-             score_threshold: universal_context_min_score
-           ) do
-        {:ok, %{"result" => result_batch}} ->
-          {:ok, enrich_universal_context_batch(result_batch, guild_id)}
+          {system_messages, tool_call_content}
 
         {:error, error} ->
-          {:error, error}
+          {system_messages, "Error calling tool: #{inspect(error)}"}
       end
 
-    case universal_context_messages_result do
-      {:ok, universal_context_messages} ->
-        universal_context_message_content =
-          universal_context_messages
-          |> Enum.reduce(
-            [
-              "Here are some historical messages that may or may not be relevant to the current query: "
-            ],
-            fn %{name: name, content: content}, acc ->
-              ["[#{name}] '#{content}', " | acc]
-            end
-          )
-          |> Enum.reverse()
-          |> IO.iodata_to_binary()
+    tool_call_message = %{
+      role: "tool",
+      tool_call_id: tool_call_id,
+      content: tool_call_content
+    }
 
-        system_messages =
-          add_system_message_if_not_exists(
-            system_messages,
-            :context,
-            Config.openai_chat_system_prompt_context()
-          )
+    conversation_messages =
+      conversation_messages ++ [tool_call_message]
 
-        universal_context_tool_message = %{
-          role: "tool",
-          tool_call_id: tool_call_id,
-          content: universal_context_message_content
-        }
-
-        conversation_messages =
-          conversation_messages ++ [universal_context_tool_message]
-
-        generate_completion_with_tools(
-          response,
-          url,
-          body,
-          system_messages,
-          conversation_messages,
-          prompt_message,
-          tools,
-          remaining_tool_calls,
-          metadata
-        )
-
-      {:error, error} ->
-        universal_context_message_content = "Error fetching messages: #{inspect(error)}"
-
-        universal_context_tool_message = %{
-          role: "tool",
-          tool_call_id: tool_call_id,
-          content: universal_context_message_content
-        }
-
-        conversation_messages =
-          conversation_messages ++ [universal_context_tool_message]
-
-        generate_completion_with_tools(
-          response,
-          url,
-          body,
-          system_messages,
-          conversation_messages,
-          prompt_message,
-          tools,
-          remaining_tool_calls,
-          metadata
-        )
-    end
+    generate_completion_with_tools(
+      response,
+      url,
+      body,
+      system_messages,
+      conversation_messages,
+      prompt_message,
+      tools,
+      remaining_tool_calls,
+      metadata
+    )
   end
 
   defp update_with_tools_support(body, metadata, tools) do
@@ -503,6 +455,64 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           }
       end
     end)
+  end
+
+  defp call_tool_with_cache(name, arguments, metadata) do
+    cache_key = %{name: name, arguments: arguments}
+
+    cache_result =
+      Cachex.fetch(:model_tool_call_cache, cache_key, fn _key ->
+        case call_tool(name, arguments, metadata) do
+          {:ok, tool_call_result, expire} -> {:commit, tool_call_result, expire: expire}
+          {:error, error} -> {:ignore, "Error calling tool: #{inspect(error)}"}
+        end
+      end)
+
+    case cache_result do
+      {:ignore, error} -> {:error, error}
+      {_, tool_call_result} -> {:ok, tool_call_result}
+    end
+  end
+
+  defp call_tool("search_group_messages", %{"query" => query}, %{guild_id: guild_id}) do
+    universal_context_min_score = Config.chat_plugin_universal_context_min_score()
+    universal_context_limit = Config.chat_plugin_universal_context_max_size()
+    collection = Config.qdrant_collection_discord_messages()
+
+    universal_context_messages_result =
+      case Qdrant.embed_and_find_closest(
+             collection,
+             query,
+             universal_context_limit,
+             score_threshold: universal_context_min_score
+           ) do
+        {:ok, %{"result" => result_batch}} ->
+          {:ok, enrich_universal_context_batch(result_batch, guild_id)}
+
+        {:error, error} ->
+          {:error, error}
+      end
+
+    case universal_context_messages_result do
+      {:ok, universal_context_messages} ->
+        formatted_content =
+          universal_context_messages
+          |> Enum.reduce(
+            [
+              "Here are some historical messages that may or may not be relevant to the current query: "
+            ],
+            fn %{name: name, content: content}, acc ->
+              ["[#{name}] '#{content}', " | acc]
+            end
+          )
+          |> Enum.reverse()
+          |> IO.iodata_to_binary()
+
+        {:ok, formatted_content, :timer.hours(1)}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   defp get_recent_context_messages(guild_id, channel_id, num_messages)
