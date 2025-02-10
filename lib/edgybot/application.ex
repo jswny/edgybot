@@ -28,6 +28,10 @@ defmodule Edgybot.Application do
         {Cachex, name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},
         id: :processed_string_cache
       ),
+      Supervisor.child_spec(
+        {Cachex, name: :openrouter_models_cache, expiration: expiration(interval: :timer.hours(1))},
+        id: :openrouter_models_cache
+      ),
       {Oban, Application.fetch_env!(:edgybot, Oban)}
     ]
 
