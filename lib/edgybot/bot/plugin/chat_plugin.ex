@@ -60,6 +60,12 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
               required: false,
               min_value: 0,
               max_value: 2.0
+            },
+            %{
+              name: "debug",
+              description: "Output extra debugging information",
+              type: 5,
+              required: false
             }
           ]
         }
@@ -134,6 +140,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
            completion_metadata
          ) do
       {:ok, chat_response, metadata} ->
+        debug = find_option_value(other_options, "debug")
+
         fields =
           generate_fields(
             prompt,
@@ -141,7 +149,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             model,
             behavior,
             temperature,
-            Map.get(metadata, :supported_params)
+            Map.get(metadata, :supported_params),
+            debug && Map.get(metadata, :tool_calls)
           )
 
         options = [
@@ -271,17 +280,23 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
        ) do
     conversation_messages = conversation_messages ++ [message]
 
-    generate_completion_with_tools(
-      {:ok, :tool_calls},
-      url,
-      body,
-      system_messages,
-      conversation_messages,
-      prompt_message,
-      tools,
-      tool_calls,
-      metadata
-    )
+    case add_tool_calls_to_metadata(metadata, tool_calls) do
+      {:ok, metadata} ->
+        generate_completion_with_tools(
+          {:ok, :tool_calls},
+          url,
+          body,
+          system_messages,
+          conversation_messages,
+          prompt_message,
+          tools,
+          tool_calls,
+          metadata
+        )
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   defp generate_completion_with_tools(
@@ -423,6 +438,40 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
+  defp add_tool_calls_to_metadata(metadata, tool_calls) do
+    result =
+      Enum.reduce_while(tool_calls, metadata, fn %{
+                                                   "function" => %{
+                                                     "name" => tool_call_name,
+                                                     "arguments" => tool_call_arguments
+                                                   }
+                                                 },
+                                                 metadata_acc ->
+        case Jason.decode(tool_call_arguments) do
+          {:ok, tool_call_arguments_decoded} ->
+            tool_call_metadata = %{name: tool_call_name, arguments: tool_call_arguments_decoded}
+
+            updated_metadata =
+              Map.update(metadata_acc, :tool_calls, [tool_call_metadata], fn existing_tool_call_metadatas ->
+                [tool_call_metadata | existing_tool_call_metadatas]
+              end)
+
+            {:cont, updated_metadata}
+
+          {:error, error} ->
+            {:halt, {:error, error}}
+        end
+      end)
+
+    case result do
+      {:error, error} ->
+        {:error, "Error deserializing tool calls: #{inspect(error)}"}
+
+      updated_metadata ->
+        {:ok, updated_metadata}
+    end
+  end
+
   defp enrich_universal_context_batch([], _guild_id), do: []
 
   defp enrich_universal_context_batch(batch, guild_id) do
@@ -497,11 +546,12 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     message.author.bot != true && message.content != nil && message.content != ""
   end
 
-  defp generate_fields(prompt, num_context_messages, model, behavior, temperature, supported_params)
+  defp generate_fields(prompt, num_context_messages, model, behavior, temperature, supported_params, tool_calls)
        when is_binary(prompt) and is_binary(model) and is_integer(num_context_messages)
        when is_binary(behavior) or is_nil(behavior)
        when is_float(temperature) or is_nil(temperature)
-       when is_list(supported_params) or is_nil(supported_params) do
+       when is_list(supported_params) or is_nil(supported_params)
+       when is_list(tool_calls) or is_nil(tool_calls) do
     prompt_field = %{name: "Prompt", value: Designer.code_block(prompt)}
 
     context_field = %{
@@ -537,14 +587,32 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       inline: true
     }
 
+    tool_calls_field = get_tool_calls_field(tool_calls)
+
     [
       prompt_field,
       context_field,
       model_field,
       behavior_field,
       temperature_field,
-      supported_params_field
+      supported_params_field,
+      tool_calls_field
     ]
+  end
+
+  defp get_tool_calls_field(tool_calls) do
+    tool_calls_value =
+      case tool_calls do
+        nil -> nil
+        [] -> nil
+        _ -> tool_calls |> Jason.encode!(pretty: true) |> Designer.code_block()
+      end
+
+    %{
+      name: "Tool Calls",
+      value: tool_calls_value,
+      inline: true
+    }
   end
 
   defp search_messages_function_definition do
