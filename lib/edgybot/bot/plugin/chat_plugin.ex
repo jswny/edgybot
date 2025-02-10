@@ -201,43 +201,23 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp generate_completion_with_tools(url, body, system_messages, conversation_messages, prompt_message, tools, metadata) do
-    messages = Enum.concat([system_messages, conversation_messages, [prompt_message]])
+    prompt_messages = if prompt_message, do: [prompt_message], else: []
+    messages = Enum.concat([system_messages, conversation_messages, prompt_messages])
 
-    tool_definitions = Map.values(tools)
+    body = Map.put(body, :messages, messages)
+    {body, metadata} = update_with_tools_support(body, metadata, tools)
 
-    supports_tools? = model_supports_parameters?(body.model, "tools")
-
-    updated_body = Map.put(body, :messages, messages)
-
-    tools_param = :tools
-
-    updated_body =
-      if supports_tools? && length(tool_definitions) > 0 do
-        Map.put(updated_body, tools_param, tool_definitions)
-      else
-        updated_body
-      end
-
-    updated_metadata =
-      Map.update(metadata, :supported_params, [tools_param], fn params ->
-        if supports_tools? && !Enum.member?(params, tools_param) do
-          [tools_param | params]
-        else
-          params
-        end
-      end)
-
-    response = OpenRouterAPI.post_and_handle_errors(url, updated_body)
+    response = OpenRouterAPI.post_and_handle_errors(url, body)
 
     generate_completion_with_tools(
       response,
       url,
-      updated_body,
+      body,
       system_messages,
       conversation_messages,
       prompt_message,
       tools,
-      updated_metadata
+      metadata
     )
   end
 
@@ -278,7 +258,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          tools,
          metadata
        ) do
-    conversation_messages = conversation_messages ++ [message]
+    conversation_messages = conversation_messages ++ [prompt_message, message]
 
     case add_tool_calls_to_metadata(metadata, tool_calls) do
       {:ok, metadata} ->
@@ -288,7 +268,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           body,
           system_messages,
           conversation_messages,
-          prompt_message,
+          nil,
           tools,
           tool_calls,
           metadata
@@ -436,6 +416,32 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           metadata
         )
     end
+  end
+
+  defp update_with_tools_support(body, metadata, tools) do
+    tool_definitions = Map.values(tools)
+    supports_tools? = model_supports_parameters?(body.model, "tools")
+    tools_param = :tools
+
+    updated_body =
+      if supports_tools? && length(tool_definitions) > 0 do
+        Map.put(body, tools_param, tool_definitions)
+      else
+        body
+      end
+
+    default_params = if supports_tools?, do: [tools_param], else: []
+
+    updated_metadata =
+      Map.update(metadata, :supported_params, default_params, fn params ->
+        if supports_tools? && !Enum.member?(params, tools_param) do
+          [tools_param | params]
+        else
+          params
+        end
+      end)
+
+    {updated_body, updated_metadata}
   end
 
   defp add_tool_calls_to_metadata(metadata, tool_calls) do
