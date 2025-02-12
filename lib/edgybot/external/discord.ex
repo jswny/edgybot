@@ -1,5 +1,14 @@
 defmodule Edgybot.External.Discord do
   @moduledoc false
+  alias Nostrum.Cache.MemberCache
+
+  def get_user_sanitized_chat_message_name(guild_id, user_id) do
+    case MemberCache.get_with_user(guild_id, user_id) do
+      {%{nick: nick}, %{username: username}} -> sanitize_chat_message_name(nick, username)
+      nil -> "Unknown"
+    end
+  end
+
   def sanitize_chat_message_name(name, fallback_value) when is_nil(name) and is_binary(fallback_value) do
     cache_result =
       Cachex.fetch(:processed_string_cache, name, fn _key -> {:commit, fallback_value} end)
