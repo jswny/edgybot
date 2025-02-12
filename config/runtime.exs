@@ -191,6 +191,11 @@ fal_image_models_edit_default = """
 
 fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
 
+config :edgybot, Kagi,
+  base_url: get_env_var.("KAGI_BASE_URL", "https://kagi.com/api/v0"),
+  api_key: get_env_var.("KAGI_API_KEY", nil),
+  timeout: String.to_integer(get_env_var.("KAGI_TIMEOUT", "840000"))
+
 config :edgybot, Oban,
   engine: Oban.Engines.Basic,
   queues: [

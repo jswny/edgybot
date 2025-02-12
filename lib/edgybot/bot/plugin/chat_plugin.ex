@@ -6,6 +6,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Discord
+  alias Edgybot.External.Kagi
   alias Edgybot.External.OpenRouter, as: OpenRouterAPI
   alias Edgybot.External.Qdrant
   alias Nostrum.Api
@@ -107,7 +108,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         []
       end
 
-    system_messages = generate_system_messages(behavior, length(recent_context_messages))
+    system_messages = generate_system_messages(behavior)
 
     prompt_message = %{
       role: "user",
@@ -122,9 +123,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       }
 
     tools = %{
-      search_messages_function_definition().name => %{
+      tool_definition_search_group_messages().name => %{
         type: "function",
-        function: search_messages_function_definition()
+        function: tool_definition_search_group_messages()
+      },
+      tool_definition_search_internet().name => %{
+        type: "function",
+        function: tool_definition_search_internet()
       }
     }
 
@@ -166,38 +171,24 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
-  defp generate_system_messages(nil, 0) do
+  defp generate_system_messages do
+    today = Date.utc_today()
+    today_formatted = Calendar.strftime(today, "%A %B %d, %Y")
+
     [
-      %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default}
+      %{role: "system", content: Config.openai_chat_system_prompt_base()},
+      %{role: "system", content: Config.openai_chat_system_prompt_context()},
+      %{role: "system", content: "Today's UTC date is #{today_formatted}"}
     ]
   end
 
-  defp generate_system_messages(behavior, 0) do
-    [
-      %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default},
-      %{role: "system", content: behavior, type: :behavior}
-    ]
-  end
+  defp generate_system_messages(nil), do: generate_system_messages()
 
-  defp generate_system_messages(nil, _conversation_messages_length) do
-    add_system_message_if_not_exists(
+  defp generate_system_messages(behavior) do
+    generate_system_messages() ++
       [
-        %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default}
-      ],
-      :context,
-      Config.openai_chat_system_prompt_context()
-    )
-  end
-
-  defp generate_system_messages(behavior, _conversation_messages_length) do
-    add_system_message_if_not_exists(
-      [
-        %{role: "system", content: Config.openai_chat_system_prompt_base(), type: :default},
-        %{role: "system", content: behavior, type: :behavior}
-      ],
-      :context,
-      Config.openai_chat_system_prompt_context()
-    )
+        %{role: "system", content: behavior}
+      ]
   end
 
   defp generate_completion_with_tools(url, body, system_messages, conversation_messages, prompt_message, tools, metadata) do
@@ -332,20 +323,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     tool_call_arguments = Jason.decode!(tool_call_arguments)
     tool_call_result = call_tool_with_cache(tool_call_name, tool_call_arguments, metadata)
 
-    {system_messages, tool_call_content} =
+    tool_call_content =
       case tool_call_result do
-        {:ok, tool_call_content} ->
-          system_messages =
-            add_system_message_if_not_exists(
-              system_messages,
-              :context,
-              Config.openai_chat_system_prompt_context()
-            )
-
-          {system_messages, tool_call_content}
-
-        {:error, error} ->
-          {system_messages, "Error calling tool: #{inspect(error)}"}
+        {:ok, tool_call_content} -> tool_call_content
+        {:error, error} -> "Error calling tool: #{inspect(error)}"
       end
 
     tool_call_message = %{
@@ -471,6 +452,16 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     case cache_result do
       {:ignore, error} -> {:error, error}
       {_, tool_call_result} -> {:ok, tool_call_result}
+    end
+  end
+
+  defp call_tool("search_internet", %{"query" => _query} = body, _metadata) do
+    case Kagi.post_and_handle_errors("/fastgpt", body) do
+      {:ok, %{"data" => %{"output" => output}}} ->
+        {:ok, output, :timer.hours(1)}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 
@@ -631,7 +622,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     }
   end
 
-  defp search_messages_function_definition do
+  defp tool_definition_search_group_messages do
     %{
       name: "search_group_messages",
       description:
@@ -651,18 +642,23 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     }
   end
 
-  defp add_system_message_if_not_exists(system_messages, type, content) do
-    if Enum.any?(system_messages, fn %{type: existing_type} -> existing_type == type end) do
-      system_messages
-    else
-      message = %{
-        role: "system",
-        content: content,
-        type: type
+  defp tool_definition_search_internet do
+    %{
+      name: "search_internet",
+      description: "Searches the internet for information related to a specific query.",
+      strict: true,
+      parameters: %{
+        type: "object",
+        required: ["query"],
+        properties: %{
+          query: %{
+            type: "string",
+            description: "Query to search for."
+          }
+        },
+        additionalProperties: false
       }
-
-      [message | system_messages]
-    end
+    }
   end
 
   defp model_supports_parameters?(model, parameters) do
