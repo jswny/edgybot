@@ -130,6 +130,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       tool_definition_search_internet().name => %{
         type: "function",
         function: tool_definition_search_internet()
+      },
+      tool_definition_list_group_users().name => %{
+        type: "function",
+        function: tool_definition_list_group_users()
       }
     }
 
@@ -193,7 +197,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(url, body, system_messages, conversation_messages, prompt_message, tools, metadata) do
     prompt_messages = if prompt_message, do: [prompt_message], else: []
-    messages = Enum.concat([system_messages, conversation_messages, prompt_messages])
+    conversation_messages = Enum.concat(conversation_messages, prompt_messages)
+    messages = Enum.concat([system_messages, conversation_messages])
 
     body = Map.put(body, :messages, messages)
     {body, metadata} = update_with_tools_support(body, metadata, tools)
@@ -245,11 +250,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          body,
          system_messages,
          conversation_messages,
-         prompt_message,
+         _prompt_message,
          tools,
          metadata
        ) do
-    conversation_messages = conversation_messages ++ [prompt_message, message]
+    conversation_messages = Enum.concat([conversation_messages, [message]])
 
     case add_tool_calls_to_metadata(metadata, tool_calls) do
       {:ok, metadata} ->
@@ -420,21 +425,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
                            "content" => content
                          }
                        } ->
-      case MemberCache.get_with_user(guild_id, user_id) do
-        {%{nick: nick}, %{username: username}} ->
-          %{
-            role: "user",
-            name: Discord.sanitize_chat_message_name(nick, username),
-            content: content
-          }
-
-        nil ->
-          %{
-            role: "user",
-            name: "Unknown",
-            content: content
-          }
-      end
+      %{
+        role: "user",
+        name: Discord.get_user_sanitized_chat_message_name(guild_id, user_id),
+        content: content
+      }
     end)
   end
 
@@ -452,6 +447,23 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     case cache_result do
       {:ignore, error} -> {:error, error}
       {_, tool_call_result} -> {:ok, tool_call_result}
+    end
+  end
+
+  defp call_tool("list_group_users", _body, %{guild_id: guild_id}) do
+    users =
+      guild_id
+      |> MemberCache.by_guild()
+      |> Enum.map(fn member ->
+        user_id = member.user_id
+        %{id: user_id, name: Discord.get_user_sanitized_chat_message_name(guild_id, user_id)}
+      end)
+
+    data = %{"data" => users}
+
+    case Jason.encode(data) do
+      {:ok, ecoded_data} -> {:ok, ecoded_data, :timer.minutes(5)}
+      {:error, error} -> {:error, "Error getting users: #{inspect(error)}"}
     end
   end
 
@@ -637,6 +649,20 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             description: "Query to search for related messages. Will be embedded before search is performed."
           }
         },
+        additionalProperties: false
+      }
+    }
+  end
+
+  defp tool_definition_list_group_users do
+    %{
+      name: "list_group_users",
+      description: "Lists all of the users in the group along with their names and information.",
+      strict: true,
+      parameters: %{
+        type: "object",
+        required: [],
+        properties: %{},
         additionalProperties: false
       }
     }
