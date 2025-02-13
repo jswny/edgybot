@@ -23,6 +23,7 @@ defmodule Edgybot.Application do
       # {Edgybot.Worker, arg},
       # Start to serve requests, typically the last entry
       EdgybotWeb.Endpoint,
+      Nostrum.Application,
       Bot.Supervisor,
       Supervisor.child_spec(
         {Cachex, name: :processed_string_cache, expiration: expiration(interval: :timer.hours(24))},

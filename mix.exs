@@ -21,7 +21,9 @@ defmodule Edgybot.MixProject do
   def application do
     [
       extra_applications: [:logger, :runtime_tools],
-      mod: {Edgybot.Application, []}
+      mod: {Edgybot.Application, []},
+      included_applications: [:nostrum],
+      extra_applications: [:certifi, :gun, :inets, :jason, :logger, :mime]
     ]
   end
 
@@ -32,7 +34,8 @@ defmodule Edgybot.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:nostrum, github: "Kraigie/nostrum", ref: "1628880a3e6e45cacc53d2383eb110ff023050e1"},
+      {:nostrum, github: "Kraigie/nostrum", ref: "1628880a3e6e45cacc53d2383eb110ff023050e1", runtime: false},
+      {:gun, "~> 2.0.1"},
       {:ecto_sql, "~> 3.12"},
       {:postgrex, "~> 0.19.2"},
       {:jason, "~> 1.4"},
