@@ -10,6 +10,9 @@ defmodule Edgybot.External.Kagi do
       {:ok, %{status: 200, body: body}} ->
         {:ok, body}
 
+      {:ok, %{status: status, body: %{"error" => [%{"msg" => error_message}]}}} ->
+        {:error, "Request returned unexpected status code #{status}: #{error_message}"}
+
       {:error, %Req.TransportError{reason: :timeout}} ->
         {:error, "Request timed out"}
     end

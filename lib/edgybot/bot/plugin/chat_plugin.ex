@@ -131,9 +131,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         type: "function",
         function: tool_definition_search_internet()
       },
-      tool_definition_list_group_users().name => %{
+      # tool_definition_list_group_users().name => %{
+      #   type: "function",
+      #   function: tool_definition_list_group_users()
+      # },
+      tool_definition_summarize_url().name => %{
         type: "function",
-        function: tool_definition_list_group_users()
+        function: tool_definition_summarize_url()
       }
     }
 
@@ -440,7 +444,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       Cachex.fetch(:model_tool_call_cache, cache_key, fn _key ->
         case call_tool(name, arguments, metadata) do
           {:ok, tool_call_result, expire} -> {:commit, tool_call_result, expire: expire}
-          {:error, error} -> {:ignore, "Error calling tool: #{inspect(error)}"}
+          {:error, error} -> {:ignore, inspect(error)}
         end
       end)
 
@@ -469,6 +473,16 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp call_tool("search_internet", %{"query" => _query} = body, _metadata) do
     case Kagi.post_and_handle_errors("/fastgpt", body) do
+      {:ok, %{"data" => %{"output" => output}}} ->
+        {:ok, output, :timer.hours(1)}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp call_tool("summarize_url", %{"url" => _url} = body, _metadata) do
+    case Kagi.post_and_handle_errors("/summarize", body) do
       {:ok, %{"data" => %{"output" => output}}} ->
         {:ok, output, :timer.hours(1)}
 
@@ -680,6 +694,25 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           query: %{
             type: "string",
             description: "Query to search for."
+          }
+        },
+        additionalProperties: false
+      }
+    }
+  end
+
+  defp tool_definition_summarize_url do
+    %{
+      name: "summarize_url",
+      description: "Summarizes the content of a URL.",
+      strict: true,
+      parameters: %{
+        type: "object",
+        required: ["url"],
+        properties: %{
+          url: %{
+            type: "string",
+            description: "The complete and valid URL to summarize."
           }
         },
         additionalProperties: false
