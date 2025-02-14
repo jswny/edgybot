@@ -191,6 +191,10 @@ fal_image_models_edit_default = """
 
 fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
 
+disabled_tools = "CHAT_DISABLED_TOOLS" |> get_list_env_var.("") |> MapSet.new()
+
+config :edgybot, Chat, disabled_tools: disabled_tools
+
 config :edgybot, Kagi,
   base_url: get_env_var.("KAGI_BASE_URL", "https://kagi.com/api/v0"),
   api_key: get_env_var.("KAGI_API_KEY", nil),

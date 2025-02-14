@@ -122,24 +122,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         temperature: temperature
       }
 
-    tools = %{
-      tool_definition_search_group_messages().name => %{
-        type: "function",
-        function: tool_definition_search_group_messages()
-      },
-      tool_definition_search_internet().name => %{
-        type: "function",
-        function: tool_definition_search_internet()
-      },
-      # tool_definition_list_group_users().name => %{
-      #   type: "function",
-      #   function: tool_definition_list_group_users()
-      # },
-      tool_definition_summarize_url().name => %{
-        type: "function",
-        function: tool_definition_summarize_url()
-      }
-    }
+    tools = get_enabled_tool_definitions()
 
     completion_metadata = %{guild_id: guild_id, prompt: prompt}
 
@@ -177,6 +160,31 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       {:error, message} ->
         {:warning, message}
     end
+  end
+
+  defp get_enabled_tool_definitions do
+    disabled_tools = Application.get_env(:edgybot, Chat)[:disabled_tools]
+
+    tool_definitions = %{
+      tool_definition_search_group_messages().name => %{
+        type: "function",
+        function: tool_definition_search_group_messages()
+      },
+      tool_definition_search_internet().name => %{
+        type: "function",
+        function: tool_definition_search_internet()
+      },
+      tool_definition_list_group_users().name => %{
+        type: "function",
+        function: tool_definition_list_group_users()
+      },
+      tool_definition_summarize_url().name => %{
+        type: "function",
+        function: tool_definition_summarize_url()
+      }
+    }
+
+    tool_definitions |> Enum.filter(fn {name, _definition} -> not MapSet.member?(disabled_tools, name) end) |> Map.new()
   end
 
   defp generate_system_messages do
@@ -671,7 +679,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   defp tool_definition_list_group_users do
     %{
       name: "list_group_users",
-      description: "Lists all of the users in the group along with their names and information.",
+      description: "Lists all of the users in the group. Returns their names and ID's only.",
       strict: true,
       parameters: %{
         type: "object",
