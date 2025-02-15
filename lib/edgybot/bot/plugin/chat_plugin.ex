@@ -9,13 +9,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.External.Kagi
   alias Edgybot.External.OpenRouter, as: OpenRouterAPI
   alias Edgybot.External.Qdrant
-  alias Nostrum.Api
   alias Nostrum.Cache.MemberCache
   alias Nostrum.Struct.Guild.Member
   alias Nostrum.Struct.Interaction
   alias Nostrum.Struct.User
-
-  @context_chunk_size 100
 
   @impl true
   def get_plugin_definitions do
@@ -98,15 +95,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     behavior = find_option_value(other_options, "behavior")
     temperature = find_option_value(other_options, "temperature")
 
-    recent_context_messages =
-      if num_recent_context_messages do
-        guild_id
-        |> get_recent_context_messages(channel_id, num_recent_context_messages)
-        |> Enum.reverse()
-        |> List.flatten()
-      else
-        []
-      end
+    recent_context_messages = get_recent_context_messages(guild_id, channel_id, num_recent_context_messages)
 
     system_messages = generate_system_messages(behavior)
 
@@ -124,7 +113,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     tools = get_enabled_tool_definitions()
 
-    completion_metadata = %{guild_id: guild_id, prompt: prompt}
+    completion_metadata = %{guild_id: guild_id, channel_id: channel_id, prompt: prompt}
 
     case generate_completion_with_tools(
            endpoint,
@@ -162,6 +151,20 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
+  defp get_recent_context_messages(_guild_id, _channel_id, nil), do: []
+
+  defp get_recent_context_messages(guild_id, channel_id, num_recent_context_messages) do
+    chunk_size = Application.get_env(:edgybot, Chat)[:recent_messages_chunk_size]
+
+    guild_id
+    |> Discord.get_recent_message_chunk(channel_id, chunk_size, num_recent_context_messages)
+    |> Stream.filter(fn %{content: content} ->
+      is_binary(content) && content != ""
+    end)
+    |> Stream.map(&Map.put(&1, :role, "user"))
+    |> Enum.to_list()
+  end
+
   defp get_enabled_tool_definitions do
     disabled_tools = Application.get_env(:edgybot, Chat)[:disabled_tools]
 
@@ -181,6 +184,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       tool_definition_summarize_url().name => %{
         type: "function",
         function: tool_definition_summarize_url()
+      },
+      tool_definition_get_recent_messages().name => %{
+        type: "function",
+        function: tool_definition_get_recent_messages()
       }
     }
 
@@ -462,7 +469,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
-  defp call_tool("list_group_users", _body, %{guild_id: guild_id}) do
+  defp call_tool("list_group_users", _arguments, %{guild_id: guild_id}) do
     users =
       guild_id
       |> MemberCache.by_guild()
@@ -540,51 +547,26 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     end
   end
 
-  defp get_recent_context_messages(guild_id, channel_id, num_messages)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages),
-       do: get_recent_context_messages(guild_id, channel_id, num_messages, {}, [])
+  defp call_tool("get_recent_messages", _arguments, %{guild_id: guild_id, channel_id: channel_id}) do
+    num_messages = Application.get_env(:edgybot, Chat)[:recent_messages_default_count]
+    chunk_size = Application.get_env(:edgybot, Chat)[:recent_messages_chunk_size]
 
-  defp get_recent_context_messages(guild_id, channel_id, 0, _locator, acc)
-       when is_integer(guild_id) and is_integer(channel_id),
-       do: acc |> Enum.reverse() |> List.flatten()
+    messages =
+      guild_id
+      |> Discord.get_recent_message_chunk(channel_id, chunk_size, num_messages)
+      |> List.flatten()
 
-  defp get_recent_context_messages(guild_id, channel_id, num_messages, _locator, acc)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and num_messages < 0 do
-    flattened = acc |> Enum.reverse() |> List.flatten()
-    Enum.take(flattened, length(flattened) - -num_messages)
-  end
+    data = %{
+      "messages" => messages
+    }
 
-  defp get_recent_context_messages(guild_id, channel_id, num_messages, locator, acc)
-       when is_integer(guild_id) and is_integer(channel_id) and is_integer(num_messages) and is_list(acc) do
-    all_messages = Api.get_channel_messages!(channel_id, @context_chunk_size, locator)
+    case Jason.encode(data) do
+      {:ok, json} ->
+        {:ok, json, :timer.seconds(10)}
 
-    filtered_messages =
-      all_messages
-      |> Enum.filter(&message_valid?/1)
-      |> Enum.map(fn message ->
-        member = Api.get_guild_member!(guild_id, message.author.id)
-
-        sanitized_nick = Discord.sanitize_chat_message_name(member.nick, message.author.username)
-
-        %{role: "user", name: sanitized_nick, content: message.content}
-      end)
-
-    earliest_message_id = List.last(all_messages).id
-    num_filtered_messages = Enum.count(filtered_messages)
-
-    get_recent_context_messages(
-      guild_id,
-      channel_id,
-      num_messages - num_filtered_messages,
-      {:before, earliest_message_id},
-      [
-        filtered_messages | acc
-      ]
-    )
-  end
-
-  defp message_valid?(message) do
-    message.author.bot != true && message.content != nil && message.content != ""
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   defp generate_fields(prompt, num_context_messages, model, behavior, temperature, supported_params, tool_calls)
@@ -671,6 +653,21 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             description: "Query to search for related messages. Will be embedded before search is performed."
           }
         },
+        additionalProperties: false
+      }
+    }
+  end
+
+  defp tool_definition_get_recent_messages do
+    %{
+      name: "get_recent_messages",
+      description:
+        "Gets the most recent messages from the group. Can be used to retrieve the context of the current conversation. Returns messages in order of least to most recent",
+      strict: true,
+      parameters: %{
+        type: "object",
+        required: [],
+        properties: %{},
         additionalProperties: false
       }
     }
