@@ -193,7 +193,10 @@ fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_e
 
 disabled_tools = "CHAT_DISABLED_TOOLS" |> get_list_env_var.("") |> MapSet.new()
 
-config :edgybot, Chat, disabled_tools: disabled_tools
+config :edgybot, Chat,
+  recent_messages_chunk_size: String.to_integer(get_env_var.("CHAT_RECENT_MESSAGES_CHUNK_SIZE", "50")),
+  recent_messages_default_count: String.to_integer(get_env_var.("CHAT_RECENT_MESSAGES_DEFAULT_COUNT", "50")),
+  disabled_tools: disabled_tools
 
 config :edgybot, Kagi,
   base_url: get_env_var.("KAGI_BASE_URL", "https://kagi.com/api/v0"),
