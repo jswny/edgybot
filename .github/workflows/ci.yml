@@ -251,6 +251,17 @@ jobs:
       - name: Run Credo
         run: mix credo --strict
 
+  docker-lint:
+    name: Docker Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          failure-threshold: style
+
   image:
     name: Image
     runs-on: ubuntu-latest
