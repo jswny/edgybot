@@ -319,6 +319,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
          [],
          metadata
        ) do
+    tool_call_followup_message = %{
+      role: "system",
+      content: "If you think they are needed, call more tools. If you have enough information, provide your final answer."
+    }
+
+    conversation_messages = conversation_messages ++ [tool_call_followup_message]
+
     generate_completion_with_tools(
       url,
       body,
