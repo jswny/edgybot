@@ -9,7 +9,11 @@ defmodule Edgybot.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      dialyzer: [
+        plt_local_path: "priv/plts/project.plt",
+        plt_core_path: "priv/plts/core.plt"
+      ]
     ]
   end
 

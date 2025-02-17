@@ -200,21 +200,30 @@ jobs:
           path: _build/${{ env.MIX_ENV }}
           key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
-      - name: Cache Dialyzer PLT
-        uses: actions/cache@v4
+      - name: Restore PLT cache
+        id: plt-cache-restore
+        uses: actions/cache/restore@v4
         env:
           base-key: ${{ needs.prepare-elixir.outputs.version }}-dialyzer-plt
-          plt-core-path: "_build/${{ env.MIX_ENV }}"
         with:
-          path: |
-            ${{ env.plt-core-path }}/*.plt
-            ${{ env.plt-core-path }}/*.plt.hash
           key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
+          path: priv/plts
+      - name: Create PLTs
+        if: steps.plt-cache-restore.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+      - name: Save PLT cache
+        uses: actions/cache/save@v4
+        if: steps.plt-cache-restore.outputs.cache-hit != 'true'
+        env:
+          base-key: ${{ needs.prepare-elixir.outputs.version }}-dialyzer-plt
+        with:
+          key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
+          path: priv/plts
       - name: Get Dependencies
         run: mix deps.get
       - name: Run Dialyzer
-        run: mix dialyzer
+        run: mix dialyzer --format github --format dialyxir
 
   credo:
     name: Credo
