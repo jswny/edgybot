@@ -40,3 +40,7 @@ pgdata/
 
 # Other files
 .env*
+
+# Dialyzer PLT's
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
