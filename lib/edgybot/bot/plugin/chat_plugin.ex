@@ -354,10 +354,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     tool_call_arguments = Jason.decode!(tool_call_arguments)
     tool_call_result = call_tool_with_cache(tool_call_name, tool_call_arguments, metadata)
 
-    tool_call_content =
+    {tool_call_content, followup_system_messages} =
       case tool_call_result do
-        {:ok, tool_call_content} -> tool_call_content
-        {:error, error} -> "Error calling tool: #{inspect(error)}"
+        {:ok, tool_call_content, followup_system_messages} -> {tool_call_content, followup_system_messages}
+        {:error, error} -> {"Error calling tool: #{inspect(error)}", []}
       end
 
     tool_call_message = %{
@@ -368,6 +368,13 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     conversation_messages =
       conversation_messages ++ [tool_call_message]
+
+    followup_system_messages =
+      Enum.map(followup_system_messages, fn followup_system_message_content ->
+        %{role: "system", content: followup_system_message_content}
+      end)
+
+    system_messages = Enum.concat(system_messages, followup_system_messages)
 
     generate_completion_with_tools(
       response,
@@ -465,14 +472,18 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     cache_result =
       Cachex.fetch(:model_tool_call_cache, cache_key, fn _key ->
         case call_tool(name, arguments, metadata) do
-          {:ok, tool_call_result, expire} -> {:commit, tool_call_result, expire: expire}
-          {:error, error} -> {:ignore, inspect(error)}
+          {:ok, tool_call_result, followup_system_messages, expire} ->
+            cache_value = {tool_call_result, followup_system_messages}
+            {:commit, cache_value, expire: expire}
+
+          {:error, error} ->
+            {:ignore, inspect(error)}
         end
       end)
 
     case cache_result do
       {:ignore, error} -> {:error, error}
-      {_, tool_call_result} -> {:ok, tool_call_result}
+      {_, {tool_call_result, followup_system_messages}} -> {:ok, tool_call_result, followup_system_messages}
     end
   end
 
@@ -488,15 +499,21 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     data = %{"data" => users}
 
     case Jason.encode(data) do
-      {:ok, ecoded_data} -> {:ok, ecoded_data, :timer.minutes(5)}
+      {:ok, encoded_data} -> {:ok, encoded_data, :timer.minutes(5)}
       {:error, error} -> {:error, "Error getting users: #{inspect(error)}"}
     end
   end
 
   defp call_tool("search_internet", %{"query" => _query} = body, _metadata) do
     case Kagi.post_and_handle_errors("/fastgpt", body) do
-      {:ok, %{"data" => %{"output" => output}}} ->
-        {:ok, output, :timer.hours(1)}
+      {:ok, %{"data" => %{"output" => output, "references" => references}}} ->
+        json = Jason.encode!(%{output: output, references: references})
+
+        followup_system_messages = [
+          "If the results of the internet search are relevant, cite all the sources used according to the references section. For each piece of information, assign the citation number, and ensure that a corresponding citation which includes the source URL is listed in the citations list."
+        ]
+
+        {:ok, json, followup_system_messages, :timer.hours(1)}
 
       {:error, error} ->
         {:error, error}
@@ -506,7 +523,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   defp call_tool("summarize_url", %{"url" => _url} = body, _metadata) do
     case Kagi.post_and_handle_errors("/summarize", body) do
       {:ok, %{"data" => %{"output" => output}}} ->
-        {:ok, output, :timer.hours(1)}
+        {:ok, output, [], :timer.hours(1)}
 
       {:error, error} ->
         {:error, error}
@@ -547,7 +564,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
           |> Enum.reverse()
           |> IO.iodata_to_binary()
 
-        {:ok, formatted_content, :timer.hours(1)}
+        {:ok, formatted_content, [], :timer.hours(1)}
 
       {:error, error} ->
         {:error, error}
@@ -569,7 +586,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     case Jason.encode(data) do
       {:ok, json} ->
-        {:ok, json, :timer.seconds(10)}
+        {:ok, json, [], :timer.seconds(10)}
 
       {:error, error} ->
         {:error, error}
