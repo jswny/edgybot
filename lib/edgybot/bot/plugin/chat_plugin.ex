@@ -4,7 +4,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Edgybot.Config
   alias Edgybot.External.Discord
   alias Edgybot.External.Kagi
   alias Edgybot.External.OpenRouter, as: OpenRouterAPI
@@ -16,7 +15,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   @impl true
   def get_plugin_definitions do
-    max_context_size = Config.chat_plugin_recent_context_max_size()
+    max_context_size = Application.get_env(:edgybot, Chat)[:recent_context_max_size]
 
     [
       %{
@@ -85,7 +84,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         _middleware_data
       ) do
     endpoint = "chat/completions"
-    default_model = Application.get_env(:edgybot, OpenRouter)[:default_model]
+    openrouter_config = Application.get_env(:edgybot, OpenRouter)
+    default_model = openrouter_config[:default_model]
 
     num_recent_context_messages = find_option_value(other_options, "context")
 
@@ -154,7 +154,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   defp get_recent_context_messages(_guild_id, _channel_id, nil), do: []
 
   defp get_recent_context_messages(guild_id, channel_id, num_recent_context_messages) do
-    chunk_size = Application.get_env(:edgybot, Chat)[:recent_messages_chunk_size]
+    chat_config = Application.get_env(:edgybot, Chat)
+    chunk_size = chat_config[:recent_messages_chunk_size]
 
     guild_id
     |> Discord.get_recent_message_chunk(channel_id, chunk_size, num_recent_context_messages)
@@ -166,7 +167,8 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp get_enabled_tool_definitions do
-    disabled_tools = Application.get_env(:edgybot, Chat)[:disabled_tools]
+    chat_config = Application.get_env(:edgybot, Chat)
+    disabled_tools = chat_config[:disabled_tools]
 
     tool_definitions = %{
       tool_definition_search_group_messages().name => %{
@@ -197,11 +199,15 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   defp generate_system_messages do
     today = Date.utc_today()
     today_formatted = Calendar.strftime(today, "%A %B %d, %Y")
+    
+    base_prompt = Application.get_env(:edgybot, OpenAI)[:chat_system_prompt_base]
+    context_prompt = Application.get_env(:edgybot, OpenAI)[:chat_system_prompt_context]
+    date_prompt = "Today's UTC date is #{today_formatted}"
 
     [
-      %{role: "system", content: Config.openai_chat_system_prompt_base()},
-      %{role: "system", content: Config.openai_chat_system_prompt_context()},
-      %{role: "system", content: "Today's UTC date is #{today_formatted}"}
+      %{role: "system", content: base_prompt},
+      %{role: "system", content: context_prompt},
+      %{role: "system", content: date_prompt}
     ]
   end
 
@@ -531,9 +537,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp call_tool("search_group_messages", %{"query" => query}, %{guild_id: guild_id}) do
-    universal_context_min_score = Config.chat_plugin_universal_context_min_score()
-    universal_context_limit = Config.chat_plugin_universal_context_max_size()
-    collection = Config.qdrant_collection_discord_messages()
+    universal_context_min_score = Application.get_env(:edgybot, Chat)[:universal_context_min_score]
+    universal_context_limit = Application.get_env(:edgybot, Chat)[:universal_context_max_size]
+    collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
 
     universal_context_messages_result =
       case Qdrant.embed_and_find_closest(
@@ -572,8 +578,9 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   end
 
   defp call_tool("get_recent_messages", _arguments, %{guild_id: guild_id, channel_id: channel_id}) do
-    num_messages = Application.get_env(:edgybot, Chat)[:recent_messages_default_count]
-    chunk_size = Application.get_env(:edgybot, Chat)[:recent_messages_chunk_size]
+    chat_config = Application.get_env(:edgybot, Chat)
+    num_messages = chat_config[:recent_messages_default_count]
+    chunk_size = chat_config[:recent_messages_chunk_size]
 
     messages =
       guild_id

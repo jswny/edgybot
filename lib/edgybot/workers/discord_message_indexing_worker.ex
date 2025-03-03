@@ -5,7 +5,6 @@ defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
     tags: ["discord", "ai"],
     unique: [keys: [:guild_id, :channel_id, :batch_size, :latest_message_id]]
 
-  alias Edgybot.Config
   alias Edgybot.External.Discord
   alias Edgybot.External.OpenAI
   alias Edgybot.External.Qdrant
@@ -21,8 +20,8 @@ defmodule Edgybot.Workers.DiscordMessageIndexingWorker do
       "Batch indexing messages in channel #{channel_id} in guild #{guild_id} from message: #{latest_message_id}"
     )
 
-    embedding_model = Config.openai_embedding_model()
-    points_collection = Config.qdrant_collection_discord_messages()
+    embedding_model = Application.get_env(:edgybot, OpenAI)[:embedding_model]
+    points_collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
 
     messages
     |> Enum.map(fn message -> Message.to_struct(message) end)

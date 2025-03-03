@@ -2,7 +2,6 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   @moduledoc false
 
   alias Edgybot.Bot.Registrar.PluginRegistrar
-  alias Edgybot.Config
   alias Nostrum.Api
   alias Nostrum.Constants.ApplicationCommandOptionType
   alias Nostrum.Struct.Guild
@@ -13,10 +12,11 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
     guild_id = guild.id
     guild_name = get_guild_name(guild_id)
 
-    application_command_prefix = Config.application_command_prefix()
+    application_command_prefix = Application.get_env(:edgybot, :application_command_prefix)
 
+    prefix_msg = if application_command_prefix, do: "with prefix #{application_command_prefix} ", else: ""
     Logger.debug(
-      "Registering application commands #{if application_command_prefix, do: "with prefix #{application_command_prefix} "}for guild #{guild_name}..."
+      "Registering application commands #{prefix_msg}for guild #{guild_name}..."
     )
 
     PluginRegistrar.list_definitions()

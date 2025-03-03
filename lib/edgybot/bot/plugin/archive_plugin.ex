@@ -3,8 +3,6 @@ defmodule Edgybot.Bot.Plugin.Archive do
 
   use Edgybot.Bot.Plugin
 
-  alias Edgybot.Config
-
   @impl true
   def get_plugin_definitions do
     [
@@ -38,8 +36,9 @@ defmodule Edgybot.Bot.Plugin.Archive do
 
     parsed_url = URI.parse(url)
 
+    archive_hosts_preserve_query = Application.get_env(:edgybot, :archive_hosts_preserve_query)
     preserve_query_params_host? =
-      Enum.any?(Config.archive_hosts_preserve_query(), fn host -> host == parsed_url.host end)
+      Enum.any?(archive_hosts_preserve_query, fn host -> host == parsed_url.host end)
 
     if_result =
       if preserve_query_params? || preserve_query_params_host? do

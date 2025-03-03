@@ -1,6 +1,5 @@
 defmodule Edgybot.External.Fal do
   @moduledoc false
-  alias Edgybot.Config
 
   def create_and_wait_for_image(model, body) do
     create_opts = [method: :post, url: model, json: body]
@@ -54,7 +53,7 @@ defmodule Edgybot.External.Fal do
   end
 
   defp add_status_retry(opts) do
-    retry_count = Config.fal_status_retry_count()
+    retry_count = Application.get_env(:edgybot, Fal)[:status_retry_count]
 
     opts
     |> Keyword.put_new(:retry, &status_retry_fun/2)
@@ -87,9 +86,9 @@ defmodule Edgybot.External.Fal do
   end
 
   defp create_client do
-    base_url = Config.fal_api_url()
-    api_key = Config.fal_api_key()
-    timeout = Config.fal_timeout()
+    base_url = Application.get_env(:edgybot, Fal)[:api_url]
+    api_key = Application.get_env(:edgybot, Fal)[:api_key]
+    timeout = Application.get_env(:edgybot, Fal)[:timeout]
 
     [base_url: base_url, receive_timeout: timeout]
     |> Req.new()

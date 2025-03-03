@@ -1,8 +1,6 @@
 defmodule Edgybot.External.OpenAI do
   @moduledoc false
 
-  alias Edgybot.Config
-
   def post_and_handle_errors(endpoint, body, user_id \\ nil)
       when is_binary(endpoint) and is_map(body) and (is_integer(user_id) or is_nil(user_id)) do
     req = create_client()
@@ -35,9 +33,9 @@ defmodule Edgybot.External.OpenAI do
   end
 
   defp create_client do
-    base_url = Config.openai_base_url()
-    api_key = Config.openai_api_key()
-    timeout = Config.openai_timeout()
+    base_url = Application.get_env(:edgybot, OpenAI)[:base_url]
+    api_key = Application.get_env(:edgybot, OpenAI)[:api_key]
+    timeout = Application.get_env(:edgybot, OpenAI)[:timeout]
     auth = {:bearer, api_key}
 
     Req.new(base_url: base_url, auth: auth, receive_timeout: timeout)

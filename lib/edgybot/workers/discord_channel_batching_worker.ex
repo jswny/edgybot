@@ -5,7 +5,6 @@ defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
     tags: ["discord"],
     unique: [keys: [:guild_id, :channel_id, :batch_size, :latest_message_id]]
 
-  alias Edgybot.Config
   alias Edgybot.Workers.DiscordMessageIndexingWorker
   alias Nostrum.Api
 
@@ -17,12 +16,12 @@ defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
       }) do
     Logger.debug("Batching messages in channel #{channel_id} in guild #{guild_id} from message: #{latest_message_id}")
 
-    batch_size = Config.discord_channel_message_batch_size()
+    batch_size = Application.get_env(:edgybot, :discord_channel_message_batch_size)
 
     {:ok, messages} =
       Api.get_channel_messages(channel_id, batch_size, {:before, latest_message_id})
 
-    batch_size_index = Config.discord_channel_message_batch_size_index()
+    batch_size_index = Application.get_env(:edgybot, :discord_channel_message_batch_size_index)
 
     messages
     |> Enum.chunk_every(batch_size_index)

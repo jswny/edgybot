@@ -1,6 +1,5 @@
 defmodule Edgybot.External.Qdrant do
   @moduledoc false
-  alias Edgybot.Config
   alias Edgybot.External.OpenAI
 
   require Logger
@@ -16,8 +15,8 @@ defmodule Edgybot.External.Qdrant do
   end
 
   def create_collections do
-    discord_messages_collection = Config.qdrant_collection_discord_messages()
-    discord_messages_vector_size = Config.qdrant_collection_discord_messages_vector_size()
+    discord_messages_collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
+    discord_messages_vector_size = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages_vector_size]
 
     discord_messages_body = %{
       vectors: %{
@@ -41,7 +40,7 @@ defmodule Edgybot.External.Qdrant do
 
   def embed_and_find_closest(collection, query, limit, options \\ [])
       when is_binary(collection) and is_binary(query) and is_integer(limit) do
-    embedding_model = Config.openai_embedding_model()
+    embedding_model = Application.get_env(:edgybot, OpenAI)[:embedding_model]
 
     embedding_body = %{input: query, model: embedding_model}
 
@@ -87,9 +86,9 @@ defmodule Edgybot.External.Qdrant do
   end
 
   defp create_client do
-    base_url = Config.qdrant_api_url()
-    api_key = Config.qdrant_api_key()
-    timeout = Config.qdrant_timeout()
+    base_url = Application.get_env(:edgybot, Qdrant)[:api_url]
+    api_key = Application.get_env(:edgybot, Qdrant)[:api_key]
+    timeout = Application.get_env(:edgybot, Qdrant)[:timeout]
     auth = {:bearer, api_key}
 
     Req.new(base_url: base_url, auth: auth, receive_timeout: timeout)

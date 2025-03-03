@@ -4,7 +4,6 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Edgybot.Config
 
   @impl true
   def get_plugin_definitions do
@@ -251,17 +250,19 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
 
   defp search_templates(query, animated?) when is_binary(query) and is_boolean(animated?) do
     encoded_query = URI.encode(query)
+    memegen_url = Application.get_env(:edgybot, :memegen_url)
 
     {:ok, %{body: body}} =
-      Req.get("#{Config.memegen_url()}/templates?filter=#{encoded_query}&animated=#{animated?}")
+      Req.get("#{memegen_url}/templates?filter=#{encoded_query}&animated=#{animated?}")
 
     body
   end
 
   defp get_template(id) when is_binary(id) do
     encoded_id = URI.encode(id)
+    memegen_url = Application.get_env(:edgybot, :memegen_url)
 
-    result = Req.get("#{Config.memegen_url()}/templates/#{encoded_id}")
+    result = Req.get("#{memegen_url}/templates/#{encoded_id}")
 
     case result do
       {:ok, %{status: 404}} ->
@@ -290,6 +291,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
        when is_binary(template_id) and is_list(text_lines) and (is_list(overlays) or is_nil(overlays)) and
               (is_binary(style) or is_nil(style)) do
     encoded_id = URI.encode(template_id)
+    memegen_url = Application.get_env(:edgybot, :memegen_url)
 
     body = %{
       "text" => text_lines,
@@ -308,7 +310,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
       end
 
     {:ok, response} =
-      Req.post("#{Config.memegen_url()}/templates/#{encoded_id}", json: body, redirect: false)
+      Req.post("#{memegen_url}/templates/#{encoded_id}", json: body, redirect: false)
 
     meme_url =
       response.headers
@@ -324,9 +326,11 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
       "text" => text_lines,
       "redirect" => true
     }
+    
+    memegen_url = Application.get_env(:edgybot, :memegen_url)
 
     {:ok, response} =
-      Req.post("#{Config.memegen_url()}/templates/custom", json: body, redirect: false)
+      Req.post("#{memegen_url}/templates/custom", json: body, redirect: false)
 
     meme_url =
       response.headers

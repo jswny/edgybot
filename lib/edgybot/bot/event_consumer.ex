@@ -8,13 +8,13 @@ defmodule Edgybot.Bot.EventConsumer do
   alias Edgybot.Bot.Handler.ErrorHandler
   alias Edgybot.Bot.Handler.EventHandler
   alias Edgybot.Bot.Handler.ResponseHandler
-  alias Edgybot.Config
 
   require Logger
 
   @impl true
   def handle_event({event, payload, _ws_state}) do
-    censor_error = Config.runtime_env() == :prod
+    runtime_env = Application.get_env(:edgybot, :runtime_env)
+    censor_error = runtime_env == :prod
 
     generate_error_context(event, payload)
 

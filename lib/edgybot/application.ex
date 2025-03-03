@@ -12,12 +12,16 @@ defmodule Edgybot.Application do
 
   require Logger
 
+  defp dns_cluster_query do
+    Application.get_env(:edgybot, :dns_cluster_query) || :ignore
+  end
+
   @impl true
   def start(_type, _args) do
     children = [
       EdgybotWeb.Telemetry,
       Edgybot.Repo,
-      {DNSCluster, query: Application.get_env(:edgybot, :dns_cluster_query) || :ignore},
+      {DNSCluster, query: dns_cluster_query()},
       {Phoenix.PubSub, name: Edgybot.PubSub},
       # Start a worker by calling: Edgybot.Worker.start_link(arg)
       # {Edgybot.Worker, arg},

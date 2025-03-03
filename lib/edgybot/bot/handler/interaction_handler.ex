@@ -5,7 +5,6 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   alias Edgybot.Bot.Handler.ResponseHandler
   alias Edgybot.Bot.Plugin
   alias Edgybot.Bot.Registrar.PluginRegistrar
-  alias Edgybot.Config
   alias Nostrum.Struct.ApplicationCommandInteractionData
   alias Nostrum.Struct.ApplicationCommandInteractionDataOption
   alias Nostrum.Struct.ApplicationCommandInteractionDataResolved
@@ -21,7 +20,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
 
   def handle_interaction(%Interaction{data: %{name: interaction_name, type: interaction_type}} = interaction)
       when is_binary(interaction_name) and is_integer(interaction_type) do
-    application_command_prefix = Config.application_command_prefix()
+    application_command_prefix = Application.get_env(:edgybot, :application_command_prefix)
 
     interaction_name =
       if application_command_prefix,

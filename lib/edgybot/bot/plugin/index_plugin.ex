@@ -4,7 +4,6 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Edgybot.Config
   alias Edgybot.External.Qdrant
   alias Edgybot.Workers.DiscordChannelBatchingWorker
 
@@ -81,7 +80,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         %{guild_id: guild_id, channel_id: channel_id, channel: %{last_message_id: last_message_id}},
         _middleware_data
       ) do
-    batch_size = Config.discord_channel_message_batch_size()
+    batch_size = Application.get_env(:edgybot, :discord_channel_message_batch_size)
 
     %{
       guild_id: guild_id,
@@ -103,7 +102,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         %{guild_id: guild_id, channel_id: channel_id},
         _middleware_data
       ) do
-    points_collection = Config.qdrant_collection_discord_messages()
+    points_collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
 
     body = %{
       filter: %{
@@ -130,7 +129,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
       ) do
     limit = find_option_value(other_options, "limit") || 10
     score_threshold = find_option_value(other_options, "score-threshold") || 0.0
-    points_collection = Config.qdrant_collection_discord_messages()
+    points_collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
 
     case Qdrant.embed_and_find_closest(points_collection, query, limit,
            score_threshold: score_threshold,
@@ -147,7 +146,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
 
   @impl true
   def handle_interaction(["index", "status"], 1, _options, _interaction, _middleware_data) do
-    points_collection = Config.qdrant_collection_discord_messages()
+    points_collection = Application.get_env(:edgybot, Qdrant)[:collection_discord_messages]
 
     {:ok, %{body: %{"result" => response_body}}} =
       Qdrant.call(:get, "/collections/#{points_collection}")

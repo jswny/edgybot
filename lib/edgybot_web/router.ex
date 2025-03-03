@@ -41,7 +41,8 @@ defmodule EdgybotWeb.Router do
   # end
 
   defp admin_basic_auth(conn, _opts) do
-    if Application.get_env(:edgybot, :web_admin_auth_enabled, true) do
+    auth_enabled = Application.get_env(:edgybot, :web_admin_auth_enabled, true)
+    if auth_enabled do
       username = System.fetch_env!("ADMIN_USERNAME")
       password = System.fetch_env!("ADMIN_PASSWORD")
       Plug.BasicAuth.basic_auth(conn, username: username, password: password)

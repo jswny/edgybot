@@ -158,8 +158,17 @@ fal_image_models_generate_default = """
 }
 """
 
-fal_image_models_generate =
+fal_image_models_generate_json =
   get_env_var.("FAL_IMAGE_MODELS_GENERATE", fal_image_models_generate_default)
+
+fal_image_models_generate = case Jason.decode(fal_image_models_generate_json) do
+  {:ok, decoded} when is_map(decoded) -> 
+    case decoded["models"] do
+      models when is_list(models) -> models
+      _ -> []
+    end
+  _ -> []
+end
 
 fal_image_models_edit_default = """
 {
@@ -189,7 +198,16 @@ fal_image_models_edit_default = """
 }
 """
 
-fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
+fal_image_models_edit_json = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_edit_default)
+
+fal_image_models_edit = case Jason.decode(fal_image_models_edit_json) do
+  {:ok, decoded} when is_map(decoded) -> 
+    case decoded["models"] do
+      models when is_list(models) -> models
+      _ -> []
+    end
+  _ -> []
+end
 
 disabled_tools = "CHAT_DISABLED_TOOLS" |> get_list_env_var.("") |> MapSet.new()
 
@@ -226,38 +244,43 @@ config :edgybot, OpenRouter,
 config :edgybot,
   runtime_env: config_env(),
   application_command_prefix: get_env_var.("APPLICATION_COMMAND_PREFIX", nil),
-  chat_plugin_recent_context_max_size: String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
-  chat_plugin_universal_context_max_size:
-    String.to_integer(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MAX_SIZE", "100")),
-  chat_plugin_universal_context_min_score:
-    String.to_float(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MIN_SCORE", "0.3")),
   memegen_url: get_env_var.("MEMEGEN_URL", "https://api.memegen.link"),
   archive_hosts_preserve_query: get_list_env_var.("ARCHIVE_HOSTS_PRESERVE_QUERY", ""),
-  openai_base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
-  openai_timeout: openai_timeout,
-  openai_chat_models: openai_chat_models,
-  openai_embedding_model: get_env_var.("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
-  openai_chat_system_prompt_base: openai_chat_system_prompt_base,
-  openai_chat_system_prompt_context: openai_chat_system_prompt_context,
   discord_channel_message_batch_size: 100,
-  discord_channel_message_batch_size_index: 10,
-  qdrant_api_url: get_env_var.("QDRANT_API_URL", "http://localhost:6333"),
-  qdrant_api_key: get_env_var.("QDRANT_API_KEY", nil),
-  qdrant_timeout: String.to_integer(get_env_var.("QDRANT_TIMEOUT", "840000")),
-  qdrant_collection_discord_messages: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
-  qdrant_collection_discord_messages_vector_size: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536),
-  fal_api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
-  fal_api_key: get_env_var.("FAL_KEY", nil),
-  fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
-  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "240")),
-  fal_image_models_generate: fal_image_models_generate,
-  fal_image_models_edit: fal_image_models_edit,
-  fal_image_models_safety_checker_disable:
-    get_list_env_var.("FAL_IMAGE_MODELS_SAFETY_CHECKER_DISABLE", "stable-diffusion, sdxl")
+  discord_channel_message_batch_size_index: 10
+
+config :edgybot, Chat,
+  recent_context_max_size: String.to_integer(get_env_var.("CHAT_PLUGIN_RECENT_CONTEXT_MAX_SIZE", "100")),
+  universal_context_max_size: String.to_integer(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MAX_SIZE", "100")),
+  universal_context_min_score: String.to_float(get_env_var.("CHAT_PLUGIN_UNIVERSAL_CONTEXT_MIN_SCORE", "0.3"))
+
+config :edgybot, OpenAI,
+  base_url: get_env_var.("OPENAI_BASE_URL", "https://api.openai.com"),
+  timeout: openai_timeout,
+  chat_models: openai_chat_models,
+  embedding_model: get_env_var.("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+  chat_system_prompt_base: openai_chat_system_prompt_base,
+  chat_system_prompt_context: openai_chat_system_prompt_context
+
+config :edgybot, Qdrant,
+  api_url: get_env_var.("QDRANT_API_URL", "http://localhost:6333"),
+  api_key: get_env_var.("QDRANT_API_KEY", nil),
+  timeout: String.to_integer(get_env_var.("QDRANT_TIMEOUT", "840000")),
+  collection_discord_messages: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES", "discord_messages"),
+  collection_discord_messages_vector_size: get_env_var.("QDRANT_COLLECTION_DISCORD_MESSAGES_VECTOR_SIZE", 1536)
+
+config :edgybot, Fal,
+  api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
+  api_key: get_env_var.("FAL_KEY", nil),
+  timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
+  status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "240")),
+  image_models_generate: fal_image_models_generate,
+  image_models_edit: fal_image_models_edit,
+  image_models_safety_checker_disable: get_list_env_var.("FAL_IMAGE_MODELS_SAFETY_CHECKER_DISABLE", "stable-diffusion, sdxl")
 
 if config_env() != :test do
-  config :edgybot,
-    openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
+  config :edgybot, OpenAI,
+    api_key: get_env_var.("OPENAI_API_KEY", :none)
 
   config :nostrum,
     token: get_env_var.("DISCORD_TOKEN", :none),

@@ -4,16 +4,18 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Edgybot.Config
   alias Edgybot.External.Fal
 
   @impl true
   def get_plugin_definitions do
+    fal_image_models_generate = Application.get_env(:edgybot, Fal)[:image_models_generate]
+    fal_image_models_edit = Application.get_env(:edgybot, Fal)[:image_models_edit]
+    
     {regular_model_choices_generate, premium_model_choices_generate} =
-      generate_model_choice_tiers(Config.fal_image_models_generate())
+      generate_model_choice_tiers(fal_image_models_generate)
 
     {regular_model_choices_edit, premium_model_choices_edit} =
-      generate_model_choice_tiers(Config.fal_image_models_edit())
+      generate_model_choice_tiers(fal_image_models_edit)
 
     regular_application_command =
       generate_application_command(
@@ -39,10 +41,10 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
 
   @impl true
   def handle_interaction(["image-p", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
-    available_models = Config.fal_image_models_generate()
+    fal_image_models_generate = Application.get_env(:edgybot, Fal)[:image_models_generate]
 
     default_model =
-      available_models
+      fal_image_models_generate
       |> reorder_premium_models()
       |> Enum.at(0)
       |> Map.get("value")
@@ -52,8 +54,8 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
 
   @impl true
   def handle_interaction(["image", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
-    available_models = Config.fal_image_models_generate()
-    default_model = Enum.at(available_models, 0)["value"]
+    fal_image_models_generate = Application.get_env(:edgybot, Fal)[:image_models_generate]
+    default_model = Enum.at(fal_image_models_generate, 0)["value"]
 
     handle_image_gen(prompt, other_options, default_model)
   end
@@ -66,10 +68,10 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         _interaction,
         _middleware_data
       ) do
-    available_models = Config.fal_image_models_edit()
+    fal_image_models_edit = Application.get_env(:edgybot, Fal)[:image_models_edit]
 
     default_model =
-      available_models
+      fal_image_models_edit
       |> reorder_premium_models()
       |> Enum.at(0)
       |> Map.get("value")
@@ -85,8 +87,8 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         _interaction,
         _middleware_data
       ) do
-    available_models = Config.fal_image_models_edit()
-    default_model = Enum.at(available_models, 0)["value"]
+    fal_image_models_edit = Application.get_env(:edgybot, Fal)[:image_models_edit]
+    default_model = Enum.at(fal_image_models_edit, 0)["value"]
 
     handle_image_edit(prompt, image_attachment, other_options, default_model)
   end
@@ -122,9 +124,10 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   defp handle_image_gen(prompt, other_options, default_model) do
     model = find_option_value(other_options, "model") || default_model
     seed = find_option_value(other_options, "seed")
-
-    enable_safety_checker? =
-      !Enum.any?(Config.fal_image_models_safety_checker_disable(), &String.contains?(model, &1))
+    
+    safety_checker_disabled_models = Application.get_env(:edgybot, Fal)[:image_models_safety_checker_disable]
+    enable_safety_checker? = 
+      !Enum.any?(safety_checker_disabled_models, &String.contains?(model, &1))
 
     body =
       %{
@@ -179,7 +182,9 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     {:success, options}
   end
 
-  defp reorder_premium_models(models) do
+  defp reorder_premium_models(nil), do: []
+  
+  defp reorder_premium_models(models) when is_list(models) do
     case Enum.find(models, fn model -> Map.get(model, "premium", false) end) do
       nil ->
         models
@@ -188,14 +193,26 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         [match | List.delete(models, match)]
     end
   end
+  
+  defp reorder_premium_models(_), do: []
 
-  defp generate_model_choice_tiers(model_choices) do
+  defp generate_model_choice_tiers(nil) do
+    # Default empty lists if models are not available
+    {[], []}
+  end
+  
+  defp generate_model_choice_tiers(model_choices) when is_list(model_choices) do
     regular_model_choices =
       Enum.filter(model_choices, fn model -> !Map.get(model, "premium", false) end)
 
     premium_model_choices = reorder_premium_models(model_choices)
 
     {regular_model_choices, premium_model_choices}
+  end
+  
+  # Handle any other case (string, map, etc.)
+  defp generate_model_choice_tiers(_) do
+    {[], []}
   end
 
   defp generate_application_command(name, description_prefix, generate_model_choices, edit_model_choices) do
@@ -259,13 +276,36 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     }
   end
 
-  defp create_model_option(model_choices) do
+  defp create_model_option([]), do: %{
+    name: "model",
+    description: "The model to use. No models available.",
+    type: 3,
+    required: false,
+    choices: []
+  }
+  
+  defp create_model_option(model_choices) when is_list(model_choices) and length(model_choices) > 0 do
+    default_name = case Enum.at(model_choices, 0) do
+      %{"name" => name} when is_binary(name) -> name
+      _ -> "Default"
+    end
+    
     %{
       name: "model",
-      description: "The model to use. Default: #{Enum.at(model_choices, 0)["name"]}",
+      description: "The model to use. Default: #{default_name}",
       type: 3,
       required: false,
       choices: model_choices
+    }
+  end
+  
+  defp create_model_option(_) do
+    %{
+      name: "model",
+      description: "The model to use.",
+      type: 3,
+      required: false,
+      choices: []
     }
   end
 end

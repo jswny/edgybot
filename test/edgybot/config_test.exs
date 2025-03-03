@@ -3,8 +3,6 @@ defmodule Edgybot.RegistrarTest do
 
   use ExUnit.Case
 
-  alias Edgybot.Config
-
   describe "runtime_env" do
     test "gets runtime environment from application environment" do
       assert :test == Config.runtime_env()
