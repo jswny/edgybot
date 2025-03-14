@@ -44,7 +44,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
         ["slow", "enable"],
         1,
         [{"delay", 4, delay} | _other_options],
-        %{channel_id: channel_id},
+        %{"channel_id" => channel_id},
         _middleware_data
       ) do
     lower_bound = 1

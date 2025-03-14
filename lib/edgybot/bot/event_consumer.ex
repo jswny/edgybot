@@ -5,44 +5,35 @@ defmodule Edgybot.Bot.EventConsumer do
 
   use Nostrum.Consumer
 
-  alias Edgybot.Bot.Handler.ErrorHandler
-  alias Edgybot.Bot.Handler.EventHandler
-  alias Edgybot.Bot.Handler.ResponseHandler
-  alias Edgybot.Config
+  alias Edgybot.Bot.Handler.GuildHandler
+  alias Edgybot.Workers.InteractionDeferringWorker
 
   require Logger
 
   @impl true
-  def handle_event({event, payload, _ws_state}) do
-    censor_error = Config.runtime_env() == :prod
-
-    generate_error_context(event, payload)
-
-    fn ->
-      EventHandler.handle_event(event, payload)
-    end
-    |> ErrorHandler.handle_error(censor_error)
-    |> ResponseHandler.handle_response(payload)
+  def handle_event({:GUILD_AVAILABLE, payload, _ws_state}) do
+    guild = payload
+    GuildHandler.handle_guild_available(guild)
   end
+
+  def handle_event({:INTERACTION_CREATE, payload, _ws_state}) do
+    interaction = payload
+
+    serialized_interaction = Map.from_struct(interaction)
+
+    %{
+      interaction: serialized_interaction
+    }
+    |> InteractionDeferringWorker.new()
+    |> Oban.insert()
+
+    interaction
+  end
+
+  def handle_event({_, _, _}), do: :noop
 
   @impl true
   def handle_event(_event) do
     :noop
-  end
-
-  defp generate_error_context(event, payload) do
-    context = %{
-      event: event,
-      interaction_id: get_in(payload, [Access.key(:id, nil)]),
-      interaction_type: get_in(payload, [Access.key(:type, nil)]),
-      guild_id: get_in(payload, [Access.key(:guild_id, nil)]),
-      channel_id: get_in(payload, [Access.key(:channel_id, nil)]),
-      channel_name: get_in(payload, [Access.key(:channel, %{}), Access.key(:name, nil)]),
-      user_id: get_in(payload, [Access.key(:user, %{}), Access.key(:id, nil)]),
-      username: get_in(payload, [Access.key(:user, %{}), Access.key(:username, nil)]),
-      interaction_name: get_in(payload, [Access.key(:data, %{}), Access.key(:name, nil)])
-    }
-
-    ErrorTracker.set_context(context)
   end
 end

@@ -10,9 +10,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.External.OpenRouter, as: OpenRouterAPI
   alias Edgybot.External.Qdrant
   alias Nostrum.Cache.MemberCache
-  alias Nostrum.Struct.Guild.Member
-  alias Nostrum.Struct.Interaction
-  alias Nostrum.Struct.User
 
   @impl true
   def get_plugin_definitions do
@@ -75,25 +72,24 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   def handle_interaction(
         ["chat"],
         1,
-        [{"prompt", 3, prompt} | other_options],
-        %Interaction{
-          user: %User{username: caller_username},
-          member: %Member{nick: caller_nick},
-          guild_id: guild_id,
-          channel_id: channel_id
+        %{"prompt" => prompt} = options,
+        %{
+          "user" => %{"username" => caller_username},
+          "member" => %{"nick" => caller_nick},
+          "guild_id" => guild_id,
+          "channel_id" => channel_id
         },
         _middleware_data
       ) do
     endpoint = "chat/completions"
     default_model = Application.get_env(:edgybot, OpenRouter)[:default_model]
 
-    num_recent_context_messages = find_option_value(other_options, "context")
+    num_recent_context_messages = Map.get(options, "context")
 
-    model =
-      find_option_value(other_options, "model") || default_model
+    model = Map.get(options, "model", default_model)
 
-    behavior = find_option_value(other_options, "behavior")
-    temperature = find_option_value(other_options, "temperature")
+    behavior = Map.get(options, "behavior")
+    temperature = Map.get(options, "temperature")
 
     recent_context_messages = get_recent_context_messages(guild_id, channel_id, num_recent_context_messages)
 
@@ -125,7 +121,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
            completion_metadata
          ) do
       {:ok, chat_response, metadata} ->
-        debug = find_option_value(other_options, "debug")
+        debug = Map.get(options, "debug")
 
         fields =
           generate_fields(
@@ -138,11 +134,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
             debug && Map.get(metadata, :tool_calls)
           )
 
-        options = [
+        options = %{
           title: nil,
           description: chat_response,
           fields: fields
-        ]
+        }
 
         {:success, options}
 

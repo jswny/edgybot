@@ -128,10 +128,9 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(["meme", "search"], 1, [{"query", 3, query} | other_options], _interaction, _middleware_data)
-      when is_binary(query) and is_list(other_options) do
-    animated? =
-      Enum.any?(other_options, fn {name, _type, value} -> name == "animated" && value == true end)
+  def handle_interaction(["meme", "search"], 1, %{"query" => query} = options, _interaction, _middleware_data)
+      when is_binary(query) do
+    animated? = Map.get(options, "animated", false)
 
     template_results = search_templates(query, animated?)
 
@@ -153,8 +152,8 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(["meme", "template"], 1, [{"id", 3, id} | other_options], _interaction, _middleware_data)
-      when is_binary(id) and is_list(other_options) do
+  def handle_interaction(["meme", "template"], 1, %{"id" => id} = options, _interaction, _middleware_data)
+      when is_binary(id) do
     case get_template(id) do
       {:ok, template} ->
         id_text = Designer.code_inline(template["id"])
@@ -162,7 +161,7 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
         num_text_lines = template["lines"]
         text_lines = Enum.map(1..num_text_lines, fn n -> "text#{Integer.to_string(n)}" end)
 
-        style = find_option_value(other_options, "style")
+        style = Map.get(options, "style")
         example_meme_url = make_meme(id, text_lines, nil, style)
 
         styles = Map.get(template, "styles", [])
@@ -198,11 +197,11 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(["meme", "make"], 1, [{"id", 3, template_id} | other_options], _interaction, _middleware_data)
-      when is_binary(template_id) and is_list(other_options) do
+  def handle_interaction(["meme", "make"], 1, %{"id" => template_id} = options, _interaction, _middleware_data)
+      when is_binary(template_id) do
     case get_template(template_id) do
       {:ok, template} ->
-        style = find_option_value(other_options, "style")
+        style = Map.get(options, "style")
 
         matching_template_style =
           template
@@ -210,8 +209,8 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
           |> Enum.any?(fn template_style -> template_style == style end)
 
         if style == nil or matching_template_style do
-          text_lines = get_matching_numbered_options(other_options, "text")
-          overlays = get_matching_numbered_options(other_options, "overlay")
+          text_lines = get_matching_numbered_options(options, "text")
+          overlays = get_matching_numbered_options(options, "overlay")
           meme_url = make_meme(template_id, text_lines, overlays, style)
 
           options = [
@@ -230,15 +229,9 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["meme", "custom"],
-        1,
-        [{"image_url", 3, image_url} | other_options],
-        _interaction,
-        _middleware_data
-      )
-      when is_binary(image_url) and is_list(other_options) do
-    text_lines = get_matching_numbered_options(other_options, "text")
+  def handle_interaction(["meme", "custom"], 1, %{"image_url" => image_url} = options, _interaction, _middleware_data)
+      when is_binary(image_url) do
+    text_lines = get_matching_numbered_options(options, "text")
     meme_url = make_custom_meme(image_url, text_lines)
 
     options = [
@@ -275,15 +268,15 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     end
   end
 
-  defp get_matching_numbered_options(options, name) when is_list(options) and is_binary(name) do
+  defp get_matching_numbered_options(options, name) when is_map(options) and is_binary(name) do
     options
-    |> Enum.filter(fn {option_name, _type, _value} -> String.starts_with?(option_name, name) end)
-    |> Enum.sort_by(fn {option_name, _type, _value} ->
+    |> Enum.filter(fn {option_name, _value} -> String.starts_with?(option_name, name) end)
+    |> Enum.sort_by(fn {option_name, _value} ->
       option_name
       |> String.replace("#{name}-", "")
       |> String.to_integer()
     end)
-    |> Enum.map(fn {_name, _type, value} -> value end)
+    |> Enum.map(fn {_name, value} -> value end)
   end
 
   defp make_meme(template_id, text_lines, overlays, style)
