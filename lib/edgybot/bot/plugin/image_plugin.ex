@@ -101,6 +101,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
       %{
         prompt: prompt,
         image_url: image_url,
+        image_urls: [image_url],
         openai_api_key: Config.openai_api_key()
       }
 

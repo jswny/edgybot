@@ -42,8 +42,11 @@ defmodule Edgybot.External.Fal do
     opts = Keyword.put_new(opts, :retry, :transient)
 
     case call(opts) do
-      {:ok, %{body: %{"detail" => [%{"msg" => error} | _]}}} ->
-        {:error, error}
+      {:ok, %{body: %{"detail" => [%{"loc" => location, "msg" => error, "type" => type} | _] = detail}}} ->
+        location_error_message = Enum.join(location, ", ")
+        error_message = "Error #{type} - #{error} at #{location_error_message}"
+
+        {:error, error_message}
 
       {:error, message} ->
         {:error, message}
