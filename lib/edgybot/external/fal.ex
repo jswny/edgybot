@@ -42,8 +42,8 @@ defmodule Edgybot.External.Fal do
     opts = Keyword.put_new(opts, :retry, :transient)
 
     case call(opts) do
-      {:ok, %{body: %{"detail" => error}}} ->
-        {:error, inspect(error)}
+      {:ok, %{body: %{"detail" => [%{"msg" => error} | _]}}} ->
+        {:error, error}
 
       {:error, message} ->
         {:error, message}
