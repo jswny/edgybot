@@ -153,6 +153,10 @@ fal_image_models_generate_default = """
       "name": "Recraft v3",
       "value": "recraft-v3",
       "premium": true
+    },
+    {
+      "name": "GPT Image 1",
+      "value": "gpt-image-1/text-to-image/byok"
     }
   ]
 }
@@ -184,6 +188,10 @@ fal_image_models_edit_default = """
     {
       "name": "Stable Diffusion v3 Medium",
       "value": "stable-diffusion-v3-medium/image-to-image"
+    },
+    {
+      "name": "GPT Image 1",
+      "value": "gpt-image-1/edit-image/byok"
     }
   ]
 }
