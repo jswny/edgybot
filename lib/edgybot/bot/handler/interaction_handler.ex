@@ -5,11 +5,17 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   alias Edgybot.Bot.Plugin
   alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Edgybot.Config
+  alias Nostrum.Struct.ApplicationCommandInteractionData
+  alias Nostrum.Struct.ApplicationCommandInteractionDataOption
   alias Nostrum.Struct.Interaction
 
   require Logger
 
   @default_metadata []
+
+  defguardp valid_resolved_data(resolved_data)
+            when is_struct(resolved_data, ApplicationCommandInteractionDataResolved) or
+                   is_nil(resolved_data)
 
   def transform_interaction_name(%Interaction{data: %{name: interaction_name}} = interaction) do
     application_command_prefix = Config.application_command_prefix()
@@ -53,7 +59,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     )
   end
 
-  def parse_interaction(%{data: data}) do
+  def parse_interaction(%Interaction{data: data}) do
     resolved_data = Map.get(data, :resolved)
 
     {parsed_application_command_name_list, parsed_options} =
@@ -152,29 +158,30 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
     Map.merge(current_metadata, metadata_tree_node_metadata)
   end
 
-  defp parse_interaction_data(%{name: application_command_name_part, options: options}, resolved_data)
-       when is_binary(application_command_name_part) and is_list(options) do
-    Enum.reduce(options, {[application_command_name_part], %{}}, fn option,
-                                                                    {parsed_application_command_name_list, parsed_options} ->
-      {parsed_application_command_name_part, option_name, parsed_option_data} =
-        parse_interaction_data(option, resolved_data)
-
-      parsed_options =
-        Map.put(parsed_options, option_name, parsed_option_data)
-
-      parsed_application_command_name_list = [parsed_application_command_name_part | parsed_application_command_name_list]
-
-      {parsed_application_command_name_list, parsed_options}
+  defp parse_interaction_data(%{name: application_command_name_part, options: options} = data_with_options, resolved_data)
+       when is_binary(application_command_name_part) and is_list(options) and
+              (is_struct(data_with_options, ApplicationCommandInteractionData) or
+                 is_struct(data_with_options, ApplicationCommandInteractionDataOption)) and
+              valid_resolved_data(resolved_data) do
+    Enum.reduce(options, {[application_command_name_part], %{}}, fn option, {names_acc, options_acc} ->
+      {parsed_name_part, parsed_options} = parse_interaction_data(option, resolved_data)
+      {parsed_name_part ++ names_acc, Map.merge(options_acc, parsed_options)}
     end)
   end
 
-  defp parse_interaction_data(%{name: option_name, type: option_type, value: option_value}, resolved_data)
+  defp parse_interaction_data(
+         %ApplicationCommandInteractionDataOption{name: option_name, type: option_type, value: option_value},
+         resolved_data
+       )
        when is_binary(option_name) and is_integer(option_type) do
     resolved_option_value = get_resolved_option_value(option_type, option_value, resolved_data)
-    {[], option_name, resolved_option_value}
+    {[], %{option_name => resolved_option_value}}
   end
 
-  defp parse_interaction_data(%{name: parsed_application_command_name_part}, _resolved_data)
+  defp parse_interaction_data(
+         %ApplicationCommandInteractionData{name: parsed_application_command_name_part},
+         _resolved_data
+       )
        when is_binary(parsed_application_command_name_part) do
     {[parsed_application_command_name_part], %{}}
   end
@@ -200,7 +207,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   defp get_resolved_option_value(_type, value, _resolved_interaction_data), do: value
 
   defp get_resolved_data_for_type(option_type, option_value, resolved_interaction_data)
-       when is_integer(option_type) and option_type == 6 and is_integer(option_value) do
+       when is_integer(option_type) and option_type == 6 and is_integer(option_value) and
+              valid_resolved_data(resolved_interaction_data) do
     user_data =
       resolved_interaction_data
       |> Map.fetch!(:users)
