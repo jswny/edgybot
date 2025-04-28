@@ -7,6 +7,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   alias Nostrum.Api
   alias Nostrum.Struct.Emoji
   alias Nostrum.Struct.Guild.Role
+  alias Nostrum.Struct.Interaction
 
   @role_prefix "Pronouns: "
 
@@ -73,7 +74,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         ["pronouns", "set"],
         1,
         %{"pronoun1" => pronoun1, "pronoun2" => pronoun2} = options,
-        %{"guild_id" => guild_id, "user" => %{"id" => user_id}},
+        %Interaction{guild_id: guild_id, user: %{id: user_id}},
         _middleware_data
       )
       when is_binary(pronoun1) and is_binary(pronoun2) and is_map(options) and is_integer(user_id) and
@@ -141,7 +142,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         ["pronouns", "remove"],
         1,
         _options,
-        %{"guild_id" => guild_id, "user" => %{"id" => user_id}},
+        %Interaction{guild_id: guild_id, user: %{id: user_id}},
         _middleware_data
       )
       when is_integer(user_id) and is_integer(guild_id) do

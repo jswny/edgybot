@@ -7,10 +7,13 @@ defmodule Edgybot.Workers.InteractionDeferringWorker do
 
   alias Edgybot.Bot.Handler.InteractionHandler
   alias Edgybot.Bot.Handler.ResponseHandler
+  alias Edgybot.Bot.NostrumDecoders
   alias Edgybot.Workers.InteractionProcessingWorker
 
   @impl Worker
   def perform(%Oban.Job{args: %{"interaction" => interaction}}) do
+    interaction = NostrumDecoders.to_interaction_struct(interaction)
+
     plugin_match_result =
       interaction
       |> InteractionHandler.transform_interaction_name()

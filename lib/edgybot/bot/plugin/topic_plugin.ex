@@ -5,6 +5,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
 
   alias Edgybot.Bot.Designer
   alias Nostrum.Api
+  alias Nostrum.Struct.Interaction
 
   @impl true
   def get_plugin_definitions do
@@ -28,7 +29,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   end
 
   @impl true
-  def handle_interaction(["topic"], 1, %{"content" => content}, %{"channel_id" => channel_id}, _middleware_data)
+  def handle_interaction(["topic"], 1, %{"content" => content}, %Interaction{channel_id: channel_id}, _middleware_data)
       when is_binary(content) and is_integer(channel_id) do
     channel_options = %{topic: content}
     {:ok, _channel} = Api.modify_channel(channel_id, channel_options)

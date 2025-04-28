@@ -7,11 +7,13 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Bot.Handler.ResponseHandler
+  alias Edgybot.Bot.NostrumDecoders
 
   @impl Worker
   def perform(%Oban.Job{
         args: %{"interaction" => interaction, "ephemeral" => ephemeral?, "type" => "immediate", "exception" => exception}
       }) do
+    interaction = NostrumDecoders.to_interaction_struct(interaction)
     response = {"error", %{"description" => Designer.code_block(exception)}}
     {:ok} = ResponseHandler.send_immediate_response(response, interaction, ephemeral?)
 
@@ -27,6 +29,7 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
           "response" => %{"type" => response_type, "value" => response_value}
         }
       }) do
+    interaction = NostrumDecoders.to_interaction_struct(interaction)
     {:ok} = ResponseHandler.send_immediate_response({response_type, response_value}, interaction, ephemeral?)
 
     :ok
@@ -36,6 +39,7 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
   def perform(%Oban.Job{
         args: %{"interaction" => interaction, "ephemeral" => ephemeral?, "type" => "followup", "exception" => exception}
       }) do
+    interaction = NostrumDecoders.to_interaction_struct(interaction)
     response = {"error", %{"description" => Designer.code_block(exception)}}
     {:ok, _message} = ResponseHandler.send_followup_response(response, interaction, ephemeral?)
 
@@ -51,6 +55,7 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
           "response" => %{"type" => response_type, "value" => response_value}
         }
       }) do
+    interaction = NostrumDecoders.to_interaction_struct(interaction)
     {:ok, _message} = ResponseHandler.send_followup_response({response_type, response_value}, interaction, ephemeral?)
 
     :ok

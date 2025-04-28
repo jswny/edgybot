@@ -7,6 +7,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   alias Edgybot.Config
   alias Edgybot.External.Qdrant
   alias Edgybot.Workers.DiscordChannelBatchingWorker
+  alias Nostrum.Struct.Interaction
 
   @impl true
   def get_plugin_definitions do
@@ -78,7 +79,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "channel"],
         1,
         _options,
-        %{"guild_id" => guild_id, "channel_id" => channel_id, "channel" => %{"last_message_id" => last_message_id}},
+        %Interaction{guild_id: guild_id, channel_id: channel_id, channel: %{last_message_id: last_message_id}},
         _middleware_data
       ) do
     batch_size = Config.discord_channel_message_batch_size()
@@ -100,7 +101,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "channel-rm"],
         1,
         _options,
-        %{"guild_id" => guild_id, "channel_id" => channel_id},
+        %{guild_id: guild_id, channel_id: channel_id},
         _middleware_data
       ) do
     points_collection = Config.qdrant_collection_discord_messages()
@@ -121,13 +122,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["index", "search"],
-        1,
-        %{"query" => query} = options,
-        %{"guild_id" => guild_id},
-        _middleware_data
-      ) do
+  def handle_interaction(["index", "search"], 1, %{"query" => query} = options, %{guild_id: guild_id}, _middleware_data) do
     limit = Map.get(options, "limit", 10)
     score_threshold = Map.get(options, "limit", 0.0)
     points_collection = Config.qdrant_collection_discord_messages()

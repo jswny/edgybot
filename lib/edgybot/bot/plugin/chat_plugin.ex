@@ -10,6 +10,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
   alias Edgybot.External.OpenRouter, as: OpenRouterAPI
   alias Edgybot.External.Qdrant
   alias Nostrum.Cache.MemberCache
+  alias Nostrum.Struct.Interaction
 
   @impl true
   def get_plugin_definitions do
@@ -73,11 +74,11 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         ["chat"],
         1,
         %{"prompt" => prompt} = options,
-        %{
-          "user" => %{"username" => caller_username},
-          "member" => %{"nick" => caller_nick},
-          "guild_id" => guild_id,
-          "channel_id" => channel_id
+        %Interaction{
+          user: %{username: caller_username},
+          member: %{nick: caller_nick},
+          guild_id: guild_id,
+          channel_id: channel_id
         },
         _middleware_data
       ) do

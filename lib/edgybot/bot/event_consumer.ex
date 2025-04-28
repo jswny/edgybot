@@ -16,13 +16,9 @@ defmodule Edgybot.Bot.EventConsumer do
     GuildHandler.handle_guild_available(guild)
   end
 
-  def handle_event({:INTERACTION_CREATE, payload, _ws_state}) do
-    interaction = payload
-
-    serialized_interaction = Map.from_struct(interaction)
-
+  def handle_event({:INTERACTION_CREATE, interaction, _ws_state}) do
     %{
-      interaction: serialized_interaction
+      interaction: interaction
     }
     |> InteractionDeferringWorker.new()
     |> Oban.insert()

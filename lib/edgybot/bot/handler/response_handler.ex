@@ -7,34 +7,35 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   alias Edgybot.Bot.Utils
   alias Nostrum.Api
   alias Nostrum.Struct.Embed
+  alias Nostrum.Struct.Interaction
 
   @interaction_channel_message_with_source 4
   @interaction_deferred_channel_message_with_source 5
 
-  def defer_response(interaction, ephemeral?) do
+  def defer_response(%Interaction{} = interaction, ephemeral?) do
     %{}
     |> add_response_metadata(@interaction_deferred_channel_message_with_source, ephemeral?)
     |> send_direct_response(interaction)
   end
 
-  def send_immediate_response(response, interaction, ephemeral?) do
+  def send_immediate_response(response, %Interaction{} = interaction, ephemeral?) do
     response
     |> create_response_object()
     |> add_response_metadata(@interaction_channel_message_with_source, ephemeral?)
     |> send_direct_response(interaction)
   end
 
-  def send_followup_response(response, %{"token" => token}, ephemeral?) do
+  def send_followup_response(response, %Interaction{} = interaction, ephemeral?) do
     response_object =
       response
       |> create_response_object()
       |> add_response_metadata(@interaction_channel_message_with_source, ephemeral?)
 
-    Api.edit_interaction_response(token, response_object.data)
+    Api.edit_interaction_response(interaction, response_object.data)
   end
 
-  defp send_direct_response(response_object, %{"id" => id, "token" => token}),
-    do: Api.create_interaction_response(id, token, response_object)
+  defp send_direct_response(response_object, %Interaction{} = interaction),
+    do: Api.create_interaction_response(interaction, response_object)
 
   defp add_response_metadata(response_object, response_type, ephemeral?) when is_boolean(ephemeral?) do
     response_object = Map.put(response_object, :type, response_type)
