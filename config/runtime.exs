@@ -153,6 +153,10 @@ fal_image_models_generate_default = """
       "name": "Recraft v3",
       "value": "recraft-v3",
       "premium": true
+    },
+    {
+      "name": "GPT Image 1",
+      "value": "gpt-image-1/text-to-image/byok"
     }
   ]
 }
@@ -164,6 +168,10 @@ fal_image_models_generate =
 fal_image_models_edit_default = """
 {
   "models": [
+    {
+      "name": "GPT Image 1",
+      "value": "gpt-image-1/edit-image/byok"
+    },
     {
       "name": "FLUX Dev",
       "value": "flux/dev/image-to-image"
@@ -249,7 +257,7 @@ config :edgybot,
   fal_api_url: get_env_var.("FAL_API_URL", "https://queue.fal.run/fal-ai"),
   fal_api_key: get_env_var.("FAL_KEY", nil),
   fal_timeout: String.to_integer(get_env_var.("FAL_TIMEOUT", "840000")),
-  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "240")),
+  fal_status_retry_count: String.to_integer(get_env_var.("FAL_STATUS_RETRY_COUNT", "1200")),
   fal_image_models_generate: fal_image_models_generate,
   fal_image_models_edit: fal_image_models_edit,
   fal_image_models_safety_checker_disable:

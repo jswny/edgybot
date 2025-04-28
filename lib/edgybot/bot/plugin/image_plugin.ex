@@ -100,7 +100,9 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     body =
       %{
         prompt: prompt,
-        image_url: image_url
+        image_url: image_url,
+        image_urls: [image_url],
+        openai_api_key: Config.openai_api_key()
       }
 
     body =
@@ -129,7 +131,8 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     body =
       %{
         prompt: prompt,
-        enable_safety_checker: enable_safety_checker?
+        enable_safety_checker: enable_safety_checker?,
+        openai_api_key: Config.openai_api_key()
       }
 
     body =
