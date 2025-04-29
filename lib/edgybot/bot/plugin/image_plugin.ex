@@ -62,7 +62,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   def handle_interaction(
         ["image-p", "edit"],
         1,
-        [{"prompt", 3, prompt}, {"image", 11, image_attachment} | other_options],
+        %{"prompt" => prompt, "image" => image_attachment} = options,
         _interaction,
         _middleware_data
       ) do
@@ -74,28 +74,28 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
       |> Enum.at(0)
       |> Map.get("value")
 
-    handle_image_edit(prompt, image_attachment, other_options, default_model)
+    handle_image_edit(prompt, image_attachment, options, default_model)
   end
 
   @impl true
   def handle_interaction(
         ["image", "edit"],
         1,
-        [{"prompt", 3, prompt}, {"image", 11, image_attachment} | other_options],
+        %{"prompt" => prompt, "image" => image_attachment} = options,
         _interaction,
         _middleware_data
       ) do
     available_models = Config.fal_image_models_edit()
     default_model = Enum.at(available_models, 0)["value"]
 
-    handle_image_edit(prompt, image_attachment, other_options, default_model)
+    handle_image_edit(prompt, image_attachment, options, default_model)
   end
 
   defp handle_image_edit(prompt, image_attachment, options, default_model) do
     model = Map.get(options, "model", default_model)
     seed = Map.get(options, "seed")
 
-    image_url = image_attachment.url
+    image_url = image_attachment["url"]
 
     body =
       %{

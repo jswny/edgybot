@@ -7,6 +7,7 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   alias Edgybot.Config
   alias Nostrum.Struct.ApplicationCommandInteractionData
   alias Nostrum.Struct.ApplicationCommandInteractionDataOption
+  alias Nostrum.Struct.ApplicationCommandInteractionDataResolved
   alias Nostrum.Struct.Interaction
 
   require Logger
@@ -209,15 +210,8 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
   defp get_resolved_data_for_type(option_type, option_value, resolved_interaction_data)
        when is_integer(option_type) and option_type == 6 and is_integer(option_value) and
               valid_resolved_data(resolved_interaction_data) do
-    user_data =
-      resolved_interaction_data
-      |> Map.fetch!(:users)
-      |> Map.fetch!(option_value)
-
-    member_data =
-      resolved_interaction_data
-      |> Map.fetch!(:members)
-      |> Map.fetch!(option_value)
+    user_data = fetch_resolved!(resolved_interaction_data.users, option_value)
+    member_data = fetch_resolved!(resolved_interaction_data.members, option_value)
 
     Map.merge(user_data, member_data)
   end
@@ -231,9 +225,14 @@ defmodule Edgybot.Bot.Handler.InteractionHandler do
         11 -> :attachments
       end
 
-    resolved_interaction_data
-    |> Map.fetch!(resolved_interaction_data_field)
-    |> Map.fetch!(option_value)
+    fetch_resolved!(
+      Map.get(resolved_interaction_data, resolved_interaction_data_field),
+      option_value
+    )
+  end
+
+  defp fetch_resolved!(resolved_data_map, id) do
+    Map.fetch!(resolved_data_map || %{}, id)
   end
 
   defp flatten_reverse(list) when is_list(list) do
