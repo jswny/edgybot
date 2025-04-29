@@ -173,11 +173,11 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         fields
       end
 
-    options = [
+    options = %{
       title: nil,
       image: image_url,
       fields: fields
-    ]
+    }
 
     {:success, options}
   end
