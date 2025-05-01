@@ -154,11 +154,11 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
     - Segments: #{response_body["segments_count"]}
     """
 
-    options = [
+    options = %{
       title: "Index Status",
       description: formatted_response,
       fields: nil
-    ]
+    }
 
     {:success, options}
   end
@@ -175,11 +175,11 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
 
     time_field = %{name: "Response Time", value: time_formatted}
 
-    options = [
+    options = %{
       title: "Search Results",
       fields: [time_field],
       description: description
-    ]
+    }
 
     {:success, options}
   end

@@ -142,10 +142,10 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
           "#{template["name"]} (#{Designer.code_inline(template["id"])})"
         end)
 
-      options = [
+      options = %{
         title: "Template Search Results",
         fields: [%{name: "Templates", value: results_content}]
-      ]
+      }
 
       {:success, options}
     end
@@ -182,12 +182,12 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
         details =
           "**ID**: #{id_text}\n**Textboxes**: #{template["lines"]}\n**Styles**: #{styles}\n**Overlays**: #{overlays}"
 
-        options = [
+        options = %{
           title: template["name"],
           url: template["source"],
           image: example_meme_url,
           fields: [%{name: "Details", value: details}]
-        ]
+        }
 
         {:success, options}
 
@@ -213,10 +213,10 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
           overlays = get_matching_numbered_options(options, "overlay")
           meme_url = make_meme(template_id, text_lines, overlays, style)
 
-          options = [
+          options = %{
             title: :none,
             image: meme_url
-          ]
+          }
 
           {:success, options}
         else
@@ -234,10 +234,10 @@ defmodule Edgybot.Bot.Plugin.MemePlugin do
     text_lines = get_matching_numbered_options(options, "text")
     meme_url = make_custom_meme(image_url, text_lines)
 
-    options = [
+    options = %{
       title: :none,
       image: meme_url
-    ]
+    }
 
     {:success, options}
   end

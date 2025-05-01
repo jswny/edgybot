@@ -261,11 +261,11 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
        when is_struct(image) do
     max_image_size = String.replace_suffix(max_image_size, ".", "")
 
-    options = [
+    options = %{
       title: "Warning",
       description: "The specified image was too large. The max image size is #{Designer.code_inline(max_image_size)}.",
       image: image.url
-    ]
+    }
 
     {:warning, options}
   end

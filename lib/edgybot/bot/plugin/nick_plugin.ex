@@ -1,4 +1,4 @@
-defmodule Edgybot.Bot.Plugin.Nick do
+defmodule Edgybot.Bot.Plugin.NickPlugin do
   @moduledoc false
 
   use Edgybot.Bot.Plugin
@@ -66,7 +66,7 @@ defmodule Edgybot.Bot.Plugin.Nick do
   end
 
   @impl true
-  def handle_interaction(["nick"], 1, %Interaction{user: %{id: user_id}}, %{"guild_id" => guild_id}, _middleware_data)
+  def handle_interaction(["nick"], 1, %{"user" => %{"id" => user_id}}, %Interaction{guild_id: guild_id}, _middleware_data)
       when is_integer(user_id) and is_integer(guild_id) do
     split_old_nick = parse_nickname(guild_id, user_id)
 
