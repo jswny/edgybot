@@ -44,7 +44,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
   def handle_interaction(
         ["slow", "enable"],
         1,
-        [{"delay", 4, delay} | _other_options],
+        %{"delay" => delay},
         %Interaction{channel_id: channel_id},
         _middleware_data
       ) do

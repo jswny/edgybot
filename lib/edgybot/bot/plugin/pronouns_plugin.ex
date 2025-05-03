@@ -175,7 +175,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp get_image_url(%Emoji{} = custom_emoji, _image_option), do: Emoji.image_url(custom_emoji)
 
-  defp get_image_url(_custom_emoji, %{} = image_option), do: Map.get(image_option, :url)
+  defp get_image_url(_custom_emoji, %{} = image_option), do: Map.fetch!(image_option, "url")
 
   defp get_emoji_struct(nil), do: nil
 

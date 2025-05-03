@@ -34,6 +34,7 @@ defmodule Edgybot.Bot.NostrumEncoders do
     Nostrum.Struct.Component.Button,
     Nostrum.Struct.Component.SelectMenu,
     Nostrum.Struct.Channel,
+    Nostrum.Struct.Emoji,
     Nostrum.Struct.Message,
     Nostrum.Struct.Message.Attachment,
     Nostrum.Struct.Message.Component,
@@ -43,6 +44,9 @@ defmodule Edgybot.Bot.NostrumEncoders do
     Nostrum.Struct.Message.Embed.Footer,
     Nostrum.Struct.Message.Embed.Image,
     Nostrum.Struct.Message.Embed.Thumbnail,
+    Nostrum.Struct.Message.Reference,
+    Nostrum.Struct.Message.Reaction,
+    Nostrum.Struct.Sticker,
     Nostrum.Struct.User
   ]
 
