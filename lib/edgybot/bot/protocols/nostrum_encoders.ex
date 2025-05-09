@@ -24,6 +24,23 @@ defmodule Edgybot.Bot.NostrumEncoders do
     end
   end
 
+  defimpl Jason.Encoder, for: Nostrum.Struct.Message do
+    def encode(%Nostrum.Struct.Message{} = message, opts) do
+      map_representation = %{
+        id: message.id,
+        channel_id: message.channel_id,
+        author: %{
+          bot: message.author.bot,
+          id: message.author.id
+        },
+        timestamp: message.timestamp,
+        content: message.content
+      }
+
+      Jason.Encode.map(map_representation, opts)
+    end
+  end
+
   @candidates [
     Nostrum.Struct.Interaction,
     Nostrum.Struct.ApplicationCommandInteractionData,
@@ -35,17 +52,6 @@ defmodule Edgybot.Bot.NostrumEncoders do
     Nostrum.Struct.Component.SelectMenu,
     Nostrum.Struct.Channel,
     Nostrum.Struct.Emoji,
-    Nostrum.Struct.Message,
-    Nostrum.Struct.Message.Attachment,
-    Nostrum.Struct.Message.Component,
-    Nostrum.Struct.Message.Embed,
-    Nostrum.Struct.Message.Embed.Author,
-    Nostrum.Struct.Message.Embed.Field,
-    Nostrum.Struct.Message.Embed.Footer,
-    Nostrum.Struct.Message.Embed.Image,
-    Nostrum.Struct.Message.Embed.Thumbnail,
-    Nostrum.Struct.Message.Reference,
-    Nostrum.Struct.Message.Reaction,
     Nostrum.Struct.Sticker,
     Nostrum.Struct.User
   ]
