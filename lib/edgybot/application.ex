@@ -8,6 +8,7 @@ defmodule Edgybot.Application do
   import Cachex.Spec
 
   alias Edgybot.Bot
+  alias Edgybot.Bot.Handler.InteractionErrorHandler
   alias Edgybot.Reporting.ErrorReporter
 
   require Logger
@@ -39,15 +40,7 @@ defmodule Edgybot.Application do
       {Oban, Application.fetch_env!(:edgybot, Oban)}
     ]
 
-    :ok = Oban.Telemetry.attach_default_logger(level: :debug, encode: false)
-    :ok = Oban.Web.Telemetry.attach_default_logger(level: :info, encode: false)
-
-    :telemetry.attach(
-      "oban-errors",
-      [:oban, :job, :exception],
-      &ErrorReporter.handle_event/4,
-      nil
-    )
+    attach_oban_telemetry()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -61,5 +54,24 @@ defmodule Edgybot.Application do
   def config_change(changed, _new, removed) do
     EdgybotWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp attach_oban_telemetry do
+    :ok = Oban.Telemetry.attach_default_logger(level: :debug, encode: false)
+    :ok = Oban.Web.Telemetry.attach_default_logger(level: :info, encode: false)
+
+    :telemetry.attach(
+      "oban-errors",
+      [:oban, :job, :exception],
+      &ErrorReporter.handle_event/4,
+      nil
+    )
+
+    :telemetry.attach(
+      "oban-interaction-processing-errors",
+      [:oban, :job, :exception],
+      &InteractionErrorHandler.handle_event/4,
+      nil
+    )
   end
 end

@@ -200,6 +200,8 @@ jobs:
           path: _build/${{ env.MIX_ENV }}
           key: ${{ env.base-key }}-lock-hash-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ env.base-key }}
+      - name: Get Dependencies
+        run: mix deps.get
       - name: Restore PLT cache
         id: plt-cache-restore
         uses: actions/cache/restore@v4

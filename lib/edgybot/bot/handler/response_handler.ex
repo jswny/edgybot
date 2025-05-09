@@ -9,49 +9,65 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
   alias Nostrum.Struct.Embed
   alias Nostrum.Struct.Interaction
 
+  @interaction_channel_message_with_source 4
   @interaction_deferred_channel_message_with_source 5
 
-  def defer_interaction_response(%Interaction{} = interaction, ephemeral?) when is_boolean(ephemeral?) do
-    response = Map.put(Map.new(), :type, @interaction_deferred_channel_message_with_source)
-
-    response =
-      if ephemeral? do
-        Map.put(response, :data, %{flags: 1 <<< 6})
-      else
-        response
-      end
-
-    {:ok} = Api.create_interaction_response(interaction, response)
-    interaction
+  def defer_response(%Interaction{} = interaction, ephemeral?) do
+    %{}
+    |> add_response_metadata(@interaction_deferred_channel_message_with_source, ephemeral?)
+    |> send_direct_response(interaction)
   end
 
-  def handle_response(:noop, _source), do: :noop
-
-  def handle_response({:message, message}, %Interaction{} = interaction) when is_binary(message) do
-    response_data = %{content: message}
-    send_interaction_response(interaction, response_data)
+  def send_immediate_response(response, %Interaction{} = interaction, ephemeral?) do
+    response
+    |> create_response_object()
+    |> add_response_metadata(@interaction_channel_message_with_source, ephemeral?)
+    |> send_direct_response(interaction)
   end
 
-  def handle_response({type, message}, %Interaction{} = interaction)
-      when is_atom(type) and type in [:success, :warning, :error] and is_binary(message) do
-    options = [description: message]
-    handle_embed_response(type, options, interaction)
+  def send_followup_response(response, %Interaction{} = interaction, ephemeral?) do
+    response_object =
+      response
+      |> create_response_object()
+      |> add_response_metadata(@interaction_channel_message_with_source, ephemeral?)
+
+    Api.edit_interaction_response(interaction, response_object.data)
   end
 
-  def handle_response({type, options}, %Interaction{} = interaction)
-      when is_atom(type) and type in [:success, :warning, :error] and is_list(options) do
-    handle_embed_response(type, options, interaction)
+  defp send_direct_response(response_object, %Interaction{} = interaction),
+    do: Api.create_interaction_response(interaction, response_object)
+
+  defp add_response_metadata(response_object, response_type, ephemeral?) when is_boolean(ephemeral?) do
+    response_object = Map.put(response_object, :type, response_type)
+
+    if ephemeral? do
+      update_in(response_object, [:data], fn
+        nil -> %{flags: 1 <<< 6}
+        data -> Map.put(data, :flags, 1 <<< 6)
+      end)
+    else
+      response_object
+    end
   end
 
-  defp handle_embed_response(type, options, %Interaction{} = interaction)
-       when is_atom(type) and type in [:success, :warning, :error] and is_list(options) do
+  defp create_response_object({"message", message}) when is_binary(message), do: %{data: %{content: message}}
+
+  defp create_response_object({type, message}) when type in ["success", "warning", "error"] and is_binary(message) do
+    options = %{"description" => message}
+    create_response_object(type, options)
+  end
+
+  defp create_response_object({type, options}) when type in ["success", "warning", "error"] and is_map(options),
+    do: create_response_object(type, options)
+
+  defp create_response_object(type, options) when type in ["success", "warning", "error"] and is_map(options) do
     {response_data, options} = transform_image(%{}, options)
 
     case_result =
       case type do
-        :success -> Designer.success_embed(options)
-        :warning -> Designer.warning_embed(options)
-        :error -> Designer.error_embed(options)
+        "success" -> Designer.success_embed(options)
+        "warning" -> Designer.warning_embed(options)
+        "error" -> Designer.error_embed(options)
       end
 
     embed = maybe_truncate_embed(case_result)
@@ -61,7 +77,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
         Enum.map([embed | embeds_list], &maybe_truncate_embed/1)
       end)
 
-    send_interaction_response(interaction, response_data)
+    %{data: response_data}
   end
 
   defp maybe_truncate_embed(%Embed{description: nil} = embed), do: embed
@@ -88,35 +104,26 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
     Map.put(embed, :description, description)
   end
 
-  defp transform_image(response_data, options) when is_map(response_data) and is_list(options) do
-    if Keyword.has_key?(options, :image) do
-      image = Keyword.get(options, :image)
+  defp transform_image(response_object, %{"image" => image} = options) when is_map(response_object) and is_map(options) do
+    case image do
+      {"file", image_data} ->
+        filename = "image-#{Utils.random_string(8)}.png"
+        file = %{body: image_data, name: filename}
 
-      case image do
-        {:file, image_data} ->
-          filename = "image-#{Utils.random_string(8)}.png"
-          file = %{body: image_data, name: filename}
+        new_response_object =
+          Map.update(response_object, :files, [file], fn files_list ->
+            [file | files_list]
+          end)
 
-          new_response_data =
-            Map.update(response_data, :files, [file], fn files_list ->
-              [file | files_list]
-            end)
+        new_options = Map.put(options, "image", "attachment://#{filename}")
 
-          new_options = Keyword.put(options, :image, "attachment://#{filename}")
+        {new_response_object, new_options}
 
-          {new_response_data, new_options}
-
-        _ ->
-          {response_data, options}
-      end
-    else
-      {response_data, options}
+      _ ->
+        {response_object, options}
     end
   end
 
-  defp send_interaction_response(%Interaction{} = interaction, data) when is_map(data) do
-    response = data
-
-    {:ok, _message} = Api.edit_interaction_response(interaction, response)
-  end
+  defp transform_image(response_object, options) when is_map(response_object) and is_map(options),
+    do: {response_object, options}
 end

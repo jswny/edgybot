@@ -38,7 +38,7 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
   end
 
   @impl true
-  def handle_interaction(["image-p", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
+  def handle_interaction(["image-p", "gen"], 1, %{"prompt" => prompt} = options, _interaction, _middleware_data) do
     available_models = Config.fal_image_models_generate()
 
     default_model =
@@ -47,22 +47,22 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
       |> Enum.at(0)
       |> Map.get("value")
 
-    handle_image_gen(prompt, other_options, default_model)
+    handle_image_gen(prompt, options, default_model)
   end
 
   @impl true
-  def handle_interaction(["image", "gen"], 1, [{"prompt", 3, prompt} | other_options], _interaction, _middleware_data) do
+  def handle_interaction(["image", "gen"], 1, %{"prompt" => prompt} = options, _interaction, _middleware_data) do
     available_models = Config.fal_image_models_generate()
     default_model = Enum.at(available_models, 0)["value"]
 
-    handle_image_gen(prompt, other_options, default_model)
+    handle_image_gen(prompt, options, default_model)
   end
 
   @impl true
   def handle_interaction(
         ["image-p", "edit"],
         1,
-        [{"prompt", 3, prompt}, {"image", 11, image_attachment} | other_options],
+        %{"prompt" => prompt, "image" => image_attachment} = options,
         _interaction,
         _middleware_data
       ) do
@@ -74,28 +74,28 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
       |> Enum.at(0)
       |> Map.get("value")
 
-    handle_image_edit(prompt, image_attachment, other_options, default_model)
+    handle_image_edit(prompt, image_attachment, options, default_model)
   end
 
   @impl true
   def handle_interaction(
         ["image", "edit"],
         1,
-        [{"prompt", 3, prompt}, {"image", 11, image_attachment} | other_options],
+        %{"prompt" => prompt, "image" => image_attachment} = options,
         _interaction,
         _middleware_data
       ) do
     available_models = Config.fal_image_models_edit()
     default_model = Enum.at(available_models, 0)["value"]
 
-    handle_image_edit(prompt, image_attachment, other_options, default_model)
+    handle_image_edit(prompt, image_attachment, options, default_model)
   end
 
-  defp handle_image_edit(prompt, image_attachment, other_options, default_model) do
-    model = find_option_value(other_options, "model") || default_model
-    seed = find_option_value(other_options, "seed")
+  defp handle_image_edit(prompt, image_attachment, options, default_model) do
+    model = Map.get(options, "model", default_model)
+    seed = Map.get(options, "seed")
 
-    image_url = image_attachment.url
+    image_url = image_attachment["url"]
 
     body =
       %{
@@ -121,9 +121,9 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
     end
   end
 
-  defp handle_image_gen(prompt, other_options, default_model) do
-    model = find_option_value(other_options, "model") || default_model
-    seed = find_option_value(other_options, "seed")
+  defp handle_image_gen(prompt, options, default_model) do
+    model = Map.get(options, "model", default_model)
+    seed = Map.get(options, "seed")
 
     enable_safety_checker? =
       !Enum.any?(Config.fal_image_models_safety_checker_disable(), &String.contains?(model, &1))
@@ -173,11 +173,11 @@ defmodule Edgybot.Bot.Plugin.ImagePlugin do
         fields
       end
 
-    options = [
+    options = %{
       title: nil,
       image: image_url,
       fields: fields
-    ]
+    }
 
     {:success, options}
   end

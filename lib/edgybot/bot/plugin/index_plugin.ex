@@ -7,6 +7,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   alias Edgybot.Config
   alias Edgybot.External.Qdrant
   alias Edgybot.Workers.DiscordChannelBatchingWorker
+  alias Nostrum.Struct.Interaction
 
   @impl true
   def get_plugin_definitions do
@@ -78,7 +79,7 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
         ["index", "channel"],
         1,
         _options,
-        %{guild_id: guild_id, channel_id: channel_id, channel: %{last_message_id: last_message_id}},
+        %Interaction{guild_id: guild_id, channel_id: channel_id, channel: %{last_message_id: last_message_id}},
         _middleware_data
       ) do
     batch_size = Config.discord_channel_message_batch_size()
@@ -121,15 +122,9 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["index", "search"],
-        1,
-        [{"query", 3, query} | other_options],
-        %{guild_id: guild_id},
-        _middleware_data
-      ) do
-    limit = find_option_value(other_options, "limit") || 10
-    score_threshold = find_option_value(other_options, "score-threshold") || 0.0
+  def handle_interaction(["index", "search"], 1, %{"query" => query} = options, %{guild_id: guild_id}, _middleware_data) do
+    limit = Map.get(options, "limit", 10)
+    score_threshold = Map.get(options, "limit", 0.0)
     points_collection = Config.qdrant_collection_discord_messages()
 
     case Qdrant.embed_and_find_closest(points_collection, query, limit,
@@ -159,11 +154,11 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
     - Segments: #{response_body["segments_count"]}
     """
 
-    options = [
+    options = %{
       title: "Index Status",
       description: formatted_response,
       fields: nil
-    ]
+    }
 
     {:success, options}
   end
@@ -180,11 +175,11 @@ defmodule Edgybot.Bot.Plugin.IndexPlugin do
 
     time_field = %{name: "Response Time", value: time_formatted}
 
-    options = [
+    options = %{
       title: "Search Results",
       fields: [time_field],
       description: description
-    ]
+    }
 
     {:success, options}
   end

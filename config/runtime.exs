@@ -216,7 +216,10 @@ config :edgybot, Oban,
   queues: [
     default: 10,
     discord_channel_batch: 10,
-    discord_message_batch_index: 10
+    discord_message_batch_index: 10,
+    interaction_defer: 1000,
+    interaction_process: 1000,
+    interaction_respond: 1000
   ],
   plugins: [
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},

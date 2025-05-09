@@ -8,8 +8,6 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   alias Nostrum.Struct.Emoji
   alias Nostrum.Struct.Guild.Role
   alias Nostrum.Struct.Interaction
-  alias Nostrum.Struct.Message.Attachment
-  alias Nostrum.Struct.User
 
   @role_prefix "Pronouns: "
 
@@ -75,14 +73,14 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   def handle_interaction(
         ["pronouns", "set"],
         1,
-        [{"pronoun1", 3, pronoun1}, {"pronoun2", 3, pronoun2} | other_options],
-        %Interaction{guild_id: guild_id, user: %User{id: user_id}},
+        %{"pronoun1" => pronoun1, "pronoun2" => pronoun2} = options,
+        %Interaction{guild_id: guild_id, user: %{id: user_id}},
         _middleware_data
       )
-      when is_binary(pronoun1) and is_binary(pronoun2) and is_list(other_options) and is_integer(user_id) and
+      when is_binary(pronoun1) and is_binary(pronoun2) and is_map(options) and is_integer(user_id) and
              is_integer(guild_id) do
-    image_option = find_option_value(other_options, "image")
-    emoji_value = find_option_value(other_options, "emoji")
+    image_option = Map.get(options, "image")
+    emoji_value = Map.get(options, "emoji")
 
     roles = Api.get_guild_roles!(guild_id)
 
@@ -144,7 +142,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         ["pronouns", "remove"],
         1,
         _options,
-        %Interaction{guild_id: guild_id, user: %User{id: user_id}},
+        %Interaction{guild_id: guild_id, user: %{id: user_id}},
         _middleware_data
       )
       when is_integer(user_id) and is_integer(guild_id) do
@@ -177,7 +175,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp get_image_url(%Emoji{} = custom_emoji, _image_option), do: Emoji.image_url(custom_emoji)
 
-  defp get_image_url(_custom_emoji, %Attachment{} = image_option), do: Map.get(image_option, :url)
+  defp get_image_url(_custom_emoji, %{} = image_option), do: Map.fetch!(image_option, "url")
 
   defp get_emoji_struct(nil), do: nil
 
@@ -263,11 +261,11 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
        when is_struct(image) do
     max_image_size = String.replace_suffix(max_image_size, ".", "")
 
-    options = [
+    options = %{
       title: "Warning",
       description: "The specified image was too large. The max image size is #{Designer.code_inline(max_image_size)}.",
       image: image.url
-    ]
+    }
 
     {:warning, options}
   end

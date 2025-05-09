@@ -4,16 +4,15 @@ defmodule Edgybot.Bot.Designer do
   alias Nostrum.Struct.Embed
   alias Nostrum.Struct.Embed.Field
 
-  @type options() :: [option]
+  @type options() :: %{
+          optional(:title) => Embed.title(),
+          optional(:description) => Embed.description(),
+          optional(:fields) => [field_options()],
+          optional(:stacktrace) => [Exception.stacktrace()],
+          optional(:image) => [image_option()]
+        }
 
   @type image_option() :: binary() | {:file, binary()}
-
-  @type option() ::
-          {:title, Embed.title()}
-          | {:description, Embed.description()}
-          | {:fields, [field_options()]}
-          | {:stacktrace, Exception.stacktrace()}
-          | {:image, image_option()}
 
   @type field_options() :: %{
           name: Field.name(),
@@ -33,18 +32,18 @@ defmodule Edgybot.Bot.Designer do
 
   def emoji_no, do: "⛔"
 
-  def success_embed(options \\ []) when is_list(options) do
-    default_options = %{title: "Success"}
+  def success_embed(options \\ %{}) when is_map(options) do
+    default_options = %{"title" => "Success"}
     build_embed(color_green(), options, default_options)
   end
 
-  def warning_embed(options \\ []) when is_list(options) do
-    default_options = %{title: "Warning"}
+  def warning_embed(options \\ %{}) when is_map(options) do
+    default_options = %{"title" => "Warning"}
     build_embed(color_orange(), options, default_options)
   end
 
-  def error_embed(options \\ []) when is_list(options) do
-    default_options = %{title: "Error"}
+  def error_embed(options \\ %{}) when is_map(options) do
+    default_options = %{"title" => "Error"}
     build_embed(color_red(), options, default_options)
   end
 
@@ -66,25 +65,25 @@ defmodule Edgybot.Bot.Designer do
   end
 
   defp build_embed(color, options, default_options)
-       when is_integer(color) and is_list(options) and is_map(default_options) do
+       when is_integer(color) and is_map(options) and is_map(default_options) do
     merged_options =
-      options
-      |> Enum.into(default_options)
-      |> Map.new(fn {option, value} ->
-        case value do
-          :none -> {option, nil}
-          _ -> {option, value}
+      default_options
+      |> Map.merge(options)
+      |> Map.new(fn {option_name, option_value} ->
+        case option_value do
+          "none" -> {option_name, nil}
+          _ -> {option_name, option_value}
         end
       end)
 
     %Embed{}
     |> Embed.put_color(color)
-    |> embed_title(Map.get(merged_options, :title))
-    |> embed_description(Map.get(merged_options, :description))
-    |> embed_fields(Map.get(merged_options, :fields))
-    |> embed_stacktrace(Map.get(merged_options, :stacktrace))
-    |> embed_image(Map.get(merged_options, :image))
-    |> embed_url(Map.get(merged_options, :url))
+    |> embed_title(Map.get(merged_options, "title"))
+    |> embed_description(Map.get(merged_options, "description"))
+    |> embed_fields(Map.get(merged_options, "fields"))
+    |> embed_stacktrace(Map.get(merged_options, "stacktrace"))
+    |> embed_image(Map.get(merged_options, "image"))
+    |> embed_url(Map.get(merged_options, "url"))
   end
 
   defp embed_title(%Embed{} = embed, title) when is_binary(title), do: Embed.put_title(embed, title)
@@ -96,12 +95,12 @@ defmodule Edgybot.Bot.Designer do
 
   defp embed_description(%Embed{} = embed, nil), do: embed
 
-  defp embed_fields(%Embed{} = embed, [%{name: name, value: nil} | rest]) when is_binary(name) and is_list(rest),
+  defp embed_fields(%Embed{} = embed, [%{"name" => name, "value" => nil} | rest]) when is_binary(name) and is_list(rest),
     do: embed_fields(embed, rest)
 
-  defp embed_fields(%Embed{} = embed, [%{name: name, value: value} = field | rest])
+  defp embed_fields(%Embed{} = embed, [%{"name" => name, "value" => value} = field | rest])
        when is_binary(name) and is_binary(value) and is_list(rest) do
-    inline? = Map.get(field, :inline, false)
+    inline? = Map.get(field, "inline", false)
 
     embed
     |> Embed.put_field(name, value, inline?)

@@ -29,13 +29,7 @@ defmodule Edgybot.Bot.Plugin.TopicPlugin do
   end
 
   @impl true
-  def handle_interaction(
-        ["topic"],
-        1,
-        [{"content", 3, content} | _other_options],
-        %Interaction{channel_id: channel_id},
-        _middleware_data
-      )
+  def handle_interaction(["topic"], 1, %{"content" => content}, %Interaction{channel_id: channel_id}, _middleware_data)
       when is_binary(content) and is_integer(channel_id) do
     channel_options = %{topic: content}
     {:ok, _channel} = Api.modify_channel(channel_id, channel_options)
