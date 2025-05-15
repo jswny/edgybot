@@ -12,137 +12,202 @@ defmodule Edgybot.Bot.Handler.InteractionHandlerTest do
   alias Nostrum.Struct.Message.Attachment
   alias Nostrum.Struct.User
 
-  defp make_interaction(data) do
-    struct(Interaction, id: System.unique_integer([:positive]), data: data)
-  end
-
-  defp make_data(name, opts \\ [], resolved \\ nil) do
-    struct(ApplicationCommandInteractionData,
+  defp create_interaction(interaction_data) do
+    struct(Interaction,
       id: System.unique_integer([:positive]),
-      name: name,
-      type: 1,
-      options: opts,
-      resolved: resolved
+      data: interaction_data
     )
   end
 
-  defp make_opt(name, type, value, child_opts \\ nil) do
+  defp create_application_command_interaction_data(command_name, options_list \\ [], resolved_data \\ nil) do
+    struct(ApplicationCommandInteractionData,
+      id: System.unique_integer([:positive]),
+      name: command_name,
+      type: 1,
+      options: options_list,
+      resolved: resolved_data
+    )
+  end
+
+  defp create_application_command_interaction_data_option(option_name, option_type, option_value, nested_options \\ nil) do
     struct(ApplicationCommandInteractionDataOption,
-      name: name,
-      type: type,
-      value: value,
-      options: child_opts
+      name: option_name,
+      type: option_type,
+      value: option_value,
+      options: nested_options
     )
   end
 
   describe "parse_interaction/1" do
     test "parses simple top-level command" do
-      data = make_data("ping")
-      inter = make_interaction(data)
+      command_data = create_application_command_interaction_data("ping")
+      interaction_struct = create_interaction(command_data)
 
-      {names, opts} = InteractionHandler.parse_interaction(inter)
+      {name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
 
-      assert names == ["ping"]
-      assert opts == %{}
+      assert name_sequence == ["ping"]
+      assert options_map == %{}
     end
 
-    test "parses nested command with attachment + prompt" do
-      att_id = 123_456
-      att = struct(Attachment, id: att_id, filename: "hat.png", url: "https://ex.com/hat.png")
+    test "parses nested command with attachment and prompt" do
+      attachment_identifier = 123_456
 
-      resolved =
-        struct(ApplicationCommandInteractionDataResolved,
-          attachments: %{att_id => att}
+      attachment_struct =
+        struct(Attachment,
+          id: attachment_identifier,
+          filename: "hat.png",
+          url: "https://ex.com/hat.png"
         )
 
-      prompt_opt = make_opt("prompt", 3, "make him wear a hat")
-      img_opt = make_opt("image", 11, att_id)
-      sub_opt = make_opt("edit", 1, nil, [prompt_opt, img_opt])
-      data = make_data("image", [sub_opt], resolved)
-      inter = make_interaction(data)
+      resolved_data =
+        struct(ApplicationCommandInteractionDataResolved,
+          attachments: %{attachment_identifier => attachment_struct}
+        )
 
-      {names, opts} = InteractionHandler.parse_interaction(inter)
+      prompt_option =
+        create_application_command_interaction_data_option("prompt", 3, "make him wear a hat")
 
-      assert names == ["image", "edit"]
-      assert opts == %{"prompt" => "make him wear a hat", "image" => att}
+      image_option =
+        create_application_command_interaction_data_option("image", 11, attachment_identifier)
+
+      edit_option =
+        create_application_command_interaction_data_option("edit", 1, nil, [prompt_option, image_option])
+
+      command_data =
+        create_application_command_interaction_data("image", [edit_option], resolved_data)
+
+      interaction_struct = create_interaction(command_data)
+
+      {name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
+
+      assert name_sequence == ["image", "edit"]
+      assert options_map == %{"prompt" => "make him wear a hat", "image" => attachment_struct}
     end
 
-    test "resolves USER option to merged user/member map" do
-      uid = 42
-      user = struct(User, id: uid, username: "joe", discriminator: "0001")
-      memb = struct(Member, user_id: uid, nick: "Joe", roles: [])
+    test "resolves USER option to merged user and member data" do
+      user_identifier = 42
 
-      resolved =
-        struct(ApplicationCommandInteractionDataResolved,
-          users: %{uid => user},
-          members: %{uid => memb}
+      user_struct =
+        struct(User,
+          id: user_identifier,
+          username: "joe",
+          discriminator: "0001"
         )
 
-      tgt_opt = make_opt("target", 6, uid)
-      sub_opt = make_opt("ban", 1, nil, [tgt_opt])
-      data = make_data("mod", [sub_opt], resolved)
-      inter = make_interaction(data)
+      member_struct =
+        struct(Member,
+          user_id: user_identifier,
+          nick: "Joe",
+          roles: []
+        )
 
-      {_names, opts} = InteractionHandler.parse_interaction(inter)
-      merged = opts["target"]
+      resolved_data =
+        struct(ApplicationCommandInteractionDataResolved,
+          users: %{user_identifier => user_struct},
+          members: %{user_identifier => member_struct}
+        )
 
-      assert merged.id == uid
-      assert merged.nick == "Joe"
-      assert merged.username == "joe"
+      target_option =
+        create_application_command_interaction_data_option("target", 6, user_identifier)
+
+      ban_option =
+        create_application_command_interaction_data_option("ban", 1, nil, [target_option])
+
+      command_data =
+        create_application_command_interaction_data("mod", [ban_option], resolved_data)
+
+      interaction_struct = create_interaction(command_data)
+
+      {_name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
+      merged_user_member = options_map["target"]
+
+      assert merged_user_member.id == user_identifier
+      assert merged_user_member.nick == "Joe"
+      assert merged_user_member.username == "joe"
     end
 
-    test "resolves MENTIONABLE option to role when role supplied" do
-      rid = 555
-      role = struct(Role, id: rid, name: "Admin")
+    test "resolves MENTIONABLE option to role when role provided" do
+      role_identifier = 555
 
-      resolved =
-        struct(ApplicationCommandInteractionDataResolved,
-          roles: %{rid => role}
+      role_struct =
+        struct(Role,
+          id: role_identifier,
+          name: "Admin"
         )
 
-      tgt_opt = make_opt("who", 9, rid)
-      data = make_data("give-role", [tgt_opt], resolved)
-      inter = make_interaction(data)
+      resolved_data =
+        struct(ApplicationCommandInteractionDataResolved,
+          roles: %{role_identifier => role_struct}
+        )
 
-      {_names, opts} = InteractionHandler.parse_interaction(inter)
-      assert opts["who"] == role
+      who_option =
+        create_application_command_interaction_data_option("who", 9, role_identifier)
+
+      command_data =
+        create_application_command_interaction_data("give-role", [who_option], resolved_data)
+
+      interaction_struct = create_interaction(command_data)
+
+      {_name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
+      assert options_map["who"] == role_struct
     end
 
     test "resolves CHANNEL option correctly" do
-      cid = 777
-      chan = struct(Channel, id: cid, name: "general")
+      channel_identifier = 777
 
-      resolved =
-        struct(ApplicationCommandInteractionDataResolved,
-          channels: %{cid => chan}
+      channel_struct =
+        struct(Channel,
+          id: channel_identifier,
+          name: "general"
         )
 
-      ch_opt = make_opt("channel", 7, cid)
-      data = make_data("move", [ch_opt], resolved)
-      inter = make_interaction(data)
+      resolved_data =
+        struct(ApplicationCommandInteractionDataResolved,
+          channels: %{channel_identifier => channel_struct}
+        )
 
-      {_names, opts} = InteractionHandler.parse_interaction(inter)
-      assert opts["channel"] == chan
+      channel_option =
+        create_application_command_interaction_data_option("channel", 7, channel_identifier)
+
+      command_data =
+        create_application_command_interaction_data("move", [channel_option], resolved_data)
+
+      interaction_struct = create_interaction(command_data)
+
+      {_name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
+      assert options_map["channel"] == channel_struct
     end
 
     test "passes through primitive value when no resolution needed" do
-      int_opt = make_opt("count", 4, 10)
-      data = make_data("repeat", [int_opt])
-      inter = make_interaction(data)
+      count_option =
+        create_application_command_interaction_data_option("count", 4, 10)
 
-      {_names, opts} = InteractionHandler.parse_interaction(inter)
-      assert opts == %{"count" => 10}
+      command_data =
+        create_application_command_interaction_data("repeat", [count_option])
+
+      interaction_struct = create_interaction(command_data)
+
+      {_name_sequence, options_map} = InteractionHandler.parse_interaction(interaction_struct)
+      assert options_map == %{"count" => 10}
     end
 
     test "maintains correct order with three-level nesting" do
-      leaf_opt = make_opt("value", 3, "ok")
-      sub_opt = make_opt("blur", 1, nil, [leaf_opt])
-      grp_opt = make_opt("filters", 1, nil, [sub_opt])
-      data = make_data("image", [grp_opt])
-      inter = make_interaction(data)
+      value_option =
+        create_application_command_interaction_data_option("value", 3, "ok")
 
-      {names, _opts} = InteractionHandler.parse_interaction(inter)
-      assert names == ["image", "filters", "blur"]
+      blur_option =
+        create_application_command_interaction_data_option("blur", 1, nil, [value_option])
+
+      filters_option =
+        create_application_command_interaction_data_option("filters", 1, nil, [blur_option])
+
+      command_data =
+        create_application_command_interaction_data("image", [filters_option])
+
+      interaction_struct = create_interaction(command_data)
+
+      {name_sequence, _options_map} = InteractionHandler.parse_interaction(interaction_struct)
+      assert name_sequence == ["image", "filters", "blur"]
     end
   end
 end
