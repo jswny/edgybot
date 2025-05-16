@@ -52,6 +52,10 @@ defmodule Edgybot.Bot.NostrumEncoders do
     Nostrum.Struct.Component.SelectMenu,
     Nostrum.Struct.Channel,
     Nostrum.Struct.Emoji,
+    Nostrum.Struct.Guild,
+    Nostrum.Struct.Guild.Member,
+    Nostrum.Struct.Guild.Role,
+    Nostrum.Struct.Message.Attachment,
     Nostrum.Struct.Sticker,
     Nostrum.Struct.User
   ]
