@@ -5,7 +5,7 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
 
   alias Edgybot.Bot.Designer
   alias Edgybot.Bot.Utils
-  alias Nostrum.Api
+  alias Nostrum.Api.Interaction, as: InteractionApi
   alias Nostrum.Struct.Embed
   alias Nostrum.Struct.Interaction
 
@@ -31,11 +31,11 @@ defmodule Edgybot.Bot.Handler.ResponseHandler do
       |> create_response_object()
       |> add_response_metadata(@interaction_channel_message_with_source, ephemeral?)
 
-    Api.edit_interaction_response(interaction, response_object.data)
+    InteractionApi.edit_response(interaction, response_object.data)
   end
 
   defp send_direct_response(response_object, %Interaction{} = interaction),
-    do: Api.create_interaction_response(interaction, response_object)
+    do: InteractionApi.create_response(interaction, response_object)
 
   defp add_response_metadata(response_object, response_type, ephemeral?) when is_boolean(ephemeral?) do
     response_object = Map.put(response_object, :type, response_type)

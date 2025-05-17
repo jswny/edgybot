@@ -1,6 +1,6 @@
 defmodule Edgybot.External.Discord do
   @moduledoc false
-  alias Nostrum.Api
+  alias Nostrum.Api.Channel, as: ChannelApi
   alias Nostrum.Cache.MemberCache
 
   def get_user_sanitized_chat_message_name(guild_id, user_id) do
@@ -79,9 +79,10 @@ defmodule Edgybot.External.Discord do
       ) do
     chunk_size = min(message_count_remaining_requested, max_chunk_size)
 
+    {:ok, messages} = ChannelApi.messages(channel_id, chunk_size, locator)
+
     message_chunk =
-      channel_id
-      |> Api.get_channel_messages!(chunk_size, locator)
+      messages
       |> Enum.map(fn message ->
         sanitized_nick = get_user_sanitized_chat_message_name(guild_id, message.author.id)
         %{id: message.id, name: sanitized_nick, content: message.content}

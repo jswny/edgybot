@@ -3,7 +3,8 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
 
   alias Edgybot.Bot.Registrar.PluginRegistrar
   alias Edgybot.Config
-  alias Nostrum.Api
+  alias Nostrum.Api.ApplicationCommand, as: ApplicationCommandApi
+  alias Nostrum.Api.Guild, as: GuildApi
   alias Nostrum.Constants.ApplicationCommandOptionType
   alias Nostrum.Struct.Guild
 
@@ -82,13 +83,13 @@ defmodule Edgybot.Bot.Handler.GuildHandler do
   end
 
   defp get_guild_name(guild_id) when is_integer(guild_id) do
-    {:ok, guild} = Api.get_guild(guild_id)
+    {:ok, guild} = GuildApi.get(guild_id)
     Map.get(guild, :name)
   end
 
   defp bulk_overwrite_guild_application_commands(application_command_definitions, guild_id)
        when is_list(application_command_definitions) and is_integer(guild_id) do
     {:ok, _application_commands} =
-      Api.bulk_overwrite_guild_application_commands(guild_id, application_command_definitions)
+      ApplicationCommandApi.bulk_overwrite_guild_commands(guild_id, application_command_definitions)
   end
 end

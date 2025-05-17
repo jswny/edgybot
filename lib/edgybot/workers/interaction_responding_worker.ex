@@ -15,7 +15,7 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
       }) do
     interaction = NostrumDecoders.to_interaction_struct(interaction)
     response = {"error", %{"description" => Designer.code_block(exception)}}
-    {:ok} = ResponseHandler.send_immediate_response(response, interaction, ephemeral?)
+    :ok = ResponseHandler.send_immediate_response(response, interaction, ephemeral?)
 
     :ok
   end
@@ -30,7 +30,7 @@ defmodule Edgybot.Workers.InteractionRespondingWorker do
         }
       }) do
     interaction = NostrumDecoders.to_interaction_struct(interaction)
-    {:ok} = ResponseHandler.send_immediate_response({response_type, response_value}, interaction, ephemeral?)
+    :ok = ResponseHandler.send_immediate_response({response_type, response_value}, interaction, ephemeral?)
 
     :ok
   end
