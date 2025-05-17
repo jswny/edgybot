@@ -271,13 +271,8 @@ if config_env() != :test do
     openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
 
   config :nostrum,
-    token: get_env_var.("DISCORD_TOKEN", :none),
     ffmpeg: false,
-    request_guild_members: true,
-    gateway_intents: [
-      :guilds,
-      :guild_members
-    ]
+    request_guild_members: true
 end
 
 if config_env() == :prod do
