@@ -33,7 +33,7 @@ defmodule Edgybot.Workers.InteractionDeferringWorker do
 
         ephemeral? = InteractionHandler.ephemeral?(application_command_metadata, parsed_options)
 
-        {:ok} = ResponseHandler.defer_response(interaction, ephemeral?)
+        :ok = ResponseHandler.defer_response(interaction, ephemeral?)
 
         processed_middleware_data =
           InteractionHandler.process_middleware_for_interaction(interaction, matched_plugin_module)

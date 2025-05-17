@@ -3,7 +3,7 @@ defmodule Edgybot.Bot.EventConsumer do
   Handles all bot events.
   """
 
-  use Nostrum.Consumer
+  @behaviour Nostrum.Consumer
 
   alias Edgybot.Bot.Handler.GuildHandler
   alias Edgybot.Workers.InteractionDeferringWorker
@@ -16,6 +16,7 @@ defmodule Edgybot.Bot.EventConsumer do
     GuildHandler.handle_guild_available(guild)
   end
 
+  @impl true
   def handle_event({:INTERACTION_CREATE, interaction, _ws_state}) do
     %{
       interaction: interaction
@@ -26,10 +27,6 @@ defmodule Edgybot.Bot.EventConsumer do
     interaction
   end
 
-  def handle_event({_, _, _}), do: :noop
-
   @impl true
-  def handle_event(_event) do
-    :noop
-  end
+  def handle_event(_event), do: :ok
 end

@@ -13,8 +13,17 @@ defmodule Edgybot.Bot.Supervisor do
 
   @impl true
   def init(_opts) do
+    bot_options = %{
+      consumer: EventConsumer,
+      intents: [
+        :guild_members,
+        :guilds
+      ],
+      wrapped_token: fn -> System.fetch_env!("DISCORD_TOKEN") end
+    }
+
     children = [
-      EventConsumer,
+      {Nostrum.Bot, bot_options},
       PluginRegistrar,
       MiddlewareRegistrar
     ]

@@ -7,7 +7,7 @@ defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
 
   alias Edgybot.Config
   alias Edgybot.Workers.DiscordMessageIndexingWorker
-  alias Nostrum.Api
+  alias Nostrum.Api.Channel, as: ChannelApi
 
   require Logger
 
@@ -20,7 +20,7 @@ defmodule Edgybot.Workers.DiscordChannelBatchingWorker do
     batch_size = Config.discord_channel_message_batch_size()
 
     {:ok, messages} =
-      Api.get_channel_messages(channel_id, batch_size, {:before, latest_message_id})
+      ChannelApi.messages(channel_id, batch_size, {:before, latest_message_id})
 
     batch_size_index = Config.discord_channel_message_batch_size_index()
 

@@ -4,7 +4,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Nostrum.Api
+  alias Nostrum.Api.Guild, as: GuildApi
   alias Nostrum.Struct.Emoji
   alias Nostrum.Struct.Guild.Role
   alias Nostrum.Struct.Interaction
@@ -82,7 +82,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
     image_option = Map.get(options, "image")
     emoji_value = Map.get(options, "emoji")
 
-    roles = Api.get_guild_roles!(guild_id)
+    {:ok, roles} = GuildApi.roles(guild_id)
 
     existing_pronoun_roles = get_existing_pronoun_roles(roles, guild_id, user_id)
 
@@ -102,11 +102,11 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         role_options =
           generate_role_options(full_pronouns, image_url, emoji_value, true)
 
-        new_role = Api.create_guild_role(guild_id, role_options)
+        new_role_result = GuildApi.create_role(guild_id, role_options)
 
         response =
           handle_create_role_result(
-            new_role,
+            new_role_result,
             image_option,
             emoji_value,
             full_pronouns
@@ -115,7 +115,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         case response do
           {:success, _} ->
             setup_new_role(
-              new_role,
+              new_role_result,
               guild_id,
               user_id,
               highest_position_role_with_icon
@@ -128,7 +128,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         role_options = generate_role_options(full_pronouns, image_url, emoji_value, false)
 
         guild_id
-        |> Api.modify_guild_role(existing_pronoun_role.id, role_options)
+        |> GuildApi.modify_role(existing_pronoun_role.id, role_options)
         |> handle_create_role_result(
           image_option,
           emoji_value,
@@ -146,8 +146,9 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
         _middleware_data
       )
       when is_integer(user_id) and is_integer(guild_id) do
-    guild_id
-    |> Api.get_guild_roles!()
+    {:ok, roles} = GuildApi.roles(guild_id)
+
+    roles
     |> get_existing_pronoun_roles(guild_id, user_id)
     |> delete_roles(guild_id)
 
@@ -156,7 +157,7 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
 
   defp delete_roles(roles, guild_id) when is_list(roles) and is_integer(guild_id) do
     Enum.each(roles, fn role ->
-      Api.delete_guild_role!(guild_id, role.id)
+      :ok = GuildApi.delete_role(guild_id, role.id)
     end)
   end
 
@@ -164,8 +165,9 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
        when is_integer(guild_id) and is_integer(user_id) and is_list(roles) do
     roles_by_id = Map.new(roles, fn role -> {role.id, role} end)
 
-    guild_id
-    |> Api.get_guild_member!(user_id)
+    {:ok, member} = GuildApi.member(guild_id, user_id)
+
+    member
     |> Map.fetch!(:roles)
     |> Enum.map(fn role_id -> Map.fetch!(roles_by_id, role_id) end)
     |> Enum.filter(fn role -> String.starts_with?(role.name, @role_prefix) end)
@@ -275,10 +277,6 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
     {:warning, "The file #{Designer.code_inline(image.filename)} is invalid."}
   end
 
-  defp handle_create_role_result({:error, :timeout}, image, _emoji, _pronouns) when is_struct(image) do
-    {:warning, "Timed out while attempting to upload file #{Designer.code_inline(image.filename)}"}
-  end
-
   defp handle_create_role_result({:ok, %Role{}}, _image, _emoji, pronouns) when is_binary(pronouns) do
     {:success, "Set pronouns to #{Designer.code_inline(pronouns)}"}
   end
@@ -286,13 +284,17 @@ defmodule Edgybot.Bot.Plugin.PronounsPlugin do
   defp setup_new_role({:ok, %Role{id: new_role_id}}, guild_id, user_id, highest_position_role_with_icon)
        when is_integer(guild_id) and is_integer(user_id) and is_integer(new_role_id) and
               is_struct(highest_position_role_with_icon) do
-    {:ok} = Api.add_guild_member_role(guild_id, user_id, new_role_id)
+    :ok = GuildApi.add_member_role(guild_id, user_id, new_role_id)
 
-    Api.modify_guild_role_positions!(guild_id, [
-      %{
-        id: new_role_id,
-        position: highest_position_role_with_icon.position + 1
-      }
-    ])
+    {:ok, _roles} =
+      GuildApi.modify_role_positions(
+        guild_id,
+        [
+          %{
+            id: new_role_id,
+            position: highest_position_role_with_icon.position + 1
+          }
+        ]
+      )
   end
 end

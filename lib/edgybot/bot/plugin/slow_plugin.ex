@@ -4,7 +4,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Nostrum.Api
+  alias Nostrum.Api.Channel, as: ChannelApi
   alias Nostrum.Struct.Interaction
 
   @impl true
@@ -55,7 +55,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
       {:warning,
        "Delay must be between #{Designer.code_inline(Integer.to_string(lower_bound))} and #{Designer.code_inline(Integer.to_string(upper_bound))}!"}
     else
-      Api.modify_channel!(channel_id, %{rate_limit_per_user: delay})
+      {:ok, _channel} = ChannelApi.modify(channel_id, %{rate_limit_per_user: delay})
 
       {:success, "Sucessfully enabled slow mode with a delay of #{Designer.code_inline(Integer.to_string(delay))}!"}
     end
@@ -63,7 +63,7 @@ defmodule Edgybot.Bot.Plugin.SlowPlugin do
 
   @impl true
   def handle_interaction(["slow", "disable"], 1, _options, %Interaction{channel_id: channel_id}, _middleware_data) do
-    Api.modify_channel!(channel_id, %{rate_limit_per_user: 0})
+    {:ok, _channel} = ChannelApi.modify(channel_id, %{rate_limit_per_user: 0})
     {:success, "Successfully disabled slowmode!"}
   end
 end

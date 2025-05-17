@@ -4,7 +4,8 @@ defmodule Edgybot.Bot.Plugin.NickPlugin do
   use Edgybot.Bot.Plugin
 
   alias Edgybot.Bot.Designer
-  alias Nostrum.Api
+  alias Nostrum.Api.Guild, as: GuildApi
+  alias Nostrum.Api.User, as: UserApi
   alias Nostrum.Struct.Interaction
   alias Nostrum.Struct.User
 
@@ -76,8 +77,8 @@ defmodule Edgybot.Bot.Plugin.NickPlugin do
   end
 
   defp parse_nickname(guild_id, user_id) when is_integer(guild_id) and is_integer(user_id) do
-    {:ok, member} = Api.get_guild_member(guild_id, user_id)
-    {:ok, user} = Api.get_user(user_id)
+    {:ok, member} = GuildApi.member(guild_id, user_id)
+    {:ok, user} = UserApi.get(user_id)
 
     old_nick =
       Map.get(member, :nick) || Map.fetch!(user, :username)
@@ -90,7 +91,7 @@ defmodule Edgybot.Bot.Plugin.NickPlugin do
 
   defp set_nickname_and_handle_response(guild_id, user_id, new_nickname, action)
        when is_integer(guild_id) and is_integer(user_id) and is_binary(new_nickname) and action in [:set, :cleared] do
-    result = Api.modify_guild_member(guild_id, user_id, nick: new_nickname)
+    result = GuildApi.modify_member(guild_id, user_id, nick: new_nickname)
 
     case result do
       {:error,
