@@ -23,10 +23,7 @@ defmodule Edgybot.Bot.Plugin do
         }
   @type application_command_name_list :: nonempty_list(ApplicationCommand.command_name())
 
-  @type interaction_option_value :: binary()
-
-  @type interaction_option ::
-          {ApplicationCommand.command_name(), ApplicationCommand.command_option_type(), interaction_option_value()}
+  @type interaction_options :: %{optional(binary()) => binary()}
 
   @type interaction_response_message :: binary()
 
@@ -44,7 +41,7 @@ defmodule Edgybot.Bot.Plugin do
   @callback handle_interaction(
               application_command_name_list(),
               ApplicationCommand.command_type(),
-              [interaction_option],
+              interaction_options(),
               Interaction.t(),
               map()
             ) :: interaction_response()
@@ -65,17 +62,5 @@ defmodule Edgybot.Bot.Plugin do
 
       matching_name? && matching_type?
     end)
-  end
-
-  def find_option_value(options, name) when is_list(options) and is_binary(name) do
-    result =
-      Enum.find(options, nil, fn {current_option_name, _type, _value} ->
-        current_option_name == name
-      end)
-
-    case result do
-      nil -> nil
-      {_, _, value} -> value
-    end
   end
 end

@@ -33,8 +33,8 @@ defmodule Edgybot.Bot.Plugin.Archive do
   end
 
   @impl true
-  def handle_interaction(["archive"], 1, [{"url", 3, url} | other_options], _interaction, _middleware_data) do
-    preserve_query_params? = find_option_value(other_options, "query-params")
+  def handle_interaction(["archive"], 1, %{"url" => url} = options, _interaction, _middleware_data) do
+    preserve_query_params? = Map.get(options, "query-params")
 
     parsed_url = URI.parse(url)
 
