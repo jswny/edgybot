@@ -43,6 +43,13 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :nostrum,
+  ffmpeg: false,
+  request_guild_members: true,
+  caches: %{
+    messages: {Edgybot.Bot.Cache.MessageCacheSlim, per_channel_limit: 100}
+  }
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
