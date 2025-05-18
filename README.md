@@ -32,14 +32,6 @@ docker-compose up
 
 - `APPLICATION_COMMAND_PREFIX`: a prefix to prepend to all commands when registering with Discord
 
-### Logflare
-
-You can enable the [Logflare](https://logflare.app/) integration, which will ship logs out to Logflare in addition to continuing to log to the console normally. To enable the Logflare, set up a source and then set the following environment variables:
-
-- `LF_ENABLED`: Enable or disable Logflare logging (default: `false`)
-- `LF_API_KEY`: Logflare ingest API key
-- `LF_SOURCE_ID`
-
 ### OpenAI
 
 Various configuration is available to tweak how the bot interact with the OpenAI API. For key-value pair lists, these are defined as comma-separated lists of `<key>=<value>` pairs.

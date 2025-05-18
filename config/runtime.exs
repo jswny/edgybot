@@ -63,20 +63,6 @@ get_key_value_env_var = fn var_name, default ->
   end)
 end
 
-logflare_enabled =
-  "LF_ENABLED"
-  |> get_env_var.(false)
-  |> maybe_string_to_boolean.()
-
-if logflare_enabled do
-  config :logflare_logger_backend,
-    api_key: get_env_var.("LF_API_KEY", nil),
-    source_id: get_env_var.("LF_SOURCE_ID", nil)
-
-  config :logger,
-    backends: [:console, LogflareLogger.HttpBackend]
-end
-
 openai_timeout = String.to_integer(get_env_var.("OPENAI_TIMEOUT", "840000"))
 
 openai_chat_models =
