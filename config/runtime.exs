@@ -255,10 +255,6 @@ config :edgybot,
 if config_env() != :test do
   config :edgybot,
     openai_api_key: get_env_var.("OPENAI_API_KEY", :none)
-
-  config :nostrum,
-    ffmpeg: false,
-    request_guild_members: true
 end
 
 if config_env() == :prod do

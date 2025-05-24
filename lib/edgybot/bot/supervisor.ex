@@ -17,7 +17,9 @@ defmodule Edgybot.Bot.Supervisor do
       consumer: EventConsumer,
       intents: [
         :guild_members,
-        :guilds
+        :guilds,
+        :guild_messages,
+        :message_content
       ],
       wrapped_token: fn -> System.fetch_env!("DISCORD_TOKEN") end
     }
