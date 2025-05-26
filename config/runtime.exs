@@ -187,6 +187,18 @@ fal_image_models_edit = get_env_var.("FAL_IMAGE_MODELS_EDIT", fal_image_models_e
 
 disabled_tools = "CHAT_DISABLED_TOOLS" |> get_list_env_var.("") |> MapSet.new()
 
+ai_base_prompt = """
+You are a decision assistant first and foremost, and a helpful assistant secondarily.
+For each user message, decide if it warrants a reply.
+If it does warrant a reply, respond.
+Respond only either when you are specifically mentioned by name, or as specified below.
+Otherwise, do not respond.
+"""
+
+config :edgybot, AIConfig,
+  default_model: get_env_var.("AI_DEFAULT_MODEL", "openai/gpt-4o-mini"),
+  base_prompt: get_env_var.("AI_BASE_PROMPT", ai_base_prompt)
+
 config :edgybot, Chat,
   recent_messages_chunk_size: String.to_integer(get_env_var.("CHAT_RECENT_MESSAGES_CHUNK_SIZE", "50")),
   recent_messages_default_count: String.to_integer(get_env_var.("CHAT_RECENT_MESSAGES_DEFAULT_COUNT", "50")),
@@ -205,7 +217,8 @@ config :edgybot, Oban,
     discord_message_batch_index: 10,
     interaction_defer: 1000,
     interaction_process: 1000,
-    interaction_respond: 1000
+    interaction_respond: 1000,
+    message_event: 1000
   ],
   plugins: [
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)},

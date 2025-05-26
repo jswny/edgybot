@@ -6,6 +6,7 @@ defmodule Edgybot.Bot.EventConsumer do
   @behaviour Nostrum.Consumer
 
   alias Edgybot.Bot.Handler.GuildHandler
+  alias Edgybot.Workers.DiscordMesssageEventWorker
   alias Edgybot.Workers.InteractionDeferringWorker
 
   require Logger
@@ -14,6 +15,17 @@ defmodule Edgybot.Bot.EventConsumer do
   def handle_event({:GUILD_AVAILABLE, payload, _ws_state}) do
     guild = payload
     GuildHandler.handle_guild_available(guild)
+  end
+
+  @impl true
+  def handle_event({:MESSAGE_CREATE, payload, _ws_state}) do
+    %{
+      message: payload
+    }
+    |> DiscordMesssageEventWorker.new()
+    |> Oban.insert()
+
+    payload
   end
 
   @impl true

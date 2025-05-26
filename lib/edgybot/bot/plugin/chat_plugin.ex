@@ -3,6 +3,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   use Edgybot.Bot.Plugin
 
+  alias Edgybot.Bot.AI
   alias Edgybot.Bot.Designer
   alias Edgybot.Config
   alias Edgybot.External.Discord
@@ -74,15 +75,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         ["chat"],
         1,
         %{"prompt" => prompt} = options,
-        %Interaction{
-          user: %{username: caller_username},
-          member: %{nick: caller_nick},
-          guild_id: guild_id,
-          channel_id: channel_id
-        },
+        %Interaction{user: %{id: user_id}, guild_id: guild_id, channel_id: channel_id},
         _middleware_data
       ) do
-    endpoint = "chat/completions"
+    endpoint = OpenRouterAPI.completions_endpoint()
     default_model = Application.get_env(:edgybot, OpenRouter)[:default_model]
 
     num_recent_context_messages = Map.get(options, "context")
@@ -96,11 +92,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     system_messages = generate_system_messages(behavior)
 
-    prompt_message = %{
-      role: "user",
-      name: Discord.sanitize_chat_message_name(caller_nick, caller_username),
-      content: prompt
-    }
+    prompt_message = AI.generate_user_message(guild_id, user_id, prompt)
 
     body =
       %{
