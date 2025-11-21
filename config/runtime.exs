@@ -141,6 +141,11 @@ fal_image_models_generate_default = """
       "premium": true
     },
     {
+      "name": "Google Gemini 3 Pro Image Preview",
+      "value": "google/gemini-3-pro-image-preview",
+      "premium": true
+    },
+    {
       "name": "GPT Image 1",
       "value": "gpt-image-1/text-to-image/byok"
     }
