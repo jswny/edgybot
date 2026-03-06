@@ -78,7 +78,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         %Interaction{user: %{id: user_id}, guild_id: guild_id, channel_id: channel_id},
         _middleware_data
       ) do
-    endpoint = OpenRouterAPI.completions_endpoint()
     default_model = Application.get_env(:edgybot, OpenRouter)[:default_model]
 
     num_recent_context_messages = Map.get(options, "context")
@@ -105,7 +104,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     completion_metadata = %{guild_id: guild_id, channel_id: channel_id, prompt: prompt}
 
     case generate_completion_with_tools(
-           endpoint,
            body,
            system_messages,
            recent_context_messages,
@@ -203,7 +201,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       ]
   end
 
-  defp generate_completion_with_tools(url, body, system_messages, conversation_messages, prompt_message, tools, metadata) do
+  defp generate_completion_with_tools(body, system_messages, conversation_messages, prompt_message, tools, metadata) do
     prompt_messages = if prompt_message, do: [prompt_message], else: []
     conversation_messages = Enum.concat(conversation_messages, prompt_messages)
     messages = Enum.concat([system_messages, conversation_messages])
@@ -211,11 +209,10 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     body = Map.put(body, :messages, messages)
     {body, metadata} = update_with_tools_support(body, metadata, tools)
 
-    response = OpenRouterAPI.post_and_handle_errors(url, body)
+    response = OpenRouterAPI.generate_completion(body)
 
     generate_completion_with_tools(
       response,
-      url,
       body,
       system_messages,
       conversation_messages,
@@ -227,7 +224,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:error, _error} = result,
-         _url,
          _body,
          _system_messages,
          _conversation_messages,
@@ -240,7 +236,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:ok, %{"error" => %{"code" => code, "message" => message}}},
-         _url,
          _body,
          _system_messages,
          _conversation_messages,
@@ -254,7 +249,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:ok, %{"choices" => [%{"message" => %{"tool_calls" => tool_calls} = message} | _other_choices]}},
-         url,
          body,
          system_messages,
          conversation_messages,
@@ -268,7 +262,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
       {:ok, metadata} ->
         generate_completion_with_tools(
           {:ok, :tool_calls},
-          url,
           body,
           system_messages,
           conversation_messages,
@@ -285,7 +278,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:ok, %{"model" => model, "choices" => [%{"message" => %{"content" => content}} | _other_choices]}},
-         _url,
          _body,
          _system_messages,
          _conversation_messages,
@@ -299,7 +291,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:ok, :tool_calls},
-         url,
          body,
          system_messages,
          conversation_messages,
@@ -316,7 +307,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
     conversation_messages = conversation_messages ++ [tool_call_followup_message]
 
     generate_completion_with_tools(
-      url,
       body,
       system_messages,
       conversation_messages,
@@ -328,7 +318,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp generate_completion_with_tools(
          {:ok, :tool_calls} = response,
-         url,
          body,
          system_messages,
          conversation_messages,
@@ -367,7 +356,6 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
     generate_completion_with_tools(
       response,
-      url,
       body,
       system_messages,
       conversation_messages,
@@ -380,7 +368,7 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
 
   defp update_with_tools_support(body, metadata, tools) do
     tool_definitions = Map.values(tools)
-    supports_tools? = model_supports_parameters?(body.model, "tools")
+    supports_tools? = OpenRouterAPI.model_supports_parameters?(body.model, "tools")
     tools_param = :tools
 
     updated_body =
@@ -736,21 +724,5 @@ defmodule Edgybot.Bot.Plugin.ChatPlugin do
         additionalProperties: false
       }
     }
-  end
-
-  defp model_supports_parameters?(model, parameters) do
-    cache_result =
-      Cachex.fetch(:openrouter_models_cache, parameters, fn _key ->
-        {:ok, %{"data" => models}} = OpenRouterAPI.get("models", supported_parameters: parameters)
-        {:commit, models}
-      end)
-
-    model_definitions =
-      case cache_result do
-        {:ok, models} -> models
-        {:commit, models} -> models
-      end
-
-    Enum.any?(model_definitions, fn model_definition -> model_definition["id"] == model end)
   end
 end

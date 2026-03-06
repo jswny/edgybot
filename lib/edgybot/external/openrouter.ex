@@ -4,53 +4,34 @@ defmodule Edgybot.External.OpenRouter do
   @completions_endpoint "chat/completions"
   @models_endpoint "models"
 
-  def completions_endpoint, do: @completions_endpoint
-  def models_endpoint, do: @models_endpoint
-
-  def get(endpoint, params) do
-    req = create_client()
-
-    response = Req.get(req, url: endpoint, params: params)
-
-    case response do
-      {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
-
-      {:ok, %{status: status}} ->
-        {:error, "Request failed with status #{status}"}
-
-      {:error, %Req.TransportError{reason: :timeout}} ->
-        {:error, "Request timed out"}
-    end
-  end
-
-  def post_and_handle_errors(endpoint, body) when is_binary(endpoint) and is_map(body) do
-    req = create_client()
-
+  def generate_completion(body) do
     body =
       body
       |> Enum.filter(fn {_, value} -> value != nil end)
       |> Map.new()
 
-    response = Req.post(req, url: endpoint, json: body)
-
-    case response do
-      {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
-
-      {:ok, %{body: %{"error" => %{"message" => message}}}} ->
-        {:error, message}
-
-      {:ok, %{status: status}} ->
-        {:error, "Request failed with status #{status}"}
-
-      {:error, %Req.TransportError{reason: :timeout}} ->
-        {:error, "Request timed out"}
-    end
+    opts = [method: :post, url: @completions_endpoint, json: body]
+    call_and_handle_errors(opts)
   end
 
-  def get_models do
-    opts = [method: :get, url: @models_endpoint]
+  def model_supports_parameters?(model, parameters) do
+    cache_result =
+      Cachex.fetch(:openrouter_models_cache, parameters, fn _key ->
+        {:ok, %{"data" => models}} = get_models(supported_parameters: parameters)
+        {:commit, models}
+      end)
+
+    model_definitions =
+      case cache_result do
+        {:ok, models} -> models
+        {:commit, models} -> models
+      end
+
+    Enum.any?(model_definitions, fn model_definition -> model_definition["id"] == model end)
+  end
+
+  defp get_models(params) do
+    opts = [method: :get, url: @models_endpoint, params: params]
     call_and_handle_errors(opts)
   end
 

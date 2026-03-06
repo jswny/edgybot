@@ -102,21 +102,13 @@ defmodule Edgybot.Bot.Plugin.AIPlugin do
 
   @impl true
   def handle_interaction(["ai", "model"], 1, %{"model" => model}, %{guild_id: guild_id, channel_id: channel_id}, _) do
-    models_result = OpenRouterAPI.get_models()
+    model_exists_and_supports_tools = OpenRouterAPI.model_supports_parameters?(model, "tools")
 
-    case models_result do
-      {:ok, %{"data" => api_models}} ->
-        matched_model = Enum.any?(api_models, fn api_model -> api_model["id"] == model end)
-
-        if matched_model do
-          {:ok, _changeset} = AI.set_channel_settings(%{guild_id: guild_id, channel_id: channel_id, model: model})
-          {:success, "Set the model for this channel to: #{Designer.code_block(model)}"}
-        else
-          {:warning, "Model #{Designer.code_inline(model)} was not found!"}
-        end
-
-      _ ->
-        {:error, "Error verifying model"}
+    if model_exists_and_supports_tools do
+      {:ok, _changeset} = AI.set_channel_settings(%{guild_id: guild_id, channel_id: channel_id, model: model})
+      {:success, "Set the model for this channel to: #{Designer.code_block(model)}"}
+    else
+      {:warning, "Model #{Designer.code_inline(model)} does not exist or does not support tools!"}
     end
   end
 
@@ -214,10 +206,8 @@ defmodule Edgybot.Bot.Plugin.AIPlugin do
       messages: messages
     }
 
-    endpoint = OpenRouterAPI.completions_endpoint()
-
     {:ok, %{"choices" => [%{"message" => %{"content" => response_decision_json}}]}} =
-      OpenRouterAPI.post_and_handle_errors(endpoint, body)
+      OpenRouterAPI.generate_completion(body)
 
     :json.decode(response_decision_json)
   end
