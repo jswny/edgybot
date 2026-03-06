@@ -10,7 +10,7 @@ defmodule Edgybot.External.Discord do
     end
   end
 
-  def sanitize_chat_message_name(name, fallback_value) when is_nil(name) and is_binary(fallback_value) do
+  defp sanitize_chat_message_name(name, fallback_value) when is_nil(name) and is_binary(fallback_value) do
     cache_result =
       Cachex.fetch(:processed_string_cache, name, fn _key -> {:commit, fallback_value} end)
 
@@ -20,7 +20,7 @@ defmodule Edgybot.External.Discord do
     end
   end
 
-  def sanitize_chat_message_name(name, fallback_value) when is_binary(name) and is_binary(fallback_value) do
+  defp sanitize_chat_message_name(name, fallback_value) when is_binary(name) and is_binary(fallback_value) do
     regex = ~r/[a-zA-Z0-9_-]/
 
     cache_result =
